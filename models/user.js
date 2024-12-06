@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true },
     address: { type: AddressSchema, required: true},
     isChurchAdmin: {type:Boolean, default: false},
+    photoUrl: String,
+    pushToken: String,
+    firebaseId: String,
     role: { type: String, enum: ['admin', 'member'], default: 'member' }
 });
 userSchema.pre('save', async function (next) {
