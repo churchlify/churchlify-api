@@ -1,0 +1,16 @@
+networks:
+  db_network: # Define the app_network
+    driver: bridge
+services:
+  # Node.js backend applications
+  churchlify_api:
+    build: .
+    container_name: churchlify_api
+    restart: always
+    ports:
+      - "5500:5500"
+    environment:
+      - MONGO_URI=mongodb://shukwudi:L0k0m0t1f@mongo_main,mongo_sec,mongo_tri:27017/churchlify?replicaSet=rs0
+    networks:
+      - db_network
+

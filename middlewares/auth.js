@@ -6,11 +6,12 @@ const dotenv = require('dotenv');
 dotenv.config()
 
 // Initialize Firebase Admin SDK
-const GOOGLE_CLOUD_CREDENTIALS = JSON.parse(
-    Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString('utf-8')
-);
+// const GOOGLE_CLOUD_CREDENTIALS = JSON.parse(
+//     Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString('utf-8')
+// );
+const serviceAccount = require('../service_account.json');
 admin.initializeApp({
-    credential: admin.credential.cert(GOOGLE_CLOUD_CREDENTIALS)// Set up your Firebase credentials
+    credential: admin.credential.cert(serviceAccount)// Set up your Firebase credentials
 });
 
 // Middleware to verify Firebase ID token
