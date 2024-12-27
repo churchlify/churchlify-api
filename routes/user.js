@@ -28,6 +28,13 @@ router.get('/find/:id',  async(req, res) => {
     res.json({ user });
 });
 
+router.get('/findByUid/:firebaseId',  async(req, res) => {
+    const { firebaseId } = req.params;
+    const user = await User.findOne({ firebaseId });
+    if (!user) return res.status(400).json({ message: `User with firebaseId ${firebaseId} not found` });
+    res.json({ user });
+});
+
 router.put('/update/:id',validateUser(),  async(req, res) => {
     const { id } = req.params;
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role } = req.body;

@@ -15,11 +15,10 @@ const userSchema = new mongoose.Schema({
     emailAddress: { type: String, required: [true, 'Email is required'], unique: true, lowercase: true, trim: true },
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true },
     address: { type: AddressSchema, required: true},
-    isChurchAdmin: {type:Boolean, default: false},
     photoUrl: String,
     pushToken: String,
     firebaseId: String,
-    role: { type: String, enum: ['admin', 'member'], default: 'member' }
+    role: { type: String, enum: ['admin', 'member', 'churchAdmin'], default: 'member' }
 });
 userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church')) {

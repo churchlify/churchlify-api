@@ -8,6 +8,8 @@ const addressSchema = new Schema({
     street: { type: String, required: [true, 'Street address is required'],},
     city: { type: String, required: [true, 'City is required'],},
     country: { type: String, required: [true, 'Country is required'],},
+    lat: { type: String, required: [true, 'Lat Coordinate is required'],},
+    lng: { type: String, required: [true, ' Long Coordinate is required'],},
 });
 
 // Example of validation middleware for the sub-document
