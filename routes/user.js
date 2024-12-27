@@ -8,8 +8,8 @@ const {validateUser} = require("../middlewares/validators");
 const router = express.Router();
 
 router.post('/create',validateUser(),  async(req, res) => {
-    const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role } = req.body;
-    const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role });
+    const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, firebaseId, photoUrl, pushToken, role } = req.body;
+    const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate,  firebaseId, photoUrl, pushToken, role });
     try {
         const existingItem = await User.findOne({ emailAddress });
         if (existingItem) {
@@ -55,6 +55,21 @@ router.get('/list',  async(req, res) => {
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedUser = await User.findByIdAndDelete(id);
+
+        if (!deletedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        res.status(200).json({ message: 'User deleted successfully', user: deletedUser });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
