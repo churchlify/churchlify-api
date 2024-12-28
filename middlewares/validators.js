@@ -10,14 +10,14 @@ const validateUser = () => [
     body('address').notEmpty().withMessage('Address is required'),
     body('dateOfBirth').notEmpty().withMessage('Date of birth is Invalid'),
     body('gender').notEmpty().withMessage('Gender is required'),
-    body('anniversaryDate').optional().isDate().withMessage('Please provide anniversary date'),
+    body('anniversaryDate').optional().custom(value => typeof value === 'string').withMessage('Please provide anniversary date'),
     body('address.street').notEmpty().withMessage('Street address is required'),
     body('address.city').notEmpty().withMessage('City is required'),
     body('address.postalCode').notEmpty().withMessage('Postal code is required'),
     body('address.country').notEmpty().withMessage('Country is required'),
     body('address.state').notEmpty().withMessage('Province/State is required'),
-    body('isChurchAdmin').optional().isBoolean().withMessage('Please provide anniversary date'),
-    body('isMarried').optional().isBoolean().withMessage('Please provide anniversary date'),
+    body('isChurchAdmin').optional().custom(value => typeof value === 'boolean').withMessage('Please provide admin role status'),
+    body('isMarried').optional().custom(value => typeof value === 'boolean').withMessage('Please provide Marital status'),
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
