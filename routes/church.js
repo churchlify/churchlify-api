@@ -49,4 +49,16 @@ router.get('/list',  async(req, res) => {
     }
 });
 
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedItem = await Church.findByIdAndDelete(id);
+        if (!deletedItem) return res.status(404).json({ error: 'Churc not found' });
+        res.status(200).json({ message: 'Church deleted successfully', event: deletedItem });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 module.exports = router;

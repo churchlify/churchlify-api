@@ -48,12 +48,17 @@ const validateChurch = () => [
 ];
 
 const validateEvent = () => [
-    body('churchId').notEmpty().withMessage('Church Id is required'),
+    body('church').notEmpty().withMessage('Church is required'),
+    body('createdBy').notEmpty().withMessage('Invalid user or permission'),
     body('title').notEmpty().withMessage('Title is required'),
-    body('startDate').isDate().withMessage('Start Date is invalid'),
-    body('startTime').isTime().withMessage('Start time is invalid'),
-    body('endDate').isDate().withMessage('End Date is invalid'),
-    body('endTime').isTime().withMessage('End Time is invalid'),
+    body('startDate').isDate({format: "YYYY-MM-DD"}).withMessage('Start Date must be date with YYYY-MM-DD format'),
+    body('startTime').custom((value) => {
+        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
+        return true;}).withMessage('Start time is invalid'),
+    body('endDate').isDate({format: "YYYY-MM-DD"}).withMessage('End Date must be date with YYYY-MM-DD format'),
+    body('endTime').custom((value) => {
+        if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
+        return true;}).withMessage('End time is invalid'),
     body('reminder').optional().notEmpty().withMessage('Reminder cannot be empty'),
     body('recurrence.frequency').optional().notEmpty().withMessage('Reminder cannot be empty'),
     body('recurrence.interval').optional().isNumeric().withMessage('Interval cannot be empty'),

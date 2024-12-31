@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const church = require ('./Church')
 const AddressSchema = require('./address')
-const {checkExistById} = require("../common/shared");
 const userSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church', required: true},
     firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
@@ -24,7 +23,7 @@ userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church')) {
         try {
             const error = new Error('Invalid Church reference.');
-            return await checkExistById('church',this.church) ? next() : next(error);
+            return await church.findById(this.church) ? next() : next(error);
         } catch (err) {
             return next(err);
         }
@@ -38,7 +37,7 @@ userSchema.pre('findOneAndUpdate', async function (next) {
         const update = this.getUpdate();
         if (update.$set && update.$set.church) {
             const error = new Error('Invalid Church reference.');
-            return  await checkExistById('church',update.$set.church) ? next() : next(error);
+            return  await church.findById(update.$set.church) ? next() : next(error);
         }
     } catch (err) {
         return next(err);

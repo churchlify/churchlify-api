@@ -1,14 +1,6 @@
 const church = require("../models/Church");
 const user = require("../models/user");
-const checkExistById = async (type, id)=> {
-    switch (type) {
-        case 'church':
-            return church.findById(id);
-        case 'user':
-            return user.findById(id);
-        default:
-            break
-    }
+const checkChurchById = async (id)=> { return church.findById(id);}
+const checkUserById = async (id)=> { return user.findById(id);}
 
-}
-module.exports = {checkExistById}
+module.exports = {checkChurchById, checkUserById }

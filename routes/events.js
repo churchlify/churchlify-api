@@ -5,9 +5,64 @@ const express = require('express');
 const Event = require('../models/event');
 const router = express.Router();
 
+ async function getFlatennedMonthEvents(d){
+    const startOfMonth = new Date(new Date(d).getFullYear(), new Date(d).getMonth(), 1);
+    const endOfMonth = new Date(new Date(d).getFullYear(), new Date().getMonth(d) + 1, 0);
+    let flattenedEvents =[];
+
+    const events = await Event.find({
+      $or: [
+        { startDate: { $lte: endOfMonth }, endDate: { $gte: startOfMonth } },
+        { startDate: { $gte: startOfMonth, $lte: endOfMonth } }
+      ]
+    });
+
+    events.forEach(event => {
+        let currentDate = new Date(event.startDate);
+        const eventEndDate = new Date(event.endDate);
+        while (currentDate <= eventEndDate && currentDate <= endOfMonth) {
+            console.log("currentDate", currentDate)
+          if (currentDate >= startOfMonth) {
+            flattenedEvents.push({
+              church: event.church,
+              title: event.title,
+              description: event.description,
+              startDate: new Date(currentDate),
+              startTime: event.startTime,
+              endTime: event.endTime,
+              createdBy: event.createdBy,
+              location: event.location,
+              reminder: event.reminder,
+            });
+          }
+
+          switch (event.recurrence.frequency) {
+            case 'daily':
+              currentDate.setDate(currentDate.getDate() + 1);
+              break;
+            case 'weekly':
+              currentDate.setDate(currentDate.getDate() + 7);
+              break;
+            case 'monthly':
+              currentDate.setMonth(currentDate.getMonth() + 1);
+              break;
+            case 'yearly':
+              currentDate.setFullYear(currentDate.getFullYear() + 1);
+              break;
+            default:
+              currentDate = new Date(eventEndDate.getTime() + 1); // Move past the end date to exit the loop
+          }
+            console.log("currentDate", currentDate, event.recurrence)
+        }
+      });
+     console.log("events", flattenedEvents)
+    return flattenedEvents;
+  };
+
+
 router.post('/create',validateEvent(),  async(req, res) => {
-    const { church, title, description, startDate, startTime, endDate,endTime, location, reminder, recurrence } = req.body;
-    const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, reminder, recurrence } );
+    const { church, title, description, startDate, startTime, endDate,endTime, location, reminder, recurrence, createdBy } = req.body;
+    const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, reminder, recurrence, createdBy } );
     try {
         await newItem.save();
         res.status(201).json({ message: 'Event registered successfully' });
@@ -15,9 +70,17 @@ router.post('/create',validateEvent(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
     const event = await Event.findById(id);
+    if (!event) return res.status(400).json({ message: `Event with id ${id} not found` });
+    res.json({ event });
+});
+
+router.get('/findByDate/:date',  async(req, res) => {
+    const { date } = req.params;
+    const event = await getFlatennedMonthEvents(date);
     if (!event) return res.status(400).json({ message: `Event with id ${id} not found` });
     res.json({ event });
 });
@@ -42,6 +105,17 @@ router.get('/list',  async(req, res) => {
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedItem = await Event.findByIdAndDelete(id);
+        if (!deletedItem) return res.status(404).json({ error: 'Event not found' });
+        res.status(200).json({ message: 'Event deleted successfully', event: deletedItem });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
