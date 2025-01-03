@@ -18,6 +18,7 @@ const eventSchema = new mongoose.Schema({
     startTime: { type: String, required: true }, // e.g., "09:00" for 9:00 AM
     endTime: { type: String, required: true },   // e.g., "10:30" for 10:30 AM
     location: { type: String, required: false },
+    flier: { type: String, required: false },
     recurrence: { type: recurrenceSchema}
 }, { timestamps: true });
 

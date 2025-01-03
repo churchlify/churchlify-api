@@ -51,6 +51,7 @@ const validateEvent = () => [
     body('church').notEmpty().withMessage('Church is required'),
     body('createdBy').notEmpty().withMessage('Invalid user or permission'),
     body('title').notEmpty().withMessage('Title is required'),
+    body('description').notEmpty().withMessage('Description is required'),
     body('startDate').isDate({format: "YYYY-MM-DD"}).withMessage('Start Date must be date with YYYY-MM-DD format'),
     body('startTime').custom((value) => {
         if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
