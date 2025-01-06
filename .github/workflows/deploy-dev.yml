@@ -16,9 +16,9 @@ jobs:
     - name: Execute script on remote server
       uses: appleboy/ssh-action@v1.2.0
       with:
-        host: ${{ secrets.REMOTE_HOST }}
-        username: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        host: ${{ secrets.REMOTE_DEV_HOST }}
+        username: ${{ secrets.REMOTE_DEV_USER }}
+        key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
         script: |
           cd /srv/appHome/nodeapps/churchlify-api/
           git pull origin main
