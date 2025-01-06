@@ -16,8 +16,8 @@ jobs:
     - name: Execute script on remote server
       uses: appleboy/ssh-action@v1.2.0
       with:
-        host: "churchlify-api.7thcolonnade.com"
-        username: "solo"
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /srv/appHome/nodeapps/churchlify-api/
