@@ -22,4 +22,4 @@ jobs:
         script: |
           cd /srv/appHome/nodeapps/churchlify-api/
           git pull origin main
-          docker-compose -p sevenc up -d --build
+          docker compose -p sevenc up -d --build
