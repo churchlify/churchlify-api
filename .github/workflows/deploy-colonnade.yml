@@ -20,6 +20,6 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /path/to/your/script
+          cd /srv/appHome/nodeapps/churchlify-api/
           git pull origin main
           docker-compose -p sevenc up -d --build
