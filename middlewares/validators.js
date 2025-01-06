@@ -1,6 +1,4 @@
 const { body, validationResult } = require('express-validator');
-const Church = require('../models/Church');
-const church = require("../models/Church");
 const validateUser = () => [
     body('church').notEmpty().withMessage('Please provide affiliated church'),
     body('firstName').notEmpty().withMessage('First Name is required'),
@@ -29,6 +27,7 @@ const validateUser = () => [
 
 const validateChurch = () => [
     body('name').notEmpty().withMessage('Name is required'),
+    body('createdBy').notEmpty().withMessage('Please provide affiliated user'),
     body('shortName').notEmpty().withMessage('short Name is required'),
     body('emailAddress').isEmail().withMessage('Email is invalid'),
     body('phoneNumber').isMobilePhone().withMessage('Phone number is invalid'),
@@ -74,4 +73,14 @@ const validateEvent = () => [
         next();
     }
 ];
-module.exports = { validateChurch, validateUser, validateEvent };
+
+const validateKid = () => [
+    body('parent').notEmpty().withMessage('Please provide affiliated parent'),
+    body('firstName').notEmpty().withMessage('First Name is required'),
+    body('lastName').notEmpty().withMessage('Last Name is required'),
+    body('dateOfBirth').notEmpty().withMessage('Date of birth is Invalid'),
+    body('gender').notEmpty().withMessage('Gender is required'),
+    body('middleName').optional().custom(value => value.length < 3).withMessage('Please provide a vallid middle name'),
+    body('allergies').optional().custom(value => typeof value === 'array').withMessage('Allergies must be array of string'),
+];
+module.exports = { validateChurch, validateUser, validateEvent, validateKid };

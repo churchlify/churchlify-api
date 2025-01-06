@@ -12,25 +12,4 @@ const addressSchema = new Schema({
     lng: { type: String, required: [true, ' Long Coordinate is required'],},
 });
 
-// Example of validation middleware for the sub-document
-// addressSchema.pre('save', function(next) {
-//     // Custom validation or manipulation before saving
-//     if (!this.country) {
-//         return next(new Error('Country is required.'));
-//     }
-//     if (!this.street) {
-//         return next(new Error('Street address is required.'));
-//     }
-//     if (!this.city) {
-//         return next(new Error('City is required.'));
-//     }
-//     if (!this.state) {
-//         return next(new Error('State or Province is required.'));
-//     }
-//     if (!this.postalCode) {
-//         return next(new Error('Postal code is required.'));
-//     }
-//     next();
-// });
-
 module.exports = addressSchema;

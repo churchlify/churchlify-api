@@ -3,7 +3,7 @@ const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/a
 
 const express = require('express');
 const User = require('../models/user');
-const Church = require('../models/Church');
+const Church = require('../models/church');
 const {validateUser} = require("../middlewares/validators");
 const router = express.Router();
 
@@ -53,6 +53,16 @@ router.get('/list',  async(req, res) => {
     try {
         const users = await User.find().populate('church');
         res.status(200).json({ users });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+router.get('/list/:church',  async(req, res) => {
+    try {
+        const { church } = req.params;
+        const events = await User.find({church: church});
+        res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -2,12 +2,12 @@
 const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
 const {validateChurch} = require("../middlewares/validators");
 const express = require('express');
-const Church = require('../models/Church');
+const Church = require('../models/church');
 const router = express.Router();
 
 router.post('/create',validateChurch(),  async(req, res) => {
-    const { name, shortName, emailAddress, phoneNumber, address,logo } = req.body;
-    const newItem = new Church({ name, shortName, emailAddress, phoneNumber, address,logo  });
+    const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo } = req.body;
+    const newItem = new Church({ name, shortName, createdBy, emailAddress, phoneNumber, address,logo  });
     try {
         const existingItem = await Church.findOne({ emailAddress });
         if (existingItem) {
@@ -28,9 +28,9 @@ router.get('/find/:id',  async(req, res) => {
 
 router.put('/update/:id',validateChurch(),  async(req, res) => {
     const { id } = req.params;
-    const { name, shortName, emailAddress, phoneNumber, address,logo } = req.body;
+    const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo } = req.body;
     try {
-        const updatedChurch = await Church.findByIdAndUpdate(id, { name, shortName, emailAddress, phoneNumber, address,logo }, { new: true, runValidators: true });
+        const updatedChurch = await Church.findByIdAndUpdate(id, { name, shortName, createdBy, emailAddress, phoneNumber, address,logo }, { new: true, runValidators: true });
         if (!updatedChurch) {
             return res.status(404).json({ message: `Church with id ${id} not found` });
         }

@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const churchRoutes = require('./routes/church');
 const eventRoutes = require('./routes/events');
+const kidRoutes = require('./routes/kid');
 dotenv.config();
 
 const app = express();
@@ -28,4 +29,5 @@ app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
 app.use('/church', churchRoutes);
 app.use('/event', eventRoutes);
+app.use('/kid', kidRoutes);
 

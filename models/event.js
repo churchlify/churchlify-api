@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const church = require ('./Church')
+const church = require ('./church')
 const user = require("./user");
 // const {checkUserById, checkChurchById} = require('../common/shared')
 const recurrenceSchema = new Schema({
@@ -10,7 +10,7 @@ const recurrenceSchema = new Schema({
 
 const eventSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church', required: true},
-    createdBy: {type: Schema.Types.ObjectId, ref: 'user', required: true},
+    createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true},
     title: { type: String, required: true },
     description: { type: String, required: false },
     startDate: { type: Date, required: true }, // Date of the first occurrence

@@ -1,8 +1,9 @@
 // models/User.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const church = require ('./Church')
+let church
 const AddressSchema = require('./address')
+
 const userSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church', required: true},
     firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
@@ -18,11 +19,14 @@ const userSchema = new mongoose.Schema({
     pushToken: {type: String},
     firebaseId: String,
     role: { type: String, enum: ['admin', 'member', 'churchAdmin'], default: 'member' }
-});
+}, { timestamps: true });
+
+
 userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church')) {
         try {
             const error = new Error('Invalid Church reference.');
+            if (!church)  church = require('./church')
             return await church.findById(this.church) ? next() : next(error);
         } catch (err) {
             return next(err);
@@ -37,6 +41,7 @@ userSchema.pre('findOneAndUpdate', async function (next) {
         const update = this.getUpdate();
         if (update.$set && update.$set.church) {
             const error = new Error('Invalid Church reference.');
+            if (!church)  church = require('./church')
             return  await church.findById(update.$set.church) ? next() : next(error);
         }
     } catch (err) {
