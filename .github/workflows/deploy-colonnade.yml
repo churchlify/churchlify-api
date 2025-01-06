@@ -17,8 +17,8 @@ jobs:
       uses: appleboy/ssh-action@v0.1.5
       with:
         host: "99.242.213.235"
-        username: "solo@blackswan"
-        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ8S85AfYDNZGnQIqSbdfUyHg9rl/2gsAGXd4CCKnMfM"
+        username: "solo"
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJ8S85AfYDNZGnQIqSbdfUyHg9rl/2gsAGXd4CCKnMfM solo@blackswan"
         script: |
           cd /srv/appHome/nodeapps/churchlify-api/
           git pull origin main
