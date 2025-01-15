@@ -1,6 +1,9 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, check } = require('express-validator');
+const mongoose = require('mongoose');
+const Church = require('../models/church'); 
+const User = require('../models/user'); 
 const validateUser = () => [
-    body('church').notEmpty().withMessage('Please provide affiliated church'),
+    body('church').optional().notEmpty().withMessage('Please provide affiliated church'),
     body('firstName').notEmpty().withMessage('First Name is required'),
     body('lastName').notEmpty().withMessage('Last Name is required'),
     body('emailAddress').isEmail().withMessage('Email is invalid'),
@@ -29,6 +32,7 @@ const validateChurch = () => [
     body('name').notEmpty().withMessage('Name is required'),
     body('createdBy').notEmpty().withMessage('Please provide affiliated user'),
     body('shortName').notEmpty().withMessage('short Name is required'),
+    body('timeZone').notEmpty().withMessage('Time Zone is required'),
     body('emailAddress').isEmail().withMessage('Email is invalid'),
     body('phoneNumber').isMobilePhone().withMessage('Phone number is invalid'),
     body('address.street').notEmpty().withMessage('Address is required'),
@@ -83,4 +87,13 @@ const validateKid = () => [
     body('middleName').optional().custom(value => value.length < 3).withMessage('Please provide a vallid middle name'),
     body('allergies').optional().custom(value => typeof value === 'array').withMessage('Allergies must be array of string'),
 ];
-module.exports = { validateChurch, validateUser, validateEvent, validateKid };
+
+const validateObjectId = () => [
+    check('id').optional().isMongoId().withMessage('Invalid Object Id provided'),
+    check('church').optional().isMongoId().withMessage('Invalid Object Id, provide valid church ID'),
+    check('parent').optional().isMongoId().withMessage('Invalid Object Id, provide valid parent ID'),
+    check('child').optional().isMongoId().withMessage('Invalid Object Id, provide valid child ID'),
+];
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId };

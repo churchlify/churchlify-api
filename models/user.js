@@ -1,11 +1,10 @@
 // models/User.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-let church
 const AddressSchema = require('./address')
 
 const userSchema = new mongoose.Schema({
-    church: {type: Schema.Types.ObjectId, ref: 'Church', required: true},
+    church: {type: Schema.Types.ObjectId, ref: 'Church'},
     firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
     lastName: {type: String, required: [true, 'Last name is required'], trim: true, minlength: [2, 'Last name must be at least 2 characters long']},
     dateOfBirth: {type: Date, required: [true, "Date of birth is required"]},
@@ -25,9 +24,13 @@ const userSchema = new mongoose.Schema({
 userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church')) {
         try {
-            const error = new Error('Invalid Church reference.');
-            if (!church)  church = require('./church')
-            return await church.findById(this.church) ? next() : next(error);
+            if (this.church) {
+                const error = new Error('Invalid Church reference.');
+                if (typeof church === "undefined" || typeof church === undefined) church = require('./church') 
+                return await church.findById(this.church) ? next() : next(error);
+              } else{
+                next();
+              }
         } catch (err) {
             return next(err);
         }

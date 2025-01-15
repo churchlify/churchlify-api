@@ -1,4 +1,6 @@
 node_modules
 .env
+.vscode
 service_account.json
 .idea
+**/playground*

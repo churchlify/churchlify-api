@@ -5,18 +5,19 @@ const express = require('express');
 const User = require('../models/user');
 const Church = require('../models/church');
 const {validateUser} = require("../middlewares/validators");
+const user = require("../models/user");
 const router = express.Router();
 
 router.post('/create',validateUser(),  async(req, res) => {
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, firebaseId, photoUrl, pushToken, role } = req.body;
     const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate,  firebaseId, photoUrl, pushToken, role });
     try {
-        const existingItem = await User.findOne({ emailAddress });
-        if (existingItem) {
-            return res.status(400).json({errors: [{type: 'auth_existing_record', msg: `Record with email ${emailAddress} already exists` }]});
-        }
+        const existingEmail= await User.findOne({ emailAddress });
+        const existingPhone = await User.findOne({ phoneNumber });
+        if (existingEmail) return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});
+        if (existingPhone) return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});
         await newItem.save();
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ message: 'User registered successfully', user: newItem });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -61,8 +62,8 @@ router.get('/list',  async(req, res) => {
 router.get('/list/:church',  async(req, res) => {
     try {
         const { church } = req.params;
-        const events = await User.find({church: church});
-        res.status(200).json({ events });
+        const users = await User.find({church: church});
+        res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

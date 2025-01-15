@@ -1,23 +1,20 @@
 // models/User.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const user = require ('./user')
+const kid = require ('./kid')
 const checkInSchema = new mongoose.Schema({
-    parent: {type: Schema.Types.ObjectId, ref: 'User', required: true},
-    firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
-    lastName: {type: String, required: [true, 'Last name is required'], trim: true, minlength: [2, 'Last name must be at least 2 characters long']},
-    middleName: {type: String, trim:true, },
-    dateOfBirth: {type: Date, required: [true, "Date of birth is required"]},
-    gender: { type: String, enum: ['Male', 'Female'] },
-    allergies: {type: [String]},
-    color: {type: String}
+    child: {type: Schema.Types.ObjectId, ref: 'Kid', required: true},
+    status: { type: String, enum: ['check_in_request', 'dropped_off', 'pickup_request', 'picked_up'], default: 'check_in_request' },
+    createdAt: { type: Date, default: Date.now },
+    expiresAt: { type: Date, required: true }
 }, { timestamps: true });
 
+
 checkInSchema.pre('save', async function (next) {
-    if (this.isNew || this.isModified('parent')) {
+    if (this.isNew || this.isModified('child')) {
         try {
-            const error = new Error('Invalid parent reference.');
-            return await user.findById(this.parent) ? next() : next(error);
+            const error = new Error('Invalid child reference.');
+            return await kid.findById(this.child) ? next() : next(error);
         } catch (err) {
             return next(err);
         }
@@ -29,9 +26,9 @@ checkInSchema.pre('save', async function (next) {
 checkInSchema.pre('findOneAndUpdate', async function (next) {
     try {
         const update = this.getUpdate();
-        if (update.$set && update.$set.parent) {
-            const error = new Error('Invalid Parent reference.');
-            return  await user.findById(update.$set.church) ? next() : next(error);
+        if (update.$set && update.$set.child) {
+            const error = new Error('Invalid Child reference.');
+            return  await user.findById(update.$set.child) ? next() : next(error);
         }
     } catch (err) {
         return next(err);

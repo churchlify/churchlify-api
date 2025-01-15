@@ -19,11 +19,12 @@ const eventSchema = new mongoose.Schema({
     endTime: { type: String, required: true },   // e.g., "10:30" for 10:30 AM
     location: { type: String, required: false },
     flier: { type: String, required: false },
+    allowKidsCheckin: { type: Boolean, required: true , default: false}, 
+    checkinStartTime: { type: String, required: true },
     recurrence: { type: recurrenceSchema}
 }, { timestamps: true });
 
 eventSchema.pre('save', async function (next) {
-    console.log(this)
     if (this.isNew || this.isModified('church') || this.isModified('createdBy')) {
         try {
             let error = '';
@@ -44,13 +45,15 @@ eventSchema.pre('save', async function (next) {
 eventSchema.pre('findOneAndUpdate', async function (next) {
     try {
         const update = this.getUpdate();
-        let error = '';
-        const userExist = await user.findById(update.$set.createdBy)
-        const churchExist = await church.findById(update.$set.church)
-        if(!churchExist) error += 'Invalid Church reference.'
-        if(!userExist) error = error.length > 1 ?  error + ' / Invalid User or User does not exist' : error + 'Invalid User or User does not exist'
-        const errorResponse = new Error(error);
-        return userExist && churchExist ? next() : next(errorResponse);
+        if (update.$set && update.$set.church) {
+            const churchExist = await church.findById(update.$set.church)
+            if(!churchExist) return next(new Error('Invalid Church reference.')) 
+        }
+        if (update.$set && update.$set.createdBy) {
+            const userExist = await user.findById(update.$set.createdBy)
+            if(!userExist) return next(new Error(' Invalid User or User does not exist'))
+        }
+            return next()  
     } catch (err) {
         return next(err);
     }

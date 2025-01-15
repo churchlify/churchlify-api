@@ -5,21 +5,26 @@ let user
 
 const churchSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true},
+    createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true,},
     shortName: { type: String, required: true },
     emailAddress: { type: String, required: [true, 'Email Address is required'], unique: true, lowercase: true, trim: true },
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true },
     address: { type: AddressSchema, required: [true, 'Please provide a valid address object'],},
+    timeZone: { type: String, required: true },
     logo: String
 }, { timestamps: true });
 
 
 churchSchema.pre('save', async function (next) {
+
     if (this.isNew || this.isModified('createdBy')) {
         try {
-            const error = new Error('Invalid User reference.');
+            const existError = new Error('Invalid User reference.');
+            const isMemberError = new Error('User is already affiliated to a church');
             if (!user)  user = require('./user')
-            return await user.findById(this.createdBy) ? next() : next(error);
+            const userExist = await user.findById(this.createdBy)
+            if(!userExist) return next(existError);
+            return await userExist.church ? next(isMemberError) : next();
         } catch (err) {
             return next(err);
         }

@@ -10,6 +10,6 @@ const addressSchema = new Schema({
     country: { type: String, required: [true, 'Country is required'],},
     lat: { type: String, required: [true, 'Lat Coordinate is required'],},
     lng: { type: String, required: [true, ' Long Coordinate is required'],},
-});
+},{ timestamps: true });
 
 module.exports = addressSchema;

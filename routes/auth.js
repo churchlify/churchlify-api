@@ -13,7 +13,7 @@ router.post('/register', async (req, res) => {
     const newUser = new User({ name, email, password: hashedPassword });
     try {
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully' });
+        res.status(201).json({ message: newUser });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

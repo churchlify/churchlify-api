@@ -3,7 +3,6 @@ const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/a
 
 const express = require('express');
 const Kid = require('../models/kid');
-const user = require('../models/user');
 const {validateKid} = require("../middlewares/validators");
 const router = express.Router();
 
@@ -12,7 +11,7 @@ router.post('/create',validateKid(),  async(req, res) => {
     const newItem = new Kid( { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } );
     try {
         await newItem.save();
-        res.status(201).json({ message: 'Child registered successfully' });
+        res.status(201).json({ message: 'Child registered successfully' , child: newItem});
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
