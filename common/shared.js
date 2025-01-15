@@ -1,10 +1,10 @@
-const church = require("../models/church");
+const Church = require("../models/church");
 const user = require("../models/user");
 const Event = require('../models/event'); // Adjust the path as needed
 const moment = require('moment-timezone');
 
 const sysTimezone = moment.tz.guess();
-const checkChurchById = async (id)=> { return church.findById(id);}
+const checkChurchById = async (id)=> { return Church.findById(id);}
 const checkUserById = async (id)=> { return user.findById(id);}
 
 const parseDateTime = async(dateString, timeString) => {
@@ -21,7 +21,7 @@ const convertTime = async(time, toZone = "America/Toronto") => {
 
 const getTodaysEvents = async (church) => {
   const today = new Date();
-  const churchData = church.findById(church)
+  const churchData = Church.findById(church)
   const churchTimeZone = (churchData.timeZone) ? churchData.timeZone : "America/Toronto"
   const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const currentTime = await convertTime(today.getHours() + ":" + today.getMinutes(), churchTimeZone);
