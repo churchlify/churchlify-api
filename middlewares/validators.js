@@ -1,7 +1,7 @@
 const { body, validationResult, check } = require('express-validator');
 const mongoose = require('mongoose');
-const Church = require('../models/church'); 
-const User = require('../models/user'); 
+// const Church = require('../models/church'); 
+// const User = require('../models/user'); 
 const validateUser = () => [
     body('church').optional().notEmpty().withMessage('Please provide affiliated church'),
     body('firstName').notEmpty().withMessage('First Name is required'),
@@ -55,11 +55,11 @@ const validateEvent = () => [
     body('createdBy').notEmpty().withMessage('Invalid user or permission'),
     body('title').notEmpty().withMessage('Title is required'),
     body('description').notEmpty().withMessage('Description is required'),
-    body('startDate').isDate({format: "YYYY-MM-DD"}).withMessage('Start Date must be date with YYYY-MM-DD format'),
+    body('startDate').isDate({format: 'YYYY-MM-DD'}).withMessage('Start Date must be date with YYYY-MM-DD format'),
     body('startTime').custom((value) => {
         if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
         return true;}).withMessage('Start time is invalid'),
-    body('endDate').isDate({format: "YYYY-MM-DD"}).withMessage('End Date must be date with YYYY-MM-DD format'),
+    body('endDate').isDate({format: 'YYYY-MM-DD'}).withMessage('End Date must be date with YYYY-MM-DD format'),
     body('endTime').custom((value) => {
         if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
         return true;}).withMessage('End time is invalid'),
@@ -85,7 +85,7 @@ const validateKid = () => [
     body('dateOfBirth').notEmpty().withMessage('Date of birth is Invalid'),
     body('gender').notEmpty().withMessage('Gender is required'),
     body('middleName').optional().custom(value => value.length < 3).withMessage('Please provide a vallid middle name'),
-    body('allergies').optional().custom(value => typeof value === 'array').withMessage('Allergies must be array of string'),
+    body('allergies').optional().custom(value => Array.isArray(value)).withMessage('Allergies must be array of string'),
 ];
 
 const validateObjectId = () => [

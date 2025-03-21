@@ -1,5 +1,5 @@
 // routes/kid.js
-const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
+// onst {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 
 const express = require('express');
 const Audit = require('../models/audits');
@@ -9,7 +9,9 @@ const router = express.Router();
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
     const audit = await Audit.findById(id);
-    if (!audit) return res.status(400).json({ message: `Audit lo entry with id ${id} not found` });
+    if (!audit) {
+        return res.status(400).json({ message: `Audit lo entry with id ${id} not found` });
+    }
     res.json({ audit });
 });
 
@@ -41,7 +43,6 @@ router.delete('/delete/:id', async (req, res) => {
 
 router.delete('/deleteAll/', async (req, res) => {
     try {
-        const { id } = req.params;
         const deletedItem = await Audit.deleteMany({});
 
         if (!deletedItem) {

@@ -1,6 +1,6 @@
 // routes/churches.js
-const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
-const {validateChurch, validateObjectId} = require("../middlewares/validators");
+// const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
+const {validateChurch} = require('../middlewares/validators');
 const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
@@ -13,9 +13,9 @@ router.post('/create',validateChurch(),  async(req, res) => {
         const existingEmail = await Church.findOne({ emailAddress });
         const existingPhone = await Church.findOne({ phoneNumber });
         const existingUser = await Church.findOne({ createdBy });
-        if (existingEmail) return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});
-        if (existingPhone) return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});
-        if (existingUser) return res.status(400).json({errors: [{type: 'auth_existing_user', msg: `Current User is currently affiliated to a church` }]});
+        if (existingEmail){ return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
+        if (existingPhone){ return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
+        if (existingUser){ return res.status(400).json({errors: [{type: 'auth_existing_user', msg: `Current User is currently affiliated to a church` }]});}
         await newItem.save();
             // Update the user with the church ID
         const userId = req.body.createdBy; // Assuming userId is sent in the request body
@@ -28,7 +28,7 @@ router.post('/create',validateChurch(),  async(req, res) => {
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
     const church = await Church.findById(id);
-    if (!church) return res.status(400).json({ message: `Church with id ${id} not found` });
+    if (!church) {return res.status(400).json({ message: `Church with id ${id} not found` });}
     res.json({ church });
 });
 
@@ -59,7 +59,7 @@ router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const deletedItem = await Church.findByIdAndDelete(id);
-        if (!deletedItem) return res.status(404).json({ error: 'Churc not found' });
+        if (!deletedItem) {return res.status(404).json({ error: 'Churc not found' });}
         res.status(200).json({ message: 'Church deleted successfully', event: deletedItem });
     } catch (err) {
         res.status(500).json({ error: err.message });

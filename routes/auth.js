@@ -1,5 +1,5 @@
 // routes/auth.js
-const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
+const {authenticateFirebaseToken} = require('../middlewares/auth');
 
 const express = require('express');
 const bcrypt = require('bcrypt');
@@ -26,9 +26,9 @@ router.get('/protected', authenticateFirebaseToken, (req, res) => {
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'User not found' });
+    if (!user) {return res.status(400).json({ message: 'User not found' });}
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {return res.status(400).json({ message: 'Invalid credentials' });}
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
 });

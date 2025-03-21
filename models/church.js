@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const AddressSchema = require('./address')
-let user
+const AddressSchema = require('./address');
+let user;
 
 const churchSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -21,9 +21,9 @@ churchSchema.pre('save', async function (next) {
         try {
             const existError = new Error('Invalid User reference.');
             const isMemberError = new Error('User is already affiliated to a church');
-            if (!user)  user = require('./user')
-            const userExist = await user.findById(this.createdBy)
-            if(!userExist) return next(existError);
+            if (!user) { user = require('./user');}
+            const userExist = await user.findById(this.createdBy);
+            if(!userExist){ return next(existError);}
             return await userExist.church ? next(isMemberError) : next();
         } catch (err) {
             return next(err);
@@ -38,8 +38,8 @@ churchSchema.pre('findOneAndUpdate', async function (next) {
         const update = this.getUpdate();
         if (update.$set && update.$set.createdBy) {
             const error = new Error('Invalid User reference.');
-            if (!user)  user = require('./user')
-            return  await Uuer.findById(update.$set.createdBy) ? next() : next(error);
+            if (!user) { user = require('./user'); }
+            return  await user.findById(update.$set.createdBy) ? next() : next(error);
         }
     } catch (err) {
         return next(err);

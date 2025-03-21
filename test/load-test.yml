@@ -1,0 +1,40 @@
+config:
+  target: "https://churchlify-api.7thcolonnade.com"
+  phases:
+    - duration: 30
+      arrivalRate: 1
+      rampTo: 5
+      name: Warm up the API
+    - duration: 30
+      arrivalRate: 5
+      rampTo: 25
+      name: Ramp up to peak load
+  plugins:
+    influx:
+      enabled: true
+      host: "localhost"  # Change if needed
+      port: 8086
+      database: "testdb"
+      username: "testuser"  # Add your InfluxDB username
+      password: "testpassword"  # Add your InfluxDB password
+      measurement: "artillery_metrics"  # Metric name
+      testName: life-pf
+      tags:
+        test_name: "performance-test"
+    publish-metrics:
+      - type: influxdb-statsd
+        prefix: 'artillery.publish_metrics_plugin.'
+        host: "localhost"  # Change to your InfluxDB server
+        port: 8086
+        database: "testdb"
+        username: "testuser"  # Add your InfluxDB username
+        password: "testpassword"  # Add your InfluxDB password
+        measurement: "artillery_metrics"  # Metric name
+        tags:
+          test_name: "performance-test"
+
+scenarios:
+  - flow:
+      - get:
+          url: "/event/list"
+      - think: 1

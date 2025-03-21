@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const {logAuditTrails} = require("./middlewares/audits");
+const {logAuditTrails} = require('./middlewares/audits');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');

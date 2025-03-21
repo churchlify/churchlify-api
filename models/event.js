@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const church = require ('./church')
-const user = require("./user");
+const church = require ('./church');
+const user = require('./user');
 // const {checkUserById, checkChurchById} = require('../common/shared')
 const recurrenceSchema = new Schema({
     frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'], default: null },
@@ -28,10 +28,12 @@ eventSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church') || this.isModified('createdBy')) {
         try {
             let error = '';
-            const userExist = await user.findById(this.createdBy)
-            const churchExist = await church.findById(this.church)
-            if(!churchExist) error += 'Invalid Church reference.'
-            if(!userExist) error = error.length > 1 ?  error + ' / Invalid User or User does not exist' : error + 'Invalid User or User does not exist'
+            const userExist = await user.findById(this.createdBy);
+            const churchExist = await church.findById(this.church);
+            if(!churchExist){ error += 'Invalid Church reference.';}
+            if(!userExist) {
+                error = error.length > 1 ?  error + ' / Invalid User or User does not exist' : error + 'Invalid User or User does not exist';
+            }
             const errorResponse = new Error(error);
             return userExist && churchExist ? next() : next(errorResponse);
         } catch (err) {
@@ -46,14 +48,14 @@ eventSchema.pre('findOneAndUpdate', async function (next) {
     try {
         const update = this.getUpdate();
         if (update.$set && update.$set.church) {
-            const churchExist = await church.findById(update.$set.church)
-            if(!churchExist) return next(new Error('Invalid Church reference.')) 
+            const churchExist = await church.findById(update.$set.church);
+            if(!churchExist) { return next(new Error('Invalid Church reference.')); }
         }
         if (update.$set && update.$set.createdBy) {
-            const userExist = await user.findById(update.$set.createdBy)
-            if(!userExist) return next(new Error(' Invalid User or User does not exist'))
+            const userExist = await user.findById(update.$set.createdBy);
+            if(!userExist){ return next(new Error(' Invalid User or User does not exist')); }
         }
-            return next()  
+            return next()  ;
     } catch (err) {
         return next(err);
     }

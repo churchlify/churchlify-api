@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 
 // Sub-document schema (nested)
 const auditSchema = new mongoose.Schema({

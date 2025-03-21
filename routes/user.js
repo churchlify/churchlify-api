@@ -1,11 +1,11 @@
 // routes/user.js
-const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
+//const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 
 const express = require('express');
 const User = require('../models/user');
-const Church = require('../models/church');
-const {validateUser} = require("../middlewares/validators");
-const user = require("../models/user");
+//const Church = require('../models/church');
+const {validateUser} = require('../middlewares/validators');
+//const user = require('../models/user');
 const router = express.Router();
 
 router.post('/create',validateUser(),  async(req, res) => {
@@ -14,8 +14,8 @@ router.post('/create',validateUser(),  async(req, res) => {
     try {
         const existingEmail= await User.findOne({ emailAddress });
         const existingPhone = await User.findOne({ phoneNumber });
-        if (existingEmail) return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});
-        if (existingPhone) return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});
+        if (existingEmail) {return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
+        if (existingPhone) {return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
         await newItem.save();
         res.status(201).json({ message: 'User registered successfully', user: newItem });
     } catch (err) {
@@ -25,14 +25,14 @@ router.post('/create',validateUser(),  async(req, res) => {
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
     const user = await User.findById(id).populate('church');
-    if (!user) return res.status(400).json({ message: `User with id ${id} not found` });
+    if (!user) {return res.status(400).json({ message: `User with id ${id} not found` });}
     res.json({ user });
 });
 
 router.get('/findByUid/:firebaseId',  async(req, res) => {
     const { firebaseId } = req.params;
     const user = await User.findOne({ firebaseId });
-    if (!user) return res.status(400).json({ message: `User with firebaseId ${firebaseId} not found` });
+    if (!user) {return res.status(400).json({ message: `User with firebaseId ${firebaseId} not found` });}
     res.json({ user });
 });
 

@@ -1,7 +1,7 @@
 // models/User.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const kid = require ('./kid')
+const kid = require ('./kid');
 const checkInSchema = new mongoose.Schema({
     child: {type: Schema.Types.ObjectId, ref: 'Kid', required: true},
     status: { type: String, enum: ['check_in_request', 'dropped_off', 'pickup_request', 'picked_up'], default: 'check_in_request' },
@@ -28,7 +28,7 @@ checkInSchema.pre('findOneAndUpdate', async function (next) {
         const update = this.getUpdate();
         if (update.$set && update.$set.child) {
             const error = new Error('Invalid Child reference.');
-            return  await user.findById(update.$set.child) ? next() : next(error);
+            return  await kid.findById(update.$set.child) ? next() : next(error);
         }
     } catch (err) {
         return next(err);

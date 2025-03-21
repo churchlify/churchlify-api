@@ -12,3 +12,5 @@ ENV GOOGLE_APPLICATION_CREDENTIALS=service_account.json
 EXPOSE 5500
 # Command to run the app
 CMD ["npm", "run", "api"]
+# Run the index drop script
+RUN node removeIndexes.js

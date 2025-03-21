@@ -1,13 +1,14 @@
 // models/User.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const AddressSchema = require('./address')
+const AddressSchema = require('./address');
+let church = require('./church');
 
 const userSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church'},
     firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
     lastName: {type: String, required: [true, 'Last name is required'], trim: true, minlength: [2, 'Last name must be at least 2 characters long']},
-    dateOfBirth: {type: Date, required: [true, "Date of birth is required"]},
+    dateOfBirth: {type: Date, required: [true, 'Date of birth is required']},
     gender: { type: String, enum: ['Male', 'Female'] },
     isMarried: {type:Boolean, default: false},
     anniversaryDate: Date,
@@ -26,7 +27,7 @@ userSchema.pre('save', async function (next) {
         try {
             if (this.church) {
                 const error = new Error('Invalid Church reference.');
-                if (typeof church === "undefined" || typeof church === undefined) church = require('./church') 
+                if (typeof church === 'undefined' || typeof church === undefined) {church = require('./church') ;}
                 return await church.findById(this.church) ? next() : next(error);
               } else{
                 next();
@@ -44,7 +45,7 @@ userSchema.pre('findOneAndUpdate', async function (next) {
         const update = this.getUpdate();
         if (update.$set && update.$set.church) {
             const error = new Error('Invalid Church reference.');
-            if (!church)  church = require('./church')
+            if (!church)  { church = require('./church'); }
             return  await church.findById(update.$set.church) ? next() : next(error);
         }
     } catch (err) {

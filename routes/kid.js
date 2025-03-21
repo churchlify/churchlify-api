@@ -1,9 +1,9 @@
 // routes/kid.js
-const {authenticateFirebaseToken, authenticateToken} = require("../middlewares/auth");
+//const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 
 const express = require('express');
 const Kid = require('../models/kid');
-const {validateKid} = require("../middlewares/validators");
+const {validateKid} = require('../middlewares/validators');
 const router = express.Router();
 
 router.post('/create',validateKid(),  async(req, res) => {
@@ -19,7 +19,7 @@ router.post('/create',validateKid(),  async(req, res) => {
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
     const kid = await Kid.findById(id).populate('parent');
-    if (!kid) return res.status(400).json({ message: `Child with id ${id} not found` });
+    if (!kid) {return res.status(400).json({ message: `Child with id ${id} not found` });}
     res.json({ kid });
 });
 
