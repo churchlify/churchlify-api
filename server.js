@@ -17,14 +17,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const cors = require('cors');
+const { resetIndexesForAllModels } = require('./common/shared');
 app.use(cors());
 app.use(express.json());
 app.use(logAuditTrails);
 
 const PORT = process.env.PORT || 5500;
 
-mongoose.connect(process.env.MONGO_URI).then(() => {
+mongoose.connect(process.env.MONGO_URI).then(async () => {
     console.log('Connected to MongoDB');
+    await resetIndexesForAllModels();
     // Emit updates to connected clients
     io.on('connection', (socket) => {
         console.log('A client connected:', socket.id);

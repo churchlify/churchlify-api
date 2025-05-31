@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true},
     photoUrl: {type: String},
     pushToken: {type: String},
-    firebaseId: String,
+    firebaseId: { type: String, required: [true, 'firebaseId is required'], unique: true, trim: true },
     role: { type: String, enum: ['admin', 'member', 'churchAdmin'], default: 'member' }
 }, { timestamps: true });
 

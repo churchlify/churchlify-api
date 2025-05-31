@@ -14,6 +14,40 @@ date.setUTCHours(hours, minutes); // Set the hours and minutes on the date objec
 return date;
 };
 
+const resetIndexesForAllModels = async () => {
+  try {
+    const mongoose = require('mongoose');
+    // Retrieve all registered models in Mongoose
+    const models = mongoose.models;
+    // Iterate through each model and reset indexes
+    for (const modelName in models) {
+      const Model = models[modelName];
+      console.log(`Processing model: ${modelName}`);
+
+      // Drop existing indexes
+      try {
+        await Model.collection.dropIndexes();
+        console.log(`Dropped indexes for model: ${modelName}`);
+      } catch (err) {
+        console.error(`Error dropping indexes for ${modelName}:`, err.message);
+      }
+
+      // Recreate indexes based on schema definitions
+      try {
+        await Model.syncIndexes();
+        console.log(`Recreated indexes for model: ${modelName}`);
+      } catch (err) {
+        console.error(`Error syncing indexes for ${modelName}:`, err.message);
+      }
+    }
+    
+    console.log('Finished processing all models!');
+  } catch (error) {
+    console.error('Error resetting indexes:', error.message);
+  } 
+};
+
+
 const convertTime = async(time, toZone = "America/Toronto") => {
   return moment.tz(time, "HH:mm", sysTimezone).tz(toZone).format("HH:mm");
 };
@@ -125,4 +159,4 @@ const getTodaysEvents = async (church) => {
     return flattenedEvents;
   };
 
-module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents};
+module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, resetIndexesForAllModels};

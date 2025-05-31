@@ -39,6 +39,16 @@ router.get('/findByDate/:date',  async(req, res) => {
     res.json({ event });
 });
 
+router.get('/upcoming/:date',  async(req, res) => {
+    const { date } = req.params;
+    const now = new Date(date);
+    const event = await Event.findOne({
+    startDate: { $gte: now } // Events starting from now onward
+    })
+    if (!event) {return res.status(400).json({ message: `There is no upcoming Event` });}
+    res.json({ event });
+});
+
 router.put('/update/:id',validateEvent(),  async(req, res) => {
     const { id } = req.params;
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }  = req.body;

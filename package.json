@@ -14,6 +14,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
+    "artillery-plugin-influxdb": "^0.9.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
@@ -21,6 +23,7 @@
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
     "firebase-admin": "^12.7.0",
+    "influx": "^5.10.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.46",
     "mongoose": "^8.8.0",

@@ -20,6 +20,7 @@ const eventSchema = new mongoose.Schema({
     location: { type: String, required: false },
     flier: { type: String, required: false },
     allowKidsCheckin: { type: Boolean, required: true , default: false}, 
+    rsvp: { type: Boolean, required: true , default: false}, 
     checkinStartTime: { type: String, required: true },
     recurrence: { type: recurrenceSchema}
 }, { timestamps: true });
