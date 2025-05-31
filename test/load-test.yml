@@ -1,31 +1,31 @@
 config:
   target: "https://churchlify-api.7thcolonnade.com"
   phases:
-    - duration: 30
+    - duration: 10
       arrivalRate: 1
       rampTo: 5
       name: Warm up the API
-    - duration: 120
+    - duration: 30
       arrivalRate: 10
       rampTo: 50
       name: Increase Load over 2 minutes
-    - duration: 300
+    - duration: 60
       arrivalRate: 20
       rampTo: 200
       name: Ramp up to peak load
   plugins:
     publish-metrics:
       - type: influxdb-statsd
-        prefix: 'artillery.'
-        host: 'localhost'
+        prefix: "artillery."
+        host: "localhost"
         port: 8125
         tags:
-          - 'testId:{{ $testId }}'
-          - 'reporterType:influxdb-statsd'
+          - "testId:{{ $testId }}"
+          - "reporterType:influxdb-statsd"
         event:
           priority: low
           tags:
-            - 'testId:{{ $testId }}'
+            - "testId:{{ $testId }}"
 
 scenarios:
   - flow:

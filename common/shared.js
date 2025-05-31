@@ -16,7 +16,7 @@ return date;
 
 const resetIndexesForAllModels = async () => {
   try {
-    const mongoose = require('mongoose');
+    const mongoose = require("mongoose");
     // Retrieve all registered models in Mongoose
     const models = mongoose.models;
     // Iterate through each model and reset indexes
@@ -41,9 +41,9 @@ const resetIndexesForAllModels = async () => {
       }
     }
     
-    console.log('Finished processing all models!');
+    console.log("Finished processing all models!");
   } catch (error) {
-    console.error('Error resetting indexes:', error.message);
+    console.error("Error resetting indexes:", error.message);
   } 
 };
 

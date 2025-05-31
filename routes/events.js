@@ -44,7 +44,7 @@ router.get('/upcoming/:date',  async(req, res) => {
     const now = new Date(date);
     const event = await Event.findOne({
     startDate: { $gte: now } // Events starting from now onward
-    })
+    });
     if (!event) {return res.status(400).json({ message: `There is no upcoming Event` });}
     res.json({ event });
 });
