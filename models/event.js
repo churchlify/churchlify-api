@@ -61,4 +61,4 @@ eventSchema.pre('findOneAndUpdate', async function (next) {
         return next(err);
     }
 });
-module.exports = mongoose.model('Events', eventSchema);
+module.exports = mongoose.model('Event', eventSchema);

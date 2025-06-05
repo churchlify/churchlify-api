@@ -11,6 +11,7 @@ const eventRoutes = require('./routes/events');
 const kidRoutes = require('./routes/kid');
 const auditRoutes = require('./routes/audit');
 const checkinRoutes = require('./routes/checkin');
+    const eventWorker = require('./common/event.worker');
 dotenv.config();
 
 const app = express();
@@ -43,6 +44,7 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     server.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
+    eventWorker.start();
 }).catch(err => {
     console.error(err);
 });

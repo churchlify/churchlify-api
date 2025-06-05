@@ -3,50 +3,119 @@
 const {validateEvent} = require('../middlewares/validators');
 const {getFlatennedMonthEvents} = require('../common/shared');
 const express = require('express');
-const Event = require('../models/event');
+const Events = require('../models/events');
+const EventService = require('../common/event.service');
 //const event = require('../models/event');
 const router = express.Router();
 
 router.post('/create',validateEvent(),  async(req, res) => {
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } = req.body;
-    const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
+    //const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
     try {
-        await newItem.save();
-        res.status(201).json({ message: 'Event registered successfully' , event: newItem});
+        // Prepare the event data object
+        const eventData = {
+            church,
+            title,
+            description,
+            startDate: new Date(startDate),
+            startTime,
+            endDate: new Date(endDate),
+            endTime,
+            location,
+            flier,
+            allowKidsCheckin,
+            checkinStartTime,
+            reminder,
+            createdBy
+        };
+
+        // Add recurrence data if it exists
+        if (recurrence) {
+            eventData.isRecurring = true;
+            eventData.recurrence = {
+                frequency: recurrence.frequency,
+                interval: recurrence.interval || 1,
+                endDate: recurrence.endDate ? new Date(recurrence.endDate) : null,
+                endAfterOccurrences: recurrence.endAfterOccurrences,
+                byWeekDay: recurrence.byWeekDay,
+                byMonthDay: recurrence.byMonthDay
+            };
+        }
+         // Use the EventService to create the event
+        const newEvent = await EventService.createEvent(eventData);
+         res.status(201).json({ 
+            message: eventData.isRecurring ? 
+                'Recurring event series created successfully' : 
+                'Event created successfully',
+            event: newEvent
+        });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+       console.error('Error creating event:', err);
+        res.status(400).json({ 
+            error: err.message,
+            details: err.errors ? Object.values(err.errors).map(e => e.message) : null
+        }); 
     }
 });
 
 router.get('/find/:id',  async(req, res) => {
     const { id } = req.params;
-    const event = await Event.findById(id);
+    const event = await Events.findById(id);
     if (!event){ return res.status(400).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
 });
 
 router.get('/findByDate/:date/:church',  async(req, res) => {
-    const { church, date } = req.params;
-    const event = await getFlatennedMonthEvents(date, church);
-    if (!event){ return res.status(400).json({ message: `Event with date ${date} not found` });}
+    const { church, date, to } = req.params;
+    const event = await EventService.getEvents({ from:date,to, church });
+    if (!event){ return res.status(event.code || 500).json({  error: result.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 
 router.get('/findByDate/:date',  async(req, res) => {
-    const { date } = req.params;
-    const event = await getFlatennedMonthEvents(date);
-    if (!event) {return res.status(400).json({ message: `Event with date ${date} not found` });}
+    const { church, date, to } = req.params;
+    const event = await EventService.getEvents({ from:date,to, church });
+    if (!event){ return res.status(event.code || 500).json({  error: result.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 
-router.get('/upcoming/:date',  async(req, res) => {
-    const { date } = req.params;
-    const now = new Date(date);
-    const event = await Event.findOne({
-    startDate: { $gte: now } // Events starting from now onward
-    });
-    if (!event) {return res.status(400).json({ message: `There is no upcoming Event` });}
-    res.json({ event });
+router.get('/events', async (req, res) => {
+  const { from, to, church } = req.query;
+  const result = await EventService.getEvents({ from, to, church });
+  
+  if (!result.success) {
+    return res.status(result.code || 500).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+router.get('/upcoming', async (req, res) => {
+    try {
+        const { churchId } = req.query;
+        const result = await EventService.getUpcomingEvent({ churchId });
+          if (!result.success) {
+            return res.status(result.code || 500).json({ error: result.error });
+            }
+
+        res.json({ event: result.data,  meta: result.meta});
+    } catch (error) {
+        console.error('Error fetching upcoming event:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.get('/upcoming/:churchId', async (req, res) => {
+    try {
+        const { churchId } = req.params;
+        const result = await EventService.getUpcomingEvent({ churchId });
+        if (!result.success) {
+            return res.status(result.code || 500).json({ error: result.error });
+        }
+        res.json({ event: result.data,  meta: result.meta});
+    } catch (error) {
+        console.error('Error fetching upcoming event:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
 router.put('/update/:id',validateEvent(),  async(req, res) => {
@@ -67,7 +136,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 
 router.get('/list',  async(req, res) => {
     try {
-        const events = await Event.find();
+        const events = await Events.find();
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -77,7 +146,7 @@ router.get('/list',  async(req, res) => {
 router.get('/list/:church',  async(req, res) => {
     try {
         const { church } = req.params;
-        const events = await Event.find({church: church});
+        const events = await Events.find({church: church});
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -87,12 +156,13 @@ router.get('/list/:church',  async(req, res) => {
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedItem = await Event.findByIdAndDelete(id);
+        const deletedItem = await Events.findByIdAndDelete(id);
         if (!deletedItem) {return res.status(404).json({ error: 'Event not found' });}
         res.status(200).json({ message: 'Event deleted successfully', event: deletedItem });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 module.exports = router;
