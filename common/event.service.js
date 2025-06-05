@@ -2,7 +2,7 @@ const { RRule, RRuleSet } = require('rrule');
 const Events = require('../models/events'); // Adjust the path as necessary
 const Church = require('../models/church');
 const user = require('../models/user');
-const moment = require('artillery-plugin-influxdb');
+const moment = require('moment-timezone');
 const sysTimezone = moment.tz.guess();
 
 class EventService {
