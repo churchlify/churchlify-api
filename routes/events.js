@@ -1,7 +1,7 @@
 // routes/events.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 const {validateEvent} = require('../middlewares/validators');
-const {getFlatennedMonthEvents} = require('../common/shared');
+// const {getFlatennedMonthEvents} = require('../common/shared');
 const express = require('express');
 const Events = require('../models/events');
 const EventService = require('../common/event.service');
@@ -68,14 +68,14 @@ router.get('/find/:id',  async(req, res) => {
 router.get('/findByDate/:date/:church',  async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
-    if (!event){ return res.status(event.code || 500).json({  error: result.error , message: `Event with date ${date} not found` });}
+    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 
 router.get('/findByDate/:date',  async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
-    if (!event){ return res.status(event.code || 500).json({  error: result.error , message: `Event with date ${date} not found` });}
+    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 
@@ -122,7 +122,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
     const { id } = req.params;
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }  = req.body;
     try {
-        const updatedEvent = await Event.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }}, { new: true, runValidators: true });
+        const updatedEvent = await Events.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }}, { new: true, runValidators: true });
               
        // const updatedEvent = await Event.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, checkinStartTime, recurrence, createdBy }} , { new: true, runValidators: true });
         if (!updatedEvent) {

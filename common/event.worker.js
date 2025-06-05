@@ -7,7 +7,7 @@ class EventWorker {
   }
 
   async start() {
-    if (this.isRunning) return;
+    if (this.isRunning) {return;}
     this.isRunning = true;
     
     console.log('Event worker started');

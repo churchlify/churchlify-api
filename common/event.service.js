@@ -1,8 +1,8 @@
-const { RRule, RRuleSet, rrulestr } = require('rrule');
+const { RRule, RRuleSet } = require('rrule');
 const Events = require('../models/events'); // Adjust the path as necessary
-const Church = require("../models/church");
-const user = require("../models/user");
-const moment = require("moment-timezone");
+const Church = require('../models/church');
+const user = require('../models/user');
+const moment = require('artillery-plugin-influxdb');
 const sysTimezone = moment.tz.guess();
 
 class EventService {
@@ -10,7 +10,7 @@ class EventService {
   async createEvent(eventData) {
     if (eventData.isRecurring) {
       return this._createRecurringEvent(eventData);
-    }
+    } 
     return Events.create(eventData);
   }
 
@@ -30,7 +30,7 @@ class EventService {
   // Update an event (handles both single and recurring)
   async updateEvent(eventId, updates) {
     const event = await Events.findById(eventId);
-    if (!event) throw new Error('Event not found');
+    if (!event){ throw new Error('Event not found');}
 
     if (event.isRecurring && !event.isInstance) {
       return this._updateRecurringMaster(event, updates);
@@ -74,7 +74,7 @@ class EventService {
   // Delete an event (handles both single and recurring)
   async deleteEvent(eventId) {
     const event = await Events.findById(eventId);
-    if (!event) throw new Error('Event not found');
+    if (!event) {throw new Error('Event not found');}
 
     if (event.isRecurring && !event.isInstance) {
       // Delete master and all instances
@@ -105,7 +105,7 @@ class EventService {
 
     const rule = this._createRRule(masterEvent);
     const dates = rule.between(new Date(), endDate);
-    console.log("Generated Dates:", dates);
+    console.log('Generated Dates:', dates);
     const instances = dates.map(date => ({
       ...this._extractInstanceFields(masterEvent),
       startDate: this._combineDateAndTime(date, masterEvent.startTime),
@@ -134,7 +134,7 @@ class EventService {
     if (event.recurrence.byWeekDay?.length) {
       options.byweekday = event.recurrence.byWeekDay.map(dayNum => {
         const weekdays = [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA];
-        if (dayNum >= 0 && dayNum <= 6) return weekdays[dayNum];
+        if (dayNum >= 0 && dayNum <= 6) {return weekdays[dayNum];}
         throw new Error(`Invalid weekday number: ${dayNum}`);
       });
     }
@@ -181,7 +181,7 @@ class EventService {
   }
 
   _calculateNextCheckDate(event) {
-    if (!event.isRecurring) return null;
+    if (!event.isRecurring) {return null;}
     
     const monthsToLookAhead = 3; // Regenerate 3 months before we run out
     const checkDate = new Date(event.startDate);
@@ -192,19 +192,19 @@ class EventService {
 
 
   // PRE-CREATED METHODS
-  async checkChurchById (id){ return await Church.findById(id);};
-  async checkUserById (id){ return await user.findById(id);};
+  async checkChurchById (id){ return await Church.findById(id);}
+  async checkUserById (id){ return await user.findById(id);}
   
  parseDateTime (dateString, timeString) {
   const date = new Date(dateString); // Parse the date string into a Date object
-  const [hours, minutes] = timeString.split(":").map(Number); // Split the time string into hours and minutes
+  const [hours, minutes] = timeString.split(':').map(Number); // Split the time string into hours and minutes
   date.setUTCHours(hours, minutes); // Set the hours and minutes on the date object
   return date;
-  };
+  }
   
   async resetIndexesForAllModels () {
     try {
-      const mongoose = require("mongoose");
+      const mongoose = require('mongoose');
       // Retrieve all registered models in Mongoose
       const models = mongoose.models;
       // Iterate through each model and reset indexes
@@ -229,24 +229,24 @@ class EventService {
         }
       }
       
-      console.log("Finished processing all models!");
+      console.log('Finished processing all models!');
     } catch (error) {
-      console.error("Error resetting indexes:", error.message);
+      console.error('Error resetting indexes:', error.message);
     } 
-  };
+  }
   
   
-  convertTime(time, toZone = "America/Toronto"){
-    return moment.tz(time, "HH:mm", sysTimezone).tz(toZone).format("HH:mm");
-  };
+  convertTime(time, toZone = 'America/Toronto'){
+    return moment.tz(time, 'HH:mm', sysTimezone).tz(toZone).format('HH:mm');
+  }
   
   
   async getTodaysEvents(church){
     const today = new Date();
     const churchData = Church.findById(church);
-    const churchTimeZone = (churchData.timeZone) ? churchData.timeZone : "America/Toronto";
+    const churchTimeZone = (churchData.timeZone) ? churchData.timeZone : 'America/Toronto';
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const currentTime = this.convertTime(today.getHours() + ":" + today.getMinutes(), churchTimeZone);
+    const currentTime = this.convertTime(today.getHours() + ':' + today.getMinutes(), churchTimeZone);
     try {
       const query = {
           startDate: { $lte: startOfDay }, // Event starts on or before today
@@ -255,20 +255,20 @@ class EventService {
           church,
           $expr: {
             $and: [
-              { $lte: ["$checkinStartTime",currentTime] },
-              { $gte: ["$endTime",currentTime] },       
+              { $lte: ['$checkinStartTime',currentTime] },
+              { $gte: ['$endTime',currentTime] },       
                 ]
           }
         };
       const events = await Events.find(query);
       return events;
     } catch (error) {
-      console.error("Error fetching today's events:", error);
+      console.error('Error fetching todays events:', error);
       return error;
     }
-  };
+  }
 
-   async _getFlatennedMonthEvents(d, churchId ="") {
+   async _getFlatennedMonthEvents(d, churchId ='') {
       const startOfMonth = new Date(new Date(d).getFullYear(), new Date(d).getMonth(), 1);
       const endOfMonth = new Date(new Date(d).getFullYear(), new Date(d).getMonth() + 1, 0);
       let flattenedEvents =[];
@@ -288,7 +288,7 @@ class EventService {
           while (currentDate <= eventEndDate && currentDate <= endOfMonth) {
             if (currentDate >= startOfMonth) {
               flattenedEvents.push({
-                id: event.id + "_" +event.startDate.toISOString().replace(/[^\w\s]/gi, ""),
+                id: event.id + '_' +event.startDate.toISOString().replace(/[^\w\s]/gi, ''),
                 church: event.church,
                 title: event.title,
                 description: event.description,
@@ -304,16 +304,16 @@ class EventService {
   
             if(event.recurrence){
                 switch (event.recurrence.frequency) {
-                    case "daily":
+                    case 'daily':
                         currentDate.setDate(currentDate.getDate() + 1);
                         break;
-                    case "weekly":
+                    case 'weekly':
                         currentDate.setDate(currentDate.getDate() + 7);
                         break;
-                    case "monthly":
+                    case 'monthly':
                         currentDate.setMonth(currentDate.getMonth() + 1);
                         break;
-                    case "yearly":
+                    case 'yearly':
                         currentDate.setFullYear(currentDate.getFullYear() + 1);
                         break;
                     default:
@@ -327,7 +327,7 @@ class EventService {
         });
       // console.log("flattenedEvents", flattenedEvents)
       return flattenedEvents;
-    };
+    }
 
    async getEvents({ from, to, churchId }) {
   try {
