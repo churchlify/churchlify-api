@@ -10,16 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Execute script on remote server
-      uses: appleboy/ssh-action@v1.2.0
-      with:
-        host: ${{ secrets.REMOTE_DEV_HOST }}
-        username: ${{ secrets.REMOTE_DEV_USER }}
-        key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
-        script: |
-          cd /srv/appHome/nodeapps/churchlify-api/
-          git pull origin main
-          docker-compose -p sevenc up -d --build
+      - name: Execute script on remote server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.REMOTE_DEV_HOST }}
+          username: ${{ secrets.REMOTE_DEV_USER }}
+          key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
+          script: |
+            cd /srv/appHome/nodeapps/churchlify-api/
+            git pull origin main
+            rm -f .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "GOOGLE_CLOUD_CREDENTIALS=${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}" >> .env
+            echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
+            echo "EMAIL=${{ secrets.EMAIL }}" >> .env
+            echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
+            docker-compose -p sevenc up -d --build

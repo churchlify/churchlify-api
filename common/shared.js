@@ -24,6 +24,14 @@ const resetIndexesForAllModels = async () => {
       const Model = models[modelName];
       console.log(`Processing model: ${modelName}`);
 
+         // Empty existing collections
+      try {
+        await Model.collection.deleteMany({});
+        console.log(`Dropped indexes for model: ${modelName}`);
+      } catch (err) {
+        console.error(`Error dropping indexes for ${modelName}:`, err.message);
+      }
+
       // Drop existing indexes
       try {
         await Model.collection.dropIndexes();

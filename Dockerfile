@@ -13,4 +13,4 @@ EXPOSE 5500
 # Command to run the app
 CMD ["npm", "run", "api"]
 # Run the index drop script
-RUN node removeIndexes.js
+# RUN node removeIndexes.js

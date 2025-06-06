@@ -11,7 +11,7 @@ const eventRoutes = require('./routes/events');
 const kidRoutes = require('./routes/kid');
 const auditRoutes = require('./routes/audit');
 const checkinRoutes = require('./routes/checkin');
-    const eventWorker = require('./common/event.worker');
+const eventWorker = require('./common/event.worker');
 dotenv.config();
 
 const app = express();
