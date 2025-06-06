@@ -417,6 +417,7 @@ class EventService {
 async getUpcomingEvent({ churchId } = {}) {
   try {
     const now = new Date();
+    const utcNow = new Date(now.toISOString());
     
     // Build the base query for upcoming events
     const query = {
@@ -424,19 +425,19 @@ async getUpcomingEvent({ churchId } = {}) {
         // Non-recurring events in the future
         {
           isRecurring: false,
-          startDate: { $gte: now }
+          startDate: { $gte: utcNow }
         },
         // Recurring event instances in the future
         {
           isInstance: true,
-          startDate: { $gte: now }
+          startDate: { $gte: utcNow }
         },
         // Master recurring events that might have future instances
         {
           isRecurring: true,
           isInstance: false,
           $or: [
-            { 'recurrence.endDate': { $gte: now } },
+            { 'recurrence.endDate': { $gte: utcNow } },
             { 'recurrence.endDate': { $exists: false } }
           ]
         }
