@@ -4,14 +4,83 @@ const Church = require('../models/church');
 const user = require('../models/user');
 const moment = require('moment-timezone');
 const sysTimezone = moment.tz.guess();
+const { DateTime } = require('luxon');
+const Event = require('../models/event'); // Adjust the path as necessary
+const EventInstance = require('../models/eventinstance'); // Adjust the path as necessary
+const { addDays, addMonths, addYears } = require('date-fns');
 
 class EventService {
+
+
+
+async expandRecurringEvents() {
+  
+  const now = new Date();
+  const futureLimit = addDays(now, 60);
+  const events = await Event.find({ isRecurring: true });
+
+  for (const event of events) {
+    const { recurrence, startDate, startTime, endTime } = event;
+
+    let occurrences = [];
+    let current = new Date(startDate);
+
+    while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
+      const weekday = current.getDay();
+
+      if (recurrence.frequency === 'DAILY') {
+        occurrences.push(new Date(current));
+        current = addDays(current, recurrence.interval);
+      } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
+        occurrences.push(new Date(current));
+        current = addDays(current, 1); // check next day
+      } else if (recurrence.frequency === 'MONTHLY') {
+        occurrences.push(new Date(current));
+        current = addMonths(current, recurrence.interval);
+      } else if (recurrence.frequency === 'YEARLY') {
+        occurrences.push(new Date(current));
+        current = addYears(current, recurrence.interval);
+      } else {
+        current = addDays(current, 1);
+      }
+    }
+
+    const instances = occurrences.map(date => ({
+      eventId: event._id,
+      churchId: event.churchId,
+      title: event.title,
+      description: event.description,
+      location: event.location,
+      date,
+      startTime,
+      endTime,
+    }));
+
+    // Remove old instances and insert new ones
+    await EventInstance.deleteMany({ eventId: event._id });
+    await EventInstance.insertMany(instances);
+  }
+}
+
+
   // Create a new event (recurring or single)
   async createEvent(eventData) {
-    if (eventData.isRecurring) {
-      return this._createRecurringEvent(eventData);
-    } 
-    return Events.create(eventData);
+   const  event = Event.create(eventData);
+    if (event.isRecurring) {
+         return await this.expandRecurringEvents(); // cache future instances
+      } else {
+          // Insert one instance directly
+          return await EventInstance.create({
+          eventId: event._id,
+          church: event.church,
+          title: event.title,
+          description: event.description,
+          location: event.location,
+          date: event.startDate,
+          startTime: event.startTime,
+          endTime: event.endTime
+          });
+    }
   }
 
   // Create recurring event and generate initial instances
@@ -416,76 +485,218 @@ class EventService {
 
 async getUpcomingEvent({ churchId } = {}) {
   try {
+    // 1. Get current time in UTC (three equivalent ways)
     const now = new Date();
-    const utcNow = new Date(now.toISOString());
-    
-    // Build the base query for upcoming events
+    // const utcNow = new Date(now.toISOString());  // Method 1
+    // const utcNow = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));  // Method 2
+    const utcNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));  // Method 3
+
+    console.log('[DEBUG] Current UTC time:', utcNow.toISOString());
+
+    // 2. Build the query conditions
     const query = {
       $or: [
-        // Non-recurring events in the future
-        {
+        // Non-recurring future events
+        { 
           isRecurring: false,
-          startDate: { $gte: utcNow }
+          startDate: { $gt: utcNow }
         },
-        // Recurring event instances in the future
+        // Recurring instances in future
         {
           isInstance: true,
-          startDate: { $gte: utcNow }
+          startDate: { $gt: utcNow }
         },
-        // Master recurring events that might have future instances
+        // Master recurring events that could generate future instances
         {
           isRecurring: true,
           isInstance: false,
           $or: [
-            { 'recurrence.endDate': { $gte: utcNow } },
+            { 'recurrence.endDate': { $gt: utcNow } },
             { 'recurrence.endDate': { $exists: false } }
           ]
         }
       ]
     };
 
-    // Add church filter if provided
     if (churchId) {
       query.church = churchId;
+      console.log('[DEBUG] Added church filter:', churchId);
     }
 
-    // Find the earliest upcoming event
+    console.log('[DEBUG] Final query:', JSON.stringify(query, null, 2));
+
+    // 3. Execute query with debugging
     const upcomingEvent = await Events.findOne(query)
-      .sort({ startDate: 1 }) // Get the event with closest startDate
+      .sort({ startDate: 1 })
       .populate('church', 'name')
       .populate('createdBy', 'firstName lastName');
 
     if (!upcomingEvent) {
+      console.log('[DEBUG] No events found matching query');
+      
+      // Verification query - find ANY future event without filters
+      const anyFutureEvent = await Events.findOne({ startDate: { $gt: utcNow } });
+      console.log('[DEBUG] Any future event exists?:', anyFutureEvent ? true : false);
+      
       return {
         success: true,
         data: null,
         message: 'No upcoming events found',
         meta: {
-          currentDate: now,
-          churchId: churchId || 'all'
+          queryTime: utcNow.toISOString(),
+          churchFilter: churchId || 'all'
         }
       };
+    }
+
+    console.log('[DEBUG] Found event:', {
+      id: upcomingEvent._id,
+      title: upcomingEvent.title,
+      startDate: upcomingEvent.startDate.toISOString(),
+      isRecurring: upcomingEvent.isRecurring,
+      isInstance: upcomingEvent.isInstance
+    });
+
+    // 4. Final validation
+    if (new Date(upcomingEvent.startDate) <= utcNow) {
+      console.warn('[WARNING] Returned event is in the past!', {
+        eventDate: upcomingEvent.startDate.toISOString(),
+        currentTime: utcNow.toISOString()
+      });
     }
 
     return {
       success: true,
       data: upcomingEvent,
       meta: {
-        currentDate: now,
-        daysUntil: Math.floor((upcomingEvent.startDate - now) / (1000 * 60 * 60 * 24)),
+        currentTime: utcNow.toISOString(),
+        daysUntil: Math.ceil((new Date(upcomingEvent.startDate) - utcNow) / (1000 * 60 * 60 * 24)),
         churchId: churchId || 'all'
       }
     };
 
   } catch (error) {
-    console.error('Error fetching upcoming event:', error);
+    console.error('[ERROR] Failed to fetch events:', error);
     return {
       success: false,
-      error: error.message,
+      error: 'Failed to retrieve upcoming event',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       code: 500
     };
   }
 }
+
+ getNextOccurrence(event, now) {
+  const {
+    frequency,
+    interval = 1,
+    endDate,
+    endAfterOccurrences,
+    byWeekDay,
+    byMonthDay,
+    exceptions = []
+  } = event.recurrence;
+
+  const startDate = DateTime.fromJSDate(event.startDate).startOf('day');
+  let occurrence = startDate;
+  let count = 0;
+
+  // Convert exception dates to ISO strings for easier matching
+  const exceptionSet = new Set(exceptions.map(d => DateTime.fromJSDate(d).toISODate()));
+
+  while (occurrence <= now || exceptionSet.has(occurrence.toISODate())) {
+    switch (frequency) {
+      case 'DAILY':
+        occurrence = occurrence.plus({ days: interval });
+        break;
+      case 'WEEKLY':
+        occurrence = occurrence.plus({ weeks: interval });
+        // Apply byWeekDay filtering
+        if (byWeekDay && byWeekDay.length) {
+          const weekStart = occurrence.startOf('week');
+          for (let i = 0; i < 7; i++) {
+            const day = weekStart.plus({ days: i });
+            if (day >= now && byWeekDay.includes(day.weekday % 7) && !exceptionSet.has(day.toISODate())) {
+              return day;
+            }
+          }
+        }
+        break;
+      case 'MONTHLY':
+        occurrence = occurrence.plus({ months: interval });
+        if (byMonthDay && byMonthDay.length) {
+          for (const day of byMonthDay) {
+            const tryDate = occurrence.set({ day });
+            if (tryDate.isValid && tryDate >= now && !exceptionSet.has(tryDate.toISODate())) {
+              return tryDate;
+            }
+          }
+        }
+        break;
+      case 'YEARLY':
+        occurrence = occurrence.plus({ years: interval });
+        break;
+    }
+
+    if (endDate && occurrence > DateTime.fromJSDate(endDate)) {
+      return null;
+    }
+
+    count++;
+    if (endAfterOccurrences && count >= endAfterOccurrences) {
+      return null;
+    }
+  }
+
+  return occurrence;
+}
+
+
+async getNextUpcomingEvent() {
+  const now = DateTime.utc();
+
+  // Step 1: Get next one-time event (not recurring)
+  const oneTimeEvent = await Events.findOne({
+    isRecurring: false,
+    startDate: { $gte: now.toJSDate() }
+  }).sort({ startDate: 1, startTime: 1 });
+
+  // Step 2: Get all recurring events
+  const recurringEvents = await Events.find({
+    isRecurring: true,
+    $or: [
+      { 'recurrence.endDate': { $exists: false } },
+      { 'recurrence.endDate': { $gte: now.toJSDate() } }
+    ]
+  });
+
+  // Step 3: Compute next occurrences of recurring events
+  const upcomingInstances = [];
+  for (const event of recurringEvents) {
+    const nextDate = this.getNextOccurrence(event, now);
+    if (nextDate) {
+      upcomingInstances.push({ event, nextDate });
+    }
+  }
+
+  // Step 4: Combine and find the earliest
+  const allEvents = [];
+
+  if (oneTimeEvent) {
+    allEvents.push({
+      event: oneTimeEvent,
+      nextDate: DateTime.fromJSDate(oneTimeEvent.startDate)
+    });
+  }
+
+  allEvents.push(...upcomingInstances);
+
+  allEvents.sort((a, b) => a.nextDate.toMillis() - b.nextDate.toMillis());
+
+  return allEvents.length > 0 ? allEvents[0].event : null;
+}
+
+
 
 }
 

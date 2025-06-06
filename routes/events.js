@@ -4,6 +4,8 @@ const {validateEvent} = require('../middlewares/validators');
 // const {getFlatennedMonthEvents} = require('../common/shared');
 const express = require('express');
 const Events = require('../models/events');
+const Event = require('../models/event');
+const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 //const event = require('../models/event');
 const router = express.Router();
@@ -35,10 +37,8 @@ router.post('/create',validateEvent(),  async(req, res) => {
             eventData.recurrence = {
                 frequency: recurrence.frequency,
                 interval: recurrence.interval || 1,
-                endDate: recurrence.endDate ? new Date(recurrence.endDate) : null,
-                endAfterOccurrences: recurrence.endAfterOccurrences,
-                byWeekDay: recurrence.byWeekDay,
-                byMonthDay: recurrence.byMonthDay
+                daysOfWeek: recurrence.daysOfWeek || [], // For weekly recurrence
+                endDate: recurrence.endDate ? new Date(recurrence.endDate) : null
             };
         }
          // Use the EventService to create the event
@@ -91,27 +91,12 @@ router.get('/events', async (req, res) => {
 
 router.get('/upcoming', async (req, res) => {
     try {
-        const { churchId } = req.query;
-        const result = await EventService.getUpcomingEvent({ churchId });
-          if (!result.success) {
-            return res.status(result.code || 500).json({ error: result.error });
-            }
-
-        res.json({ event: result.data,  meta: result.meta});
-    } catch (error) {
-        console.error('Error fetching upcoming event:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-router.get('/upcoming/:churchId', async (req, res) => {
-    try {
-        const { churchId } = req.params;
-        const result = await EventService.getUpcomingEvent({ churchId });
-        if (!result.success) {
-            return res.status(result.code || 500).json({ error: result.error });
-        }
-        res.json({ event: result.data,  meta: result.meta});
+        const now = new Date();
+        const body = req.body;
+        let filter = {date: { $gte: now }};
+        if(body.church) { filter.church = body.church; }
+        const event = await EventInstance.findOne(filter).sort({ date: 1 });
+        res.json({ event});
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
         res.status(500).json({ message: 'Server error' });
@@ -128,6 +113,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
         if (!updatedEvent) {
             return res.status(404).json({ message: `Event with id ${id} not found` });
         }
+         await EventService.expandRecurringEvents(); // re-cache
         res.status(200).json({ message: 'Record updated successfully', Event: updatedEvent });
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -136,7 +122,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 
 router.get('/list',  async(req, res) => {
     try {
-        const events = await Events.find();
+        const events = await EventInstance.find();
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -146,7 +132,10 @@ router.get('/list',  async(req, res) => {
 router.get('/list/:church',  async(req, res) => {
     try {
         const { church } = req.params;
-        const events = await Events.find({church: church});
+        const start = new Date(req.query.start || new Date());
+        const end = new Date(req.query.end || new Date(Date.now() + 1000 * 60 * 60 * 24 * 30));
+        const events = await EventInstance.find({ church: church, date: { $gte: start, $lte: end }
+        }).sort({ date: 1 });    
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -156,9 +145,11 @@ router.get('/list/:church',  async(req, res) => {
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedItem = await Events.findByIdAndDelete(id);
-        if (!deletedItem) {return res.status(404).json({ error: 'Event not found' });}
-        res.status(200).json({ message: 'Event deleted successfully', event: deletedItem });
+         // Delete the base event
+        const deletedEvent = await Event.findByIdAndDelete(id);
+        if (!deletedEvent) {return res.status(404).json({ error: 'Event not found' });}
+        await EventInstance.deleteMany({ id });   // Delete all cached instances
+        res.status(200).json({ message: 'Event deleted successfully', event: deletedEvent });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
