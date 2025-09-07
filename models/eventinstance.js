@@ -6,9 +6,11 @@ const eventInstanceSchema = new mongoose.Schema({
   title: String,
   description: String,
   location: String,
+  flier: String,
   date: { type: Date, required: true },
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
+  isCheckinOpen: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

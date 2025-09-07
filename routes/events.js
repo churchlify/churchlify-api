@@ -5,7 +5,7 @@ const {validateEvent} = require('../middlewares/validators');
 const express = require('express');
 const Events = require('../models/events');
 const Event = require('../models/event');
-const EventInstance = require('../models/eventinstance');
+const EventInstance = require('../models/');
 const EventService = require('../common/event.service');
 //const event = require('../models/event');
 const router = express.Router();
@@ -148,10 +148,41 @@ router.delete('/delete/:id', async (req, res) => {
          // Delete the base event
         const deletedEvent = await Event.findByIdAndDelete(id);
         if (!deletedEvent) {return res.status(404).json({ error: 'Event not found' });}
-        await EventInstance.deleteMany({ id });   // Delete all cached instances
+        await EventInstance.deleteMany({ eventId: id });   // Delete all cached instances
         res.status(200).json({ message: 'Event deleted successfully', event: deletedEvent });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+router.put('/update-checkin-status/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isCheckinOpen } = req.body;
+
+        if (typeof isCheckinOpen !== 'boolean') {
+            return res.status(400).json({ error: 'isCheckinOpen must be a boolean value.' });
+        }
+
+        // Find the specific event instance and update the field
+        const updatedInstance = await EventInstance.findByIdAndUpdate( id,
+            { $set: { isCheckinOpen: isCheckinOpen } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedInstance) {
+            return res.status(404).json({ error: 'Event instance not found.' });
+        }
+
+        const statusMessage = isCheckinOpen ? 'open' : 'closed';
+        res.status(200).json({ 
+            message: `Check-in for instance "${updatedInstance.title}" on ${updatedInstance.date.toDateString()} is now ${statusMessage}.`,
+            eventInstance: updatedInstance 
+        });
+
+    } catch (err) {
+        console.error('Error updating check-in status:', err);
+        res.status(500).json({ error: 'Server error occurred while updating check-in status.' });
     }
 });
 
