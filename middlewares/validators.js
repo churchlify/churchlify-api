@@ -86,6 +86,101 @@ const validateKid = () => [
     body('gender').notEmpty().withMessage('Gender is required'),
     body('middleName').optional().custom(value => value.length < 3).withMessage('Please provide a vallid middle name'),
     body('allergies').optional().custom(value => Array.isArray(value)).withMessage('Allergies must be array of string'),
+    (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+        next();
+    }
+];  
+
+const validateMinistry = () => [
+    body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
+    body('leaderId').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid leader ID'),
+    body('name').notEmpty().withMessage('Name is required'),
+    body('description').optional().notEmpty().withMessage('Description cannot be empty'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateDevotion = () => [
+    body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
+    body('author').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('scripture').notEmpty().withMessage('Scripture is required'),
+    body('content').notEmpty().withMessage('Content is required'),
+    body('date').notEmpty().withMessage('Devotion date is required'),
+    body('tags').optional().notEmpty().withMessage('tags cannot be empty'),
+    body('isPublished').optional().isBoolean().withMessage('isPublished must be boolean'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validatePrayer = () => [
+    body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
+    body('author').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('anonymous').optional().isBoolean().withMessage('anonymous must be boolean'),
+    body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean'),
+    body('prayerRequest').notEmpty().withMessage('prayerRequest is required'),
+    body('urgency').optional().notEmpty().withMessage('urgency cannot be empty'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateTestimony = () => [
+    body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
+    body('author').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
+    body('title').notEmpty().withMessage('Title is required'),
+    body('anonymous').optional().isBoolean().withMessage('anonymous must be boolean'),
+    body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean'),
+    body('story').notEmpty().withMessage('story is required'),
+    body('impact').optional().notEmpty().withMessage('impact cannot be empty'),
+    body('gratitude').optional().notEmpty().withMessage('gratitude cannot be empty'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateFellowship = () => [
+    body('church').isMongoId().withMessage('Please provide affiliated church ID'),
+    body('name').notEmpty().withMessage('Name is required'),
+    body('address.street').notEmpty().withMessage('Address is required'),
+    body('address.city').notEmpty().withMessage('City is required'),
+    body('address.postalCode').notEmpty().withMessage('Postal code is required'),
+    body('address.country').notEmpty().withMessage('Country is required'),
+    body('address.state').notEmpty().withMessage('Province/State is required'),
+    body('dayOfWeek').optional().notEmpty().withMessage('Location cannot be empty'),
+    body('meetingTime').optional().notEmpty().withMessage('Location cannot be empty'),
+    body('leaderId').optional().isMongoId().withMessage('Please provide a valid ID'),
+    body('description').optional().notEmpty().withMessage('Description cannot be empty'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
 ];
 
 const validateObjectId = () => [
@@ -96,4 +191,5 @@ const validateObjectId = () => [
 ];
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId };
+module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, 
+    validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship };

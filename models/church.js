@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const AddressSchema = require('./address');
 let user;
+const validateRefs = require('../common/validateRefs');
 
 const churchSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -44,5 +45,10 @@ churchSchema.pre('findOneAndUpdate', async function (next) {
     } catch (err) {
         return next(err);
     }
+});
+churchSchema.plugin(validateRefs, {
+  refs: [
+    { field: 'createdBy', model: 'User' }
+  ]
 });
 module.exports = mongoose.model('Church', churchSchema);

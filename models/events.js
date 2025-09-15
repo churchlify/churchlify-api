@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const church = require ('./church');
 const user = require('./user');
-
+const validateRefs = require('../common/validateRefs');
 
 
 const recurrenceSchema = new mongoose.Schema({
@@ -87,4 +87,11 @@ eventsSchema.pre('findOneAndUpdate', async function (next) {
         return next(err);
     }
 });
+eventsSchema.plugin(validateRefs, {
+  refs: [
+    { field: 'church', model: 'Church' },
+    { field: 'createdBy', model: 'User' },
+    { field: 'masterEventId', model: 'Events' }
+  ]
+}); 
 module.exports = mongoose.model('Events', eventsSchema);

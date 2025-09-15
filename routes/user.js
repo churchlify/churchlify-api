@@ -50,6 +50,24 @@ router.put('/update/:id',validateUser(),  async(req, res) => {
     }
 });
 
+// PATCH route to update one field
+router.patch('/update/:id', async (req, res) => {
+  const { id } = req.params;
+  const updates = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate( id, { $set: updates },{ new: true, runValidators: true } );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: `User with id ${id} not found` });
+    }
+    
+    res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 router.get('/list',  async(req, res) => {
     try {
         const users = await User.find().populate('church');

@@ -1,6 +1,7 @@
 // models/kid.js
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const validateRefs = require('../common/validateRefs');
 const User = require ('./user');
 const kidSchema = new mongoose.Schema({
     parent: {type: Schema.Types.ObjectId, ref: 'User', required: true},
@@ -36,6 +37,12 @@ kidSchema.pre('findOneAndUpdate', async function (next) {
         return next(err);
     }
     next();
+});
+
+kidSchema.plugin(validateRefs, {
+  refs: [
+    { field: 'parent', model: 'User' }
+  ]
 });
 
 module.exports = mongoose.model('Kid', kidSchema);

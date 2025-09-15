@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const AddressSchema = require('./address');
 let church = require('./church');
+const validateRefs = require('../common/validateRefs');
 
 const userSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church'},
@@ -51,5 +52,11 @@ userSchema.pre('findOneAndUpdate', async function (next) {
     } catch (err) {
         return next(err);
     }
+});
+
+userSchema.plugin(validateRefs, {
+  refs: [
+    { field: 'church', model: 'Church' }
+  ]
 });
 module.exports = mongoose.model('User', userSchema);

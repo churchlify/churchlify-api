@@ -23,16 +23,6 @@ const resetIndexesForAllModels = async () => {
     for (const modelName in models) {
       const Model = models[modelName];
       console.log(`Processing model: ${modelName}`);
-
-         // Empty existing collections
-      // try {
-      //   await Model.collection.deleteMany({});
-      //   console.log(`Dropped indexes for model: ${modelName}`);
-      // } catch (err) {
-      //   console.error(`Error dropping indexes for ${modelName}:`, err.message);
-      // }
-
-      // Drop existing indexes
       try {
         await Model.collection.dropIndexes();
         console.log(`Dropped indexes for model: ${modelName}`);
@@ -166,5 +156,14 @@ const getTodaysEvents = async (church) => {
     // console.log("flattenedEvents", flattenedEvents)
     return flattenedEvents;
   };
+const sanitizeString = (name) => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-zA-Z0-9-_~.% ]/g, "") // remove invalid chars
+    .replace(/\s+/g, "-")               // replace spaces with hyphens
+    .substring(0, 100);                 // FCM topic name limit
+};
 
-module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, resetIndexesForAllModels};
+
+module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, resetIndexesForAllModels, sanitizeString}; 

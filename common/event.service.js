@@ -1,7 +1,7 @@
 const Church = require('../models/church');
 const user = require('../models/user');
-const Event = require('../models/event'); // Adjust the path as necessary
-const EventInstance = require('../models/eventinstance'); // Adjust the path as necessary
+const Event = require('../models/event'); 
+const EventInstance = require('../models/eventinstance'); 
 const { addDays, addMonths, addYears } = require('date-fns');
 
 class EventService {

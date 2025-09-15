@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const church = require ('./church');
 const user = require('./user');
+const validateRefs = require('../common/validateRefs');
 // const {checkUserById, checkChurchById} = require('../common/shared')
 // const recurrenceSchema = new Schema({
 //     frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'], default: null },
@@ -83,5 +84,11 @@ eventSchema.pre('findOneAndUpdate', async function (next) {
     } catch (err) {
         return next(err);
     }
+});
+eventSchema.plugin(validateRefs, {
+  refs: [
+    { field: 'church', model: 'Church' },
+    { field: 'createdBy', model: 'User' }
+  ]
 });
 module.exports = mongoose.model('Event', eventSchema);

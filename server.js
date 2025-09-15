@@ -11,6 +11,11 @@ const eventRoutes = require('./routes/events');
 const kidRoutes = require('./routes/kid');
 const auditRoutes = require('./routes/audit');
 const checkinRoutes = require('./routes/checkin');
+const ministryRoutes = require('./routes/ministry');
+const fellowshipRoutes = require('./routes/fellowship');
+const prayerRoutes = require('./routes/prayer');
+const devotionRoutes = require('./routes/devotion');
+const testimonyRoutes = require('./routes/testimony');
 const eventWorker = require('./common/event.worker');
 dotenv.config();
 
@@ -56,4 +61,13 @@ app.use('/event', eventRoutes);
 app.use('/kid', kidRoutes);
 app.use('/audit', auditRoutes);
 app.use('/checkin', checkinRoutes);
+app.use('/ministry', ministryRoutes);
+app.use('/fellowship', fellowshipRoutes);
+app.use('/prayer', prayerRoutes);
+app.use('/devotion', devotionRoutes);
+app.use('/testimony', testimonyRoutes);
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the Church Management System API');
+});
 
