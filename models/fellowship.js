@@ -8,7 +8,7 @@ const fellowshipSchema = new mongoose.Schema({
   dayOfWeek: String,
   meetingTime: String,
   leaderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-  church: {type: mongoose.Schema.Types.ObjectId, ref: 'Church'},
+  church: {type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true},
   description: String
 }, { timestamps: true });
 

@@ -129,7 +129,7 @@ const validateDevotion = () => [
 
 const validatePrayer = () => [
     body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
-    body('author').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
+    body('author').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
     body('title').notEmpty().withMessage('Title is required'),
     body('anonymous').optional().isBoolean().withMessage('anonymous must be boolean'),
     body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean'),
@@ -146,7 +146,7 @@ const validatePrayer = () => [
 
 const validateTestimony = () => [
     body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
-    body('author').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
+    body('author').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid author ID'),
     body('title').notEmpty().withMessage('Title is required'),
     body('anonymous').optional().isBoolean().withMessage('anonymous must be boolean'),
     body('isPublic').optional().isBoolean().withMessage('isPublic must be boolean'),
