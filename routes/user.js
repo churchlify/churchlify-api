@@ -1,14 +1,26 @@
+/*
+#swagger.tags = ['User']
+*/
 // routes/user.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
-
 const express = require('express');
 const User = require('../models/user');
 //const Church = require('../models/church');
 const {validateUser} = require('../middlewares/validators');
 //const user = require('../models/user');
 const router = express.Router();
+/*
+#swagger.tags = ['User']
+*/
 
-router.post('/create',validateUser(),  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "POST /create"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
+router.post('/create', validateUser(), async(req, res) => {
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, firebaseId, photoUrl, pushToken, role } = req.body;
     const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate,  firebaseId, photoUrl, pushToken, role });
     try {
@@ -22,20 +34,51 @@ router.post('/create',validateUser(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
-router.get('/find/:id',  async(req, res) => {
+/*
+#swagger.tags = ['User']
+*/
+
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "GET /find/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
+router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const user = await User.findById(id).populate('church');
     if (!user) {return res.status(400).json({ message: `User with id ${id} not found` });}
     res.json({ user });
 });
+/*
+#swagger.tags = ['User']
+*/
 
-router.get('/findByUid/:firebaseId',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "GET /findByUid/:firebaseId"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
+router.get('/findByUid/:firebaseId', async(req, res) => {
     const { firebaseId } = req.params;
     const user = await User.findOne({ firebaseId });
     if (!user) {return res.status(400).json({ message: `User with firebaseId ${firebaseId} not found` });}
     res.json({ user });
 });
+/*
+#swagger.tags = ['User']
+*/
 
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "PUT /update/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.put('/update/:id',validateUser(),  async(req, res) => {
     const { id } = req.params;
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role } = req.body;
@@ -49,26 +92,35 @@ router.put('/update/:id',validateUser(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
-
 // PATCH route to update one field
+/*
+#swagger.tags = ['User']
+*/
 router.patch('/update/:id', async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
-
   try {
     const updatedUser = await User.findByIdAndUpdate( id, { $set: updates },{ new: true, runValidators: true } );
-
     if (!updatedUser) {
       return res.status(404).json({ message: `User with id ${id} not found` });
     }
-    
     res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
+/*
+#swagger.tags = ['User']
+*/
 
-router.get('/list',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "GET /list"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
+router.get('/list', async(req, res) => {
     try {
         const users = await User.find().populate('church');
         res.status(200).json({ users });
@@ -76,8 +128,18 @@ router.get('/list',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['User']
+*/
 
-router.get('/list/:church',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "GET /list/:church"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
+router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
         const users = await User.find({church: church});
@@ -86,20 +148,27 @@ router.get('/list/:church',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['User']
+*/
 
+
+
+
+
+/*#swagger.tags = ['User']
+#swagger.description = "DELETE /delete/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const deletedUser = await User.findByIdAndDelete(id);
-
         if (!deletedUser) {
             return res.status(404).json({ error: 'User not found' });
         }
-
         res.status(200).json({ message: 'User deleted successfully', user: deletedUser });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
 module.exports = router;

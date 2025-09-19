@@ -1,3 +1,6 @@
+/*
+#swagger.tags = ['Church']
+*/
 // routes/churches.js
 // const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 const {validateChurch} = require('../middlewares/validators');
@@ -5,8 +8,18 @@ const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
 const router = express.Router();
+/*
+#swagger.tags = ['Church']
+*/
 
-router.post('/create',validateChurch(),  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Church']
+#swagger.description = "POST /create"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
+router.post('/create', validateChurch(), async(req, res) => {
     const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone } = req.body;
     const newItem = new Church({ name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone  });
     try {
@@ -25,13 +38,34 @@ router.post('/create',validateChurch(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
-router.get('/find/:id',  async(req, res) => {
+/*
+#swagger.tags = ['Church']
+*/
+
+
+
+
+
+/*#swagger.tags = ['Church']
+#swagger.description = "GET /find/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
+router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const church = await Church.findById(id);
     if (!church) {return res.status(400).json({ message: `Church with id ${id} not found` });}
     res.json({ church });
 });
+/*
+#swagger.tags = ['Church']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Church']
+#swagger.description = "PUT /update/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
 router.put('/update/:id',validateChurch(),  async(req, res) => {
     const { id } = req.params;
     const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone  } = req.body;
@@ -45,8 +79,18 @@ router.put('/update/:id',validateChurch(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Church']
+*/
 
-router.get('/list',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Church']
+#swagger.description = "GET /list"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
+router.get('/list', async(req, res) => {
     try {
         const churches = await Church.find();
         res.status(200).json({ churches });
@@ -54,7 +98,17 @@ router.get('/list',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Church']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Church']
+#swagger.description = "DELETE /delete/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -65,6 +119,4 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
-
 module.exports = router;

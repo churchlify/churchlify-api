@@ -1,3 +1,6 @@
+/*
+#swagger.tags = ['Events']
+*/
 // routes/events.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 const {validateEvent} = require('../middlewares/validators');
@@ -9,8 +12,18 @@ const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 //const event = require('../models/event');
 const router = express.Router();
+/*
+#swagger.tags = ['Events']
+*/
 
-router.post('/create',validateEvent(),  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "POST /create"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.post('/create', validateEvent(), async(req, res) => {
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } = req.body;
     //const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
     try {
@@ -30,7 +43,6 @@ router.post('/create',validateEvent(),  async(req, res) => {
             reminder,
             createdBy
         };
-
         // Add recurrence data if it exists
         if (recurrence) {
             eventData.isRecurring = true;
@@ -57,38 +69,87 @@ router.post('/create',validateEvent(),  async(req, res) => {
         }); 
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
-router.get('/find/:id',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /find/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const event = await Events.findById(id);
     if (!event){ return res.status(400).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
 });
+/*
+#swagger.tags = ['Events']
+*/
 
-router.get('/findByDate/:date/:church',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /findByDate/:date/:church"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.get('/findByDate/:date/:church', async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
     if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
+/*
+#swagger.tags = ['Events']
+*/
 
-router.get('/findByDate/:date',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /findByDate/:date"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.get('/findByDate/:date', async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
     if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
     res.json({ event });
 });
+/*
+#swagger.tags = ['Events']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /events"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/events', async (req, res) => {
   const { from, to, church } = req.query;
   const result = await EventService.getEvents({ from, to, church });
-  
   if (!result.success) {
     return res.status(result.code || 500).json({ error: result.error });
   }
   res.json(result);
 });
+/*
+#swagger.tags = ['Events']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /upcoming"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/upcoming', async (req, res) => {
     try {
         const now = new Date();
@@ -102,13 +163,22 @@ router.get('/upcoming', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "PUT /update/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.put('/update/:id',validateEvent(),  async(req, res) => {
     const { id } = req.params;
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }  = req.body;
     try {
         const updatedEvent = await Events.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }}, { new: true, runValidators: true });
-              
        // const updatedEvent = await Event.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, checkinStartTime, recurrence, createdBy }} , { new: true, runValidators: true });
         if (!updatedEvent) {
             return res.status(404).json({ message: `Event with id ${id} not found` });
@@ -119,8 +189,18 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
-router.get('/list',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /list"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.get('/list', async(req, res) => {
     try {
         const events = await EventInstance.find();
         res.status(200).json({ events });
@@ -128,8 +208,18 @@ router.get('/list',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
-router.get('/list/:church',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "GET /list/:church"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
+router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
         const start = new Date(req.query.start || new Date());
@@ -141,7 +231,17 @@ router.get('/list/:church',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "DELETE /delete/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -154,37 +254,40 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Events']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Events']
+#swagger.description = "PUT /update-checkin-status/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.put('/update-checkin-status/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { isCheckinOpen } = req.body;
-
         if (typeof isCheckinOpen !== 'boolean') {
             return res.status(400).json({ error: 'isCheckinOpen must be a boolean value.' });
         }
-
         // Find the specific event instance and update the field
         const updatedInstance = await EventInstance.findByIdAndUpdate( id,
             { $set: { isCheckinOpen: isCheckinOpen } },
             { new: true, runValidators: true }
         );
-
         if (!updatedInstance) {
             return res.status(404).json({ error: 'Event instance not found.' });
         }
-
         const statusMessage = isCheckinOpen ? 'open' : 'closed';
         res.status(200).json({ 
             message: `Check-in for instance "${updatedInstance.title}" on ${updatedInstance.date.toDateString()} is now ${statusMessage}.`,
             eventInstance: updatedInstance 
         });
-
     } catch (err) {
         console.error('Error updating check-in status:', err);
         res.status(500).json({ error: 'Server error occurred while updating check-in status.' });
     }
 });
-
-
 module.exports = router;

@@ -1,12 +1,24 @@
+/*
+#swagger.tags = ['Kid']
+*/
 // routes/kid.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
-
 const express = require('express');
 const Kid = require('../models/kid');
 const {validateKid} = require('../middlewares/validators');
 const router = express.Router();
+/*
+#swagger.tags = ['Kid']
+*/
 
-router.post('/create',validateKid(),  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "POST /create"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
+router.post('/create', validateKid(), async(req, res) => {
     const { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } = req.body;
     const newItem = new Kid( { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } );
     try {
@@ -16,13 +28,34 @@ router.post('/create',validateKid(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
-router.get('/find/:id',  async(req, res) => {
+/*
+#swagger.tags = ['Kid']
+*/
+
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "GET /find/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
+router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const kid = await Kid.findById(id).populate('parent');
     if (!kid) {return res.status(400).json({ message: `Child with id ${id} not found` });}
     res.json({ kid });
 });
+/*
+#swagger.tags = ['Kid']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "PUT /update/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.put('/update/:id',validateKid(),  async(req, res) => {
     const { id } = req.params;
     const { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } = req.body;
@@ -36,8 +69,18 @@ router.put('/update/:id',validateKid(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Kid']
+*/
 
-router.get('/list',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "GET /list"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
+router.get('/list', async(req, res) => {
     try {
         const kids = await Kid.find().populate('parent');
         res.status(200).json({ kids });
@@ -45,8 +88,18 @@ router.get('/list',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Kid']
+*/
 
-router.get('/list/:parent',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "GET /list/:parent"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
+router.get('/list/:parent', async(req, res) => {
     try {
         const { parent } = req.params;
         const kids = await Kid.find({parent: parent});
@@ -55,20 +108,27 @@ router.get('/list/:parent',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Kid']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Kid']
+#swagger.description = "DELETE /delete/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const deletedKid = await Kid.findByIdAndDelete(id);
-
         if (!deletedKid) {
             return res.status(404).json({ error: 'Child not found' });
         }
-
         res.status(200).json({ message: 'Child deleted successfully', kid: deletedKid });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
 module.exports = router;

@@ -1,12 +1,13 @@
+/*
+#swagger.tags = ['Upload']
+*/
 // routes/upload.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
-
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 const router = express.Router();
-
 // Check file type
 function checkFileType(file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
@@ -14,8 +15,6 @@ function checkFileType(file, cb) {
     const mimetype = filetypes.test(file.mimetype);
     return (mimetype && extname) ? cb(null, true) : cb('Error: Images Only!');
 }
-
-
 // Set up storage engine with obfuscated file names
 const storage = multer.diskStorage({
     destination: './uploads/',
@@ -25,7 +24,6 @@ const storage = multer.diskStorage({
         cb(null, `${hash}${ext}`);
     }
 });
-
 // Initialize upload
 const upload = multer({
     storage: storage,
@@ -33,7 +31,6 @@ const upload = multer({
     fileFilter: (req, file, cb) => { checkFileType(file, cb);}
 }).single('image');
 
-// Upload endpoint
 router.post('/create', (req, res) => {
     upload(req, res, (err) => {
         if (err) {res.status(400).json({ message: err });}

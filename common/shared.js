@@ -45,11 +45,9 @@ const resetIndexesForAllModels = async () => {
   } 
 };
 
-
 const convertTime = async(time, toZone = "America/Toronto") => {
   return moment.tz(time, "HH:mm", sysTimezone).tz(toZone).format("HH:mm");
 };
-
 
 const getTodaysEvents = async (church) => {
   const today = new Date();
@@ -164,6 +162,5 @@ const sanitizeString = (name) => {
     .replace(/\s+/g, "-")               // replace spaces with hyphens
     .substring(0, 100);                 // FCM topic name limit
 };
-
 
 module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, resetIndexesForAllModels, sanitizeString}; 

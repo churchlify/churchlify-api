@@ -12,7 +12,6 @@ const logError = (error) => {
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://lucas:L00krat1ve@mongo_main,mongo_sec,mongo_tri:27017/churchlify?replicaSet=rs0&readPreference=primary';
 
-
 const rebuildIndexes = async () => {
     try {
         console.log(`Dropping indexes for ... ${MONGO_URI}`);

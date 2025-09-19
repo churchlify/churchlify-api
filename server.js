@@ -25,7 +25,7 @@ const io = new Server(server);
 const cors = require('cors');
 const { resetIndexesForAllModels } = require('./common/shared');
 const swaggerUi = require('swagger-ui-express');
-const swaggerFile = require('./swagger/swagger-output.json');
+const swaggerFile = require('./swagger/swagger.json');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use(cors());
 app.use(express.json());

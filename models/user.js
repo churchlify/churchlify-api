@@ -22,7 +22,6 @@ const userSchema = new mongoose.Schema({
     role: { type: String, enum: ['admin', 'member', 'churchAdmin'], default: 'member' }
 }, { timestamps: true });
 
-
 userSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('church')) {
         try {

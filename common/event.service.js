@@ -6,8 +6,6 @@ const { addDays, addMonths, addYears } = require('date-fns');
 
 class EventService {
 
-
-
 async expandRecurringEvents() {
   
   const now = new Date();
@@ -57,7 +55,6 @@ async expandRecurringEvents() {
     await EventInstance.insertMany(instances);
   }
 }
-
 
   // Create a new event (recurring or single)
   async createEvent(eventData) {

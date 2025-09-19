@@ -1,0 +1,2163 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "API Documentation"
+  },
+  "paths": {
+    "/Auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "POST /register",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Auth data",
+            "schema": {
+              "$ref": "#/definitions/Auth"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Auth"
+            }
+          }
+        }
+      }
+    },
+    "/Auth/protected": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "GET /protected",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Auth"
+            }
+          }
+        }
+      }
+    },
+    "/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "description": "POST /login",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Auth data",
+            "schema": {
+              "$ref": "#/definitions/Auth"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Auth"
+            }
+          }
+        }
+      }
+    },
+    "/CheckIn/initiate": {
+      "post": {
+        "tags": [
+          "CheckIn"
+        ],
+        "description": "POST /initiate",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "CheckIn data",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        }
+      }
+    },
+    "/CheckIn/find/:id": {
+      "get": {
+        "tags": [
+          "CheckIn"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        }
+      }
+    },
+    "/CheckIn/list": {
+      "get": {
+        "tags": [
+          "CheckIn"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        }
+      }
+    },
+    "/CheckIn/list/:child": {
+      "get": {
+        "tags": [
+          "CheckIn"
+        ],
+        "description": "GET /list/:child",
+        "parameters": [
+          {
+            "name": "child",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        }
+      }
+    },
+    "/CheckIn/delete/:id": {
+      "delete": {
+        "tags": [
+          "CheckIn"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CheckIn"
+            }
+          }
+        }
+      }
+    },
+    "/Church/create": {
+      "post": {
+        "tags": [
+          "Church"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Church data",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        }
+      }
+    },
+    "/Church/find/:id": {
+      "get": {
+        "tags": [
+          "Church"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        }
+      }
+    },
+    "/Church/update/:id": {
+      "put": {
+        "tags": [
+          "Church"
+        ],
+        "description": "PUT /update/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Church data",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        }
+      }
+    },
+    "/Church/list": {
+      "get": {
+        "tags": [
+          "Church"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        }
+      }
+    },
+    "/Church/delete/:id": {
+      "delete": {
+        "tags": [
+          "Church"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Church"
+            }
+          }
+        }
+      }
+    },
+    "/Devotion/create": {
+      "post": {
+        "tags": [
+          "Devotion"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Devotion data",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        }
+      }
+    },
+    "/Devotion/find/:id": {
+      "get": {
+        "tags": [
+          "Devotion"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        }
+      }
+    },
+    "/Devotion/list": {
+      "get": {
+        "tags": [
+          "Devotion"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        }
+      }
+    },
+    "/Devotion/list/:church": {
+      "get": {
+        "tags": [
+          "Devotion"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        }
+      }
+    },
+    "/Devotion/delete/:id": {
+      "delete": {
+        "tags": [
+          "Devotion"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Devotion"
+            }
+          }
+        }
+      }
+    },
+    "/Event/create": {
+      "post": {
+        "tags": [
+          "Event"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Event data",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/find/:id": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/findByDate/:date/:church": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "description": "GET /findByDate/:date/:church",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/findByDate/:date": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "description": "GET /findByDate/:date",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/update/:id": {
+      "put": {
+        "tags": [
+          "Event"
+        ],
+        "description": "PUT /update/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Event data",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/list": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/list/:church": {
+      "get": {
+        "tags": [
+          "Event"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Event/delete/:id": {
+      "delete": {
+        "tags": [
+          "Event"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Event"
+            }
+          }
+        }
+      }
+    },
+    "/Events/create": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Events data",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/find/:id": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/findByDate/:date/:church": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /findByDate/:date/:church",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/findByDate/:date": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /findByDate/:date",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/events": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /events",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/upcoming": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /upcoming",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/update/:id": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "description": "PUT /update/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Events data",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/list": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/list/:church": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/delete/:id": {
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Events/update-checkin-status/:id": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "description": "PUT /update-checkin-status/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Events data",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Events"
+            }
+          }
+        }
+      }
+    },
+    "/Fellowship/create": {
+      "post": {
+        "tags": [
+          "Fellowship"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Fellowship data",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        }
+      }
+    },
+    "/Fellowship/find/:id": {
+      "get": {
+        "tags": [
+          "Fellowship"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        }
+      }
+    },
+    "/Fellowship/list": {
+      "get": {
+        "tags": [
+          "Fellowship"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        }
+      }
+    },
+    "/Fellowship/list/:church": {
+      "get": {
+        "tags": [
+          "Fellowship"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        }
+      }
+    },
+    "/Fellowship/delete/:id": {
+      "delete": {
+        "tags": [
+          "Fellowship"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Fellowship"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/create": {
+      "post": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Kid data",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/find/:id": {
+      "get": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/update/:id": {
+      "put": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "PUT /update/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Kid data",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/list": {
+      "get": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/list/:parent": {
+      "get": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "GET /list/:parent",
+        "parameters": [
+          {
+            "name": "parent",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Kid/delete/:id": {
+      "delete": {
+        "tags": [
+          "Kid"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Kid"
+            }
+          }
+        }
+      }
+    },
+    "/Ministry/create": {
+      "post": {
+        "tags": [
+          "Ministry"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Ministry data",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        }
+      }
+    },
+    "/Ministry/find/:id": {
+      "get": {
+        "tags": [
+          "Ministry"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        }
+      }
+    },
+    "/Ministry/list": {
+      "get": {
+        "tags": [
+          "Ministry"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        }
+      }
+    },
+    "/Ministry/list/:church": {
+      "get": {
+        "tags": [
+          "Ministry"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        }
+      }
+    },
+    "/Ministry/delete/:id": {
+      "delete": {
+        "tags": [
+          "Ministry"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Ministry"
+            }
+          }
+        }
+      }
+    },
+    "/Prayer/create": {
+      "post": {
+        "tags": [
+          "Prayer"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Prayer data",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Prayer/find/:id": {
+      "get": {
+        "tags": [
+          "Prayer"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Prayer/list": {
+      "get": {
+        "tags": [
+          "Prayer"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Prayer/list/:church": {
+      "get": {
+        "tags": [
+          "Prayer"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Prayer/delete/:id": {
+      "delete": {
+        "tags": [
+          "Prayer"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Testimony/create": {
+      "post": {
+        "tags": [
+          "Testimony"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Testimony data",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        }
+      }
+    },
+    "/Testimony/find/:id": {
+      "get": {
+        "tags": [
+          "Testimony"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        }
+      }
+    },
+    "/Testimony/list": {
+      "get": {
+        "tags": [
+          "Testimony"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        }
+      }
+    },
+    "/Testimony/list/:church": {
+      "get": {
+        "tags": [
+          "Testimony"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        }
+      }
+    },
+    "/Testimony/delete/:id": {
+      "delete": {
+        "tags": [
+          "Testimony"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Testimony"
+            }
+          }
+        }
+      }
+    },
+    "/User/create": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "User data",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/find/:id": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/findByUid/:firebaseId": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "description": "GET /findByUid/:firebaseId",
+        "parameters": [
+          {
+            "name": "firebaseId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/update/:id": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "description": "PUT /update/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "User data",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/list": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/list/:church": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    },
+    "/User/delete/:id": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Assignment": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "ministryId": {
+          "type": "string"
+        },
+        "FellowshipId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "availability": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "string"
+        },
+        "dateAssigned": {
+          "type": "string"
+        }
+      }
+    },
+    "Audit": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "activity": {
+          "type": "string"
+        },
+        "params": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
+        }
+      }
+    },
+    "Auth": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "CheckIn": {
+      "type": "object",
+      "properties": {
+        "child": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        }
+      }
+    },
+    "Church": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "timeZone": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string"
+        }
+      }
+    },
+    "Devotion": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "scripture": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "isPublished": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "startTime": {
+          "type": "string"
+        },
+        "endTime": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "flier": {
+          "type": "string"
+        },
+        "allowKidsCheckin": {
+          "type": "boolean"
+        },
+        "rsvp": {
+          "type": "boolean"
+        },
+        "checkinStartTime": {
+          "type": "string"
+        },
+        "isRecurring": {
+          "type": "boolean"
+        },
+        "recurrence": {
+          "type": "string"
+        }
+      }
+    },
+    "EventInstance": {
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string"
+        },
+        "church": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "flier": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "startTime": {
+          "type": "string"
+        },
+        "endTime": {
+          "type": "string"
+        },
+        "isCheckinOpen": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Events": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "endDate": {
+          "type": "string"
+        },
+        "startTime": {
+          "type": "string"
+        },
+        "endTime": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "flier": {
+          "type": "string"
+        },
+        "allowKidsCheckin": {
+          "type": "boolean"
+        },
+        "rsvp": {
+          "type": "boolean"
+        },
+        "checkinStartTime": {
+          "type": "string"
+        },
+        "isRecurring": {
+          "type": "boolean"
+        },
+        "recurrence": {
+          "$ref": "#/definitions/Recurrence"
+        },
+        "isInstance": {
+          "type": "boolean"
+        },
+        "masterEventId": {
+          "type": "string"
+        },
+        "originalStartDate": {
+          "type": "string"
+        },
+        "nextCheckDate": {
+          "type": "string"
+        }
+      }
+    },
+    "Fellowship": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "dayOfWeek": {
+          "type": "string"
+        },
+        "meetingTime": {
+          "type": "string"
+        },
+        "leaderId": {
+          "type": "string"
+        },
+        "church": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "Kid": {
+      "type": "object",
+      "properties": {
+        "parent": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "allergies": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        }
+      }
+    },
+    "Ministry": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "leaderId": {
+          "type": "string"
+        }
+      }
+    },
+    "Prayer": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "anonymous": {
+          "type": "boolean"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "prayerRequest": {
+          "type": "string"
+        },
+        "urgency": {
+          "type": "string"
+        }
+      }
+    },
+    "Testimony": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "anonymous": {
+          "type": "boolean"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "story": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string"
+        },
+        "gratitude": {
+          "type": "string"
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "isMarried": {
+          "type": "boolean"
+        },
+        "anniversaryDate": {
+          "type": "string"
+        },
+        "emailAddress": {
+          "type": "string"
+        },
+        "phoneNumber": {
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "photoUrl": {
+          "type": "string"
+        },
+        "pushToken": {
+          "type": "string"
+        },
+        "firebaseId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

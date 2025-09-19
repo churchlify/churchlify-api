@@ -4,7 +4,6 @@ const church = require ('./church');
 const user = require('./user');
 const validateRefs = require('../common/validateRefs');
 
-
 const recurrenceSchema = new mongoose.Schema({
   frequency: { 
     type: String, 

@@ -15,7 +15,6 @@ const churchSchema = new mongoose.Schema({
     logo: String
 }, { timestamps: true });
 
-
 churchSchema.pre('save', async function (next) {
 
     if (this.isNew || this.isModified('createdBy')) {

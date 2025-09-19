@@ -1,12 +1,24 @@
+/*
+#swagger.tags = ['Auth']
+*/
 // routes/auth.js
 const {authenticateFirebaseToken} = require('../middlewares/auth');
-
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const router = express.Router();
+/*
+#swagger.tags = ['Auth']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Auth']
+#swagger.description = "POST /register"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Auth" } }*/
 router.post('/register', async (req, res) => {
     const { name, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -18,11 +30,31 @@ router.post('/register', async (req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Auth']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Auth']
+#swagger.description = "GET /protected"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Auth" } }*/
 router.get('/protected', authenticateFirebaseToken, (req, res) => {
     res.send(`Hello ${req.user.email}, you have access to this protected route!`);
 });
+/*
+#swagger.tags = ['Auth']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Auth']
+#swagger.description = "POST /login"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Auth" } }*/
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -32,5 +64,4 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
 });
-
 module.exports = router;

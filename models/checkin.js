@@ -11,7 +11,6 @@ const checkInSchema = new mongoose.Schema({
     expiresAt: { type: Date, required: true }
 }, { timestamps: true });
 
-
 checkInSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('child')) {
         try {

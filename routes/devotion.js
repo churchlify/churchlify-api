@@ -1,11 +1,23 @@
+/*
+#swagger.tags = ['Devotion']
+*/
 // routes/devotion.js
-
 const express = require('express');
 const Devotion = require('../models/devotion');
 const {validateDevotion} = require('../middlewares/validators');
 const router = express.Router();
+/*
+#swagger.tags = ['Devotion']
+*/
 
-router.post('/create',validateDevotion(),  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Devotion']
+#swagger.description = "POST /create"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
+router.post('/create', validateDevotion(), async(req, res) => {
     const { church, title, scripture, content, date, author, tags, isPublished } = req.body;
     const newItem = new Devotion({ church, title, scripture, content, date, author, tags, isPublished  });
     try {
@@ -15,15 +27,27 @@ router.post('/create',validateDevotion(),  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Devotion']
+*/
 
-router.get('/find/:id',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Devotion']
+#swagger.description = "GET /find/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
+router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const devotion = await Devotion.findById(id).populate('church');
     if (!devotion) {return res.status(400).json({ message: `Devotion with id ${id} not found` });}
     res.json({ devotion });
 });
-
-router.patch('/update/:id',  async(req, res) => {
+/*
+#swagger.tags = ['Devotion']
+*/
+router.patch('/update/:id', async(req, res) => {
     const { id } = req.params;
     const updates = req.body;
     try {
@@ -36,8 +60,18 @@ router.patch('/update/:id',  async(req, res) => {
         res.status(400).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Devotion']
+*/
 
-router.get('/list',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Devotion']
+#swagger.description = "GET /list"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
+router.get('/list', async(req, res) => {
     try {
         const ministries = await Devotion.find().populate('church');
         res.status(200).json({ ministries });
@@ -45,8 +79,18 @@ router.get('/list',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Devotion']
+*/
 
-router.get('/list/:church',  async(req, res) => {
+
+
+
+
+/*#swagger.tags = ['Devotion']
+#swagger.description = "GET /list/:church"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
+router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
         const ministries = await Devotion.find({church: church});
@@ -55,20 +99,27 @@ router.get('/list/:church',  async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+/*
+#swagger.tags = ['Devotion']
+*/
 
+
+
+
+
+/*#swagger.tags = ['Devotion']
+#swagger.description = "DELETE /delete/:id"
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const deletedDevotion = await Devotion.findByIdAndDelete(id);
-
         if (!deletedDevotion) {
             return res.status(404).json({ error: 'Devotion not found' });
         }
-
         res.status(200).json({ message: 'Devotion deleted successfully', devotion: deletedDevotion });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
 module.exports = router;
