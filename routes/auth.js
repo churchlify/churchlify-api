@@ -12,10 +12,6 @@ const router = express.Router();
 #swagger.tags = ['Auth']
 */
 
-
-
-
-
 /*#swagger.tags = ['Auth']
 #swagger.description = "POST /register"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Auth" } }*/
@@ -34,10 +30,6 @@ router.post('/register', async (req, res) => {
 #swagger.tags = ['Auth']
 */
 
-
-
-
-
 /*#swagger.tags = ['Auth']
 #swagger.description = "GET /protected"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Auth" } }*/
@@ -47,10 +39,6 @@ router.get('/protected', authenticateFirebaseToken, (req, res) => {
 /*
 #swagger.tags = ['Auth']
 */
-
-
-
-
 
 /*#swagger.tags = ['Auth']
 #swagger.description = "POST /login"

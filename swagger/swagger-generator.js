@@ -117,6 +117,10 @@ const routeDefinitionMap = {
   'audit.js': 'Audit',
   'assignment.js': 'Assignment',
   'events.js': 'Events',
+  'subscription.js': 'Subscription',
+  'payment.js': 'Payment',
+  'module.js': 'Module',
+  'settings.js': 'Settings' 
 };
 
 /**
@@ -137,7 +141,10 @@ function guessDefinitionFromRoute(routeFile, url, definitions) {
  */
 function injectSwaggerComments(routeFile, definitions) {
   let content = fs.readFileSync(routeFile, 'utf-8');
+
+  // Remove swagger comments and clean blank lines
   content = content.replace(/\/\*#swagger[\s\S]*?\*\//g, '');
+  content = content.replace(/\n{2,}/g, '\n');
 
   const paths = {};
   const routeRegex = /(router\.(get|post|put|delete))\(['"`](.*?)['"`],/g;
@@ -146,9 +153,9 @@ function injectSwaggerComments(routeFile, definitions) {
     const defName = guessDefinitionFromRoute(routeFile, url, definitions);
     const swaggerUrl = `/${defName}${url}`;
 
-    if (!paths[swaggerUrl]) {paths[swaggerUrl] = {};}
+    if (!paths[swaggerUrl]) { paths[swaggerUrl] = {}; }
 
-    // Prepare path parameters
+    // Prepare parameters
     const parameters = [];
     const paramRegex = /:([a-zA-Z0-9_]+)/g;
     let matchParam;
@@ -161,7 +168,6 @@ function injectSwaggerComments(routeFile, definitions) {
       });
     }
 
-    // Add body param for POST/PUT
     if (['post', 'put'].includes(method)) {
       parameters.push({
         name: 'body',
@@ -181,16 +187,16 @@ function injectSwaggerComments(routeFile, definitions) {
       }
     };
 
-    let comment = `/*#swagger.tags = ['${defName}']
+    // Ensure exactly one line before each comment
+    const comment = `\n/*#swagger.tags = ['${defName}']
 #swagger.description = "${method.toUpperCase()} ${url}"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/${defName}" } }*/\n`;
-
-// Replace multiple line breaks with single line break
-comment = comment.replace(/\n+/g, '\n');
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/${defName}" } }*/`;
 
     console.log(`Swagger path: [${method.toUpperCase()}] ${swaggerUrl} -> ${defName}`);
-    return comment + match;
+    return comment + '\n' + match;
   });
+
+  content = content.replace(/\n{3,}/g, '\n\n');
 
   fs.writeFileSync(routeFile, content, 'utf-8');
   return paths;

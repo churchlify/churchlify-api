@@ -19,7 +19,7 @@ const recurrenceSchema = new mongoose.Schema({
 }, { _id: false });
 
 const eventsSchema = new mongoose.Schema({
-  church: { type: Schema.Types.ObjectId, ref: 'Church', required: true },
+  church: { type: Schema.Types.ObjectId, ref: 'Church', required: true, index: true  },
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   title: { type: String, required: true },
   description: { type: String, required: false },

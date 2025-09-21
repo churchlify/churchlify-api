@@ -13,10 +13,6 @@ const router = express.Router();
 #swagger.tags = ['User']
 */
 
-
-
-
-
 /*#swagger.tags = ['User']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
@@ -38,10 +34,6 @@ router.post('/create', validateUser(), async(req, res) => {
 #swagger.tags = ['User']
 */
 
-
-
-
-
 /*#swagger.tags = ['User']
 #swagger.description = "GET /find/:id"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
@@ -55,10 +47,6 @@ router.get('/find/:id', async(req, res) => {
 #swagger.tags = ['User']
 */
 
-
-
-
-
 /*#swagger.tags = ['User']
 #swagger.description = "GET /findByUid/:firebaseId"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
@@ -71,10 +59,6 @@ router.get('/findByUid/:firebaseId', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-
-
-
 
 /*#swagger.tags = ['User']
 #swagger.description = "PUT /update/:id"
@@ -113,10 +97,6 @@ router.patch('/update/:id', async (req, res) => {
 #swagger.tags = ['User']
 */
 
-
-
-
-
 /*#swagger.tags = ['User']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
@@ -131,10 +111,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-
-
-
 
 /*#swagger.tags = ['User']
 #swagger.description = "GET /list/:church"
@@ -151,10 +127,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-
-
-
 
 /*#swagger.tags = ['User']
 #swagger.description = "DELETE /delete/:id"

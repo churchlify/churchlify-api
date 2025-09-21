@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validateRefs = require('../common/validateRefs');
 
 const AssignmentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User'},
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User', index: true },
   ministryId: { type: String, ref: 'Ministry'},
   FellowshipId: { type: String, ref: 'Fellowship'},
   role: { type: String, required: true},

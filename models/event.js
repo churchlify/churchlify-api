@@ -27,7 +27,7 @@ const validateRefs = require('../common/validateRefs');
 // }, { timestamps: true });
 
 const eventSchema = new mongoose.Schema({
-    church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true },
+    church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
     createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true},
     title: { type: String, required: true },
     description: String,

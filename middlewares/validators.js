@@ -155,7 +155,7 @@ const validateTestimony = () => [
     body('gratitude').optional().notEmpty().withMessage('gratitude cannot be empty'),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
+        if (!errors.isEmpty()) { 
             return res.status(400).json({ errors: errors.array() });
         }
         next();
@@ -183,6 +183,101 @@ const validateFellowship = () => [
     }
 ];
 
+const validateSubscription = () => [
+    body('church').notEmpty().withMessage('Church ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Church ID');
+            }
+            return true;
+    }),
+    body('modules').isArray().withMessage('Modules must be an array')
+        .notEmpty().withMessage('At least one module is required').custom((value) => {
+            if (!value.every(id => mongoose.Types.ObjectId.isValid(id))) {
+                throw new Error('One or more module IDs are invalid');
+            }
+            return true;
+    }),
+    body('startDate').optional().isISO8601().withMessage('Invalid start date format').toDate(),
+    body('expiryDate') .notEmpty().withMessage('Expiry date is required').isISO8601().withMessage('Invalid expiry date format').toDate(),
+    body('status').optional().isIn(['active', 'expired', 'cancelled', 'pending']) .withMessage('Invalid subscription status'),
+    body('payments').optional().isArray().withMessage('Payments must be an array') .custom((value) => {
+            if (!value.every(id => mongoose.Types.ObjectId.isValid(id))) {
+                throw new Error('One or more payment IDs are invalid');
+            }
+            return true;
+        }),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+    ];
+
+const validateModule = () =>  [
+        body('name').trim().notEmpty().withMessage('Module name is required'),
+        body('baseCost').isFloat({ min: 0 }).withMessage('Base cost must be a non-negative number'),
+        body('description').optional().trim(),
+        body('features').optional().isArray().withMessage('Features must be an array'),
+        (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+    ];
+
+const validatePayment = () =>  [
+    body('user').notEmpty().withMessage('User ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid User ID');
+            }
+            return true;
+        }),
+    body('church').notEmpty().withMessage('Church ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Church ID');
+            }
+            return true;
+        }),
+    body('subscription').notEmpty().withMessage('Subscription ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Subscription ID');
+            }
+            return true;
+        }),
+    body('paymentId').trim().notEmpty().withMessage('Payment ID is required'),
+    body('amount').isFloat({ min: 0 }).withMessage('Amount must be a non-negative number'),
+    body('status').isIn(['pending', 'succeeded', 'failed', 'refunded']).withMessage('Invalid payment status'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+    ];
+
+const validateSettings = () => [
+        body('church').notEmpty().withMessage('Church ID is required').custom((value) => {
+                if (!mongoose.Types.ObjectId.isValid(value)) {
+                    throw new Error('Invalid Church ID');
+                }
+                return true;
+            }),
+        body('key').trim().notEmpty().withMessage('Setting key is required'),
+        body('value').trim().notEmpty().withMessage('Setting value is required'),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        }
+    ];
+
 const validateObjectId = () => [
     check('id').optional().isMongoId().withMessage('Invalid Object Id provided'),
     check('church').optional().isMongoId().withMessage('Invalid Object Id, provide valid church ID'),
@@ -192,4 +287,5 @@ const validateObjectId = () => [
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, 
-    validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship };
+    validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
+    validateModule, validatePayment, validateSettings };

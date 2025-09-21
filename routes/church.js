@@ -12,10 +12,6 @@ const router = express.Router();
 #swagger.tags = ['Church']
 */
 
-
-
-
-
 /*#swagger.tags = ['Church']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
@@ -42,10 +38,6 @@ router.post('/create', validateChurch(), async(req, res) => {
 #swagger.tags = ['Church']
 */
 
-
-
-
-
 /*#swagger.tags = ['Church']
 #swagger.description = "GET /find/:id"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
@@ -58,10 +50,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Church']
 */
-
-
-
-
 
 /*#swagger.tags = ['Church']
 #swagger.description = "PUT /update/:id"
@@ -83,10 +71,6 @@ router.put('/update/:id',validateChurch(),  async(req, res) => {
 #swagger.tags = ['Church']
 */
 
-
-
-
-
 /*#swagger.tags = ['Church']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Church" } }*/
@@ -101,10 +85,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Church']
 */
-
-
-
-
 
 /*#swagger.tags = ['Church']
 #swagger.description = "DELETE /delete/:id"

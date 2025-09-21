@@ -11,10 +11,6 @@ const {createFcmTopic} = require('../common/push.service');
 #swagger.tags = ['Ministry']
 */
 
-
-
-
-
 /*#swagger.tags = ['Ministry']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
@@ -33,10 +29,6 @@ router.post('/create', validateMinistry(), async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-
-
-
 
 /*#swagger.tags = ['Ministry']
 #swagger.description = "GET /find/:id"
@@ -67,10 +59,6 @@ router.patch('/update/:id', async(req, res) => {
 #swagger.tags = ['Ministry']
 */
 
-
-
-
-
 /*#swagger.tags = ['Ministry']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
@@ -85,10 +73,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-
-
-
 
 /*#swagger.tags = ['Ministry']
 #swagger.description = "GET /list/:church"
@@ -105,10 +89,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-
-
-
 
 /*#swagger.tags = ['Ministry']
 #swagger.description = "DELETE /delete/:id"

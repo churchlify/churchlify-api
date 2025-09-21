@@ -16,6 +16,10 @@ const fellowshipRoutes = require('./routes/fellowship');
 const prayerRoutes = require('./routes/prayer');
 const devotionRoutes = require('./routes/devotion');
 const testimonyRoutes = require('./routes/testimony');
+const subscriptionRoutes = require('./routes/subscription');
+const moduleRoutes = require('./routes/module');
+const paymentRoutes = require('./routes/payment');
+const settingsRoutes = require('./routes/settings');
 const eventWorker = require('./common/event.worker');
 dotenv.config();
 
@@ -69,6 +73,10 @@ app.use('/fellowship', fellowshipRoutes);
 app.use('/prayer', prayerRoutes);
 app.use('/devotion', devotionRoutes);
 app.use('/testimony', testimonyRoutes);
+app.use('/subscription', subscriptionRoutes);
+app.use('/module', moduleRoutes);
+app.use('/payment', paymentRoutes); 
+app.use('/settings', settingsRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to the Church Management System API');

@@ -5,7 +5,7 @@ const kid = require ('./kid');
 const validateRefs = require('../common/validateRefs');
 
 const checkInSchema = new mongoose.Schema({
-    child: {type: Schema.Types.ObjectId, ref: 'Kid', required: true},
+    child: {type: Schema.Types.ObjectId, ref: 'Kid', required: true, index: true },
     status: { type: String, enum: ['check_in_request', 'dropped_off', 'pickup_request', 'picked_up'], default: 'check_in_request' },
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true }

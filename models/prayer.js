@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validateRefs = require('../common/validateRefs');
 
 const prayerSchema = new mongoose.Schema({
-  church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true},
+  church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   anonymous: { type: Boolean, default: false },
   isPublic: { type: Boolean, default: true },

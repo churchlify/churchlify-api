@@ -1287,6 +1287,238 @@
         }
       }
     },
+    "/Module/create": {
+      "post": {
+        "tags": [
+          "Module"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Module data",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      }
+    },
+    "/Module/find/:id": {
+      "get": {
+        "tags": [
+          "Module"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      }
+    },
+    "/Module/list": {
+      "get": {
+        "tags": [
+          "Module"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      }
+    },
+    "/Module/list/:church": {
+      "get": {
+        "tags": [
+          "Module"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      }
+    },
+    "/Module/delete/:id": {
+      "delete": {
+        "tags": [
+          "Module"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Module"
+            }
+          }
+        }
+      }
+    },
+    "/Payment/create": {
+      "post": {
+        "tags": [
+          "Payment"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Payment data",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        }
+      }
+    },
+    "/Payment/find/:id": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        }
+      }
+    },
+    "/Payment/list": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        }
+      }
+    },
+    "/Payment/list/:church": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        }
+      }
+    },
+    "/Payment/delete/:id": {
+      "delete": {
+        "tags": [
+          "Payment"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Payment"
+            }
+          }
+        }
+      }
+    },
     "/Prayer/create": {
       "post": {
         "tags": [
@@ -1398,6 +1630,238 @@
             "description": "Success",
             "schema": {
               "$ref": "#/definitions/Prayer"
+            }
+          }
+        }
+      }
+    },
+    "/Settings/create": {
+      "post": {
+        "tags": [
+          "Settings"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Settings data",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        }
+      }
+    },
+    "/Settings/find/:id": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        }
+      }
+    },
+    "/Settings/list": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        }
+      }
+    },
+    "/Settings/list/:church": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        }
+      }
+    },
+    "/Settings/delete/:id": {
+      "delete": {
+        "tags": [
+          "Settings"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Settings"
+            }
+          }
+        }
+      }
+    },
+    "/Subscription/create": {
+      "post": {
+        "tags": [
+          "Subscription"
+        ],
+        "description": "POST /create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Subscription data",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
+            }
+          }
+        }
+      }
+    },
+    "/Subscription/find/:id": {
+      "get": {
+        "tags": [
+          "Subscription"
+        ],
+        "description": "GET /find/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
+            }
+          }
+        }
+      }
+    },
+    "/Subscription/list": {
+      "get": {
+        "tags": [
+          "Subscription"
+        ],
+        "description": "GET /list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
+            }
+          }
+        }
+      }
+    },
+    "/Subscription/list/:church": {
+      "get": {
+        "tags": [
+          "Subscription"
+        ],
+        "description": "GET /list/:church",
+        "parameters": [
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
+            }
+          }
+        }
+      }
+    },
+    "/Subscription/delete/:id": {
+      "delete": {
+        "tags": [
+          "Subscription"
+        ],
+        "description": "DELETE /delete/:id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Subscription"
             }
           }
         }
@@ -2057,6 +2521,52 @@
         }
       }
     },
+    "Module": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "baseCost": {
+          "type": "number"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Payment": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "church": {
+          "type": "string"
+        },
+        "subscription": {
+          "type": "string"
+        },
+        "paymentId": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "string"
+        }
+      }
+    },
     "Prayer": {
       "type": "object",
       "properties": {
@@ -2080,6 +2590,49 @@
         },
         "urgency": {
           "type": "string"
+        }
+      }
+    },
+    "Settings": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "Subscription": {
+      "type": "object",
+      "properties": {
+        "church": {
+          "type": "string"
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "startDate": {
+          "type": "string"
+        },
+        "expiryDate": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "payments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

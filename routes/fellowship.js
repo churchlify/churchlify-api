@@ -11,10 +11,6 @@ const {createFcmTopic} = require('../common/push.service');
 #swagger.tags = ['Fellowship']
 */
 
-
-
-
-
 /*#swagger.tags = ['Fellowship']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
@@ -33,10 +29,6 @@ router.post('/create', validateFellowship(), async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-
-
-
 
 /*#swagger.tags = ['Fellowship']
 #swagger.description = "GET /find/:id"
@@ -67,10 +59,6 @@ router.patch('/update/:id', async(req, res) => {
 #swagger.tags = ['Fellowship']
 */
 
-
-
-
-
 /*#swagger.tags = ['Fellowship']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
@@ -85,10 +73,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-
-
-
 
 /*#swagger.tags = ['Fellowship']
 #swagger.description = "GET /list/:church"
@@ -105,10 +89,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-
-
-
 
 /*#swagger.tags = ['Fellowship']
 #swagger.description = "DELETE /delete/:id"

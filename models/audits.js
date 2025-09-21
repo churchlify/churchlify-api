@@ -9,4 +9,5 @@ const auditSchema = new mongoose.Schema({
     payload: { type: String, required: true },
     response: { type: String, required: true },
 } ,{ timestamps: true });
+auditSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 }); // 90 days
 module.exports = mongoose.model('Audit', auditSchema);

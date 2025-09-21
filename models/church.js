@@ -6,7 +6,7 @@ const validateRefs = require('../common/validateRefs');
 
 const churchSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true,},
+    createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true, index: true },
     shortName: { type: String, required: true },
     emailAddress: { type: String, required: [true, 'Email Address is required'], unique: true, lowercase: true, trim: true },
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true },

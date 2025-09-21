@@ -22,10 +22,6 @@ const router = express.Router();
 }
 */
 
-
-
-
-
 /*#swagger.tags = ['Prayer']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
@@ -48,10 +44,6 @@ router.post('/create', validatePrayer(), async (req, res) => {
 }
 #swagger.responses[404] = { description: 'Prayer not found' }
 */
-
-
-
-
 
 /*#swagger.tags = ['Prayer']
 #swagger.description = "GET /find/:id"
@@ -98,10 +90,6 @@ router.patch('/update/:id', async (req, res) => {
 }
 */
 
-
-
-
-
 /*#swagger.tags = ['Prayer']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
@@ -128,10 +116,6 @@ router.get('/list', async (req, res) => {
 }
 */
 
-
-
-
-
 /*#swagger.tags = ['Prayer']
 #swagger.description = "GET /list/:church"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
@@ -153,10 +137,6 @@ router.get('/list/:church', async (req, res) => {
 }
 #swagger.responses[404] = { description: 'Prayer not found' }
 */
-
-
-
-
 
 /*#swagger.tags = ['Prayer']
 #swagger.description = "DELETE /delete/:id"

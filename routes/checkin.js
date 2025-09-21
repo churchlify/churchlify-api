@@ -14,10 +14,6 @@ const router = express.Router();
 #swagger.tags = ['Checkin']
 */
 
-
-
-
-
 /*#swagger.tags = ['CheckIn']
 #swagger.description = "POST /initiate"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/CheckIn" } }*/
@@ -77,10 +73,6 @@ router.patch('/:id/status', async (req, res) => {
 #swagger.tags = ['Checkin']
 */
 
-
-
-
-
 /*#swagger.tags = ['CheckIn']
 #swagger.description = "GET /find/:id"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/CheckIn" } }*/
@@ -93,10 +85,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Checkin']
 */
-
-
-
-
 
 /*#swagger.tags = ['CheckIn']
 #swagger.description = "GET /list"
@@ -113,10 +101,6 @@ router.get('/list', async(req, res) => {
 #swagger.tags = ['Checkin']
 */
 
-
-
-
-
 /*#swagger.tags = ['CheckIn']
 #swagger.description = "GET /list/:child"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/CheckIn" } }*/
@@ -132,10 +116,6 @@ router.get('/list/:child', async(req, res) => {
 /*
 #swagger.tags = ['Checkin']
 */
-
-
-
-
 
 /*#swagger.tags = ['CheckIn']
 #swagger.description = "DELETE /delete/:id"

@@ -16,10 +16,6 @@ const router = express.Router();
 #swagger.tags = ['Events']
 */
 
-
-
-
-
 /*#swagger.tags = ['Events']
 #swagger.description = "POST /create"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
@@ -73,10 +69,6 @@ router.post('/create', validateEvent(), async(req, res) => {
 #swagger.tags = ['Events']
 */
 
-
-
-
-
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /find/:id"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
@@ -89,10 +81,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /findByDate/:date/:church"
@@ -107,10 +95,6 @@ router.get('/findByDate/:date/:church', async(req, res) => {
 #swagger.tags = ['Events']
 */
 
-
-
-
-
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /findByDate/:date"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
@@ -123,10 +107,6 @@ router.get('/findByDate/:date', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /events"
@@ -142,10 +122,6 @@ router.get('/events', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /upcoming"
@@ -166,10 +142,6 @@ router.get('/upcoming', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "PUT /update/:id"
@@ -193,10 +165,6 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 #swagger.tags = ['Events']
 */
 
-
-
-
-
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
@@ -211,10 +179,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "GET /list/:church"
@@ -235,10 +199,6 @@ router.get('/list/:church', async(req, res) => {
 #swagger.tags = ['Events']
 */
 
-
-
-
-
 /*#swagger.tags = ['Events']
 #swagger.description = "DELETE /delete/:id"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
@@ -257,10 +217,6 @@ router.delete('/delete/:id', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-
-
-
 
 /*#swagger.tags = ['Events']
 #swagger.description = "PUT /update-checkin-status/:id"

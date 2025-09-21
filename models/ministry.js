@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const validateRefs = require('../common/validateRefs');
 
 const ministrySchema = new mongoose.Schema({
-  church: {type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true},
+  church: {type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
   name: { type: String,nrequired: true},
   description: String,
   leaderId: { type: mongoose.Schema.Types.ObjectId , ref: 'User'}

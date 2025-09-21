@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const validateRefs = require('../common/validateRefs');
 const User = require ('./user');
 const kidSchema = new mongoose.Schema({
-    parent: {type: Schema.Types.ObjectId, ref: 'User', required: true},
+    parent: {type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     firstName: { type: String, required: [true, 'First name is required'], trim: true, minlength: [2, 'First name must be at least 2 characters long']},
     lastName: {type: String, required: [true, 'Last name is required'], trim: true, minlength: [2, 'Last name must be at least 2 characters long']},
     middleName: {type: String, trim:true, },
