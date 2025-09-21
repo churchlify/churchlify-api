@@ -236,7 +236,7 @@ function generateSwagger(modelsDir, routesDir, outputFile = 'swagger.json') {
 
   const swaggerDoc = {
     swagger: '2.0',
-    info: { version: '1.0.0', title: 'API Documentation' },
+    info: { version: '1.0.0', title: 'Churchlify API Documentation' , description: 'Comprehensive API documentation for Churchlify, the church management system.'},
     paths,
     definitions
   };

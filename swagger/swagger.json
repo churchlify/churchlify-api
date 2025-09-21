@@ -2,7 +2,8 @@
   "swagger": "2.0",
   "info": {
     "version": "1.0.0",
-    "title": "API Documentation"
+    "title": "Churchlify API Documentation",
+    "description": "Comprehensive API documentation for Churchlify, the church management system."
   },
   "paths": {
     "/Auth/register": {
