@@ -2,7 +2,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
-const { rooms, redisClient } = require('../mediasoup/media-worker');
+const { rooms, redisClient } = require('../media-client');
 
 // TURN credentials endpoint
 router.get('/turn-credentials', (req, res) => {
@@ -39,8 +39,9 @@ router.post('/rooms/join', async (req, res) => {
   const { roomId, userId } = req.body;
   if (!roomId || !userId) {return res.status(400).json({ error: 'roomId and userId required' });}
 
-  if (redisClient){ await redisClient.sadd(`room:${roomId}`, userId);}
-  else {
+  if (redisClient){ 
+    await redisClient.sadd(`room:${roomId}`, userId);
+  }else {
     if (!rooms.has(roomId)){ rooms.set(roomId, new Set());}
     rooms.get(roomId).add(userId);
   }
