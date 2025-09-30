@@ -2,8 +2,10 @@ name: Deploy to DEV on PR Merge
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "churchlify_api/**"
+      - ".github/workflows/deploy-dev.yml"
 
 jobs:
   deploy:
