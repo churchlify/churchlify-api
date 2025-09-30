@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const { startWorker } = require('./mediasoup/media-client'); // full worker
 const { Server } = require('socket.io');
 const {logAuditTrails} = require('./middlewares/audits');
 const mongoose = require('mongoose');
@@ -20,6 +21,7 @@ const subscriptionRoutes = require('./routes/subscription');
 const moduleRoutes = require('./routes/module');
 const paymentRoutes = require('./routes/payment');
 const settingsRoutes = require('./routes/settings');
+const chatRoutes = require('./routes/chat'); // Import chat routes
 const eventWorker = require('./common/event.worker');
 dotenv.config();
 
@@ -34,32 +36,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use(cors());
 app.use(express.json());
 app.use(logAuditTrails);
-
-const PORT = process.env.PORT || 5500;
-
-mongoose.connect(process.env.MONGO_URI).then(async () => {
-    console.log('Connected to MongoDB');
-    await resetIndexesForAllModels();
-    // Emit updates to connected clients
-    io.on('connection', (socket) => {
-        console.log('A client connected:', socket.id);
-    
-        // Example: Emit real-time update
-        setInterval(() => {
-        socket.emit('dataUpdated', { message: 'This is a real-time update', timestamp: new Date() });
-        }, 5000); // Emit every 5 seconds
-    
-        socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-        });
-    });
-    server.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-    eventWorker.start();
-}).catch(err => {
-    console.error(err);
-});
 // server.js
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
@@ -77,8 +53,28 @@ app.use('/subscription', subscriptionRoutes);
 app.use('/module', moduleRoutes);
 app.use('/payment', paymentRoutes); 
 app.use('/settings', settingsRoutes);
+app.use('/chat', chatRoutes);
 
 app.get('/', (req, res) => {
     res.send('Welcome to the Church Management System API');
+});
+
+const PORT = process.env.PORT || 5500;
+
+mongoose.connect(process.env.MONGO_URI).then(async () => {
+    console.log('Connected to MongoDB');
+    await resetIndexesForAllModels();
+    (async () => {
+  try {
+     await startWorker(io);
+    server.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
+    eventWorker.start();
+  } catch (err) {
+    console.error('❌ Failed to start server or Mediasoup worker:', err);
+    process.exit(1);
+  }
+})();
+}).catch(err => {
+    console.error(err);
 });
 
