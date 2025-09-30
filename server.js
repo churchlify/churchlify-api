@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-const { startWorker } = require('./mediasoup/media-client'); // full worker
+const { startWorker } = require('./media-client'); // full worker
 const { Server } = require('socket.io');
 const {logAuditTrails} = require('./middlewares/audits');
 const mongoose = require('mongoose');
