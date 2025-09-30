@@ -1,4 +1,4 @@
-name: Deploy on PR Merge
+name: Deploy to DEV on PR Merge
 
 on:
   push:
@@ -21,7 +21,10 @@ jobs:
           key: ${{ secrets.DEV_SSH_PRIVATE_KEY }}
           script: |
             cd /srv/appHome/nodeapps/churchlify-api/
+            # Pull latest code
             git pull origin main
+
+            # Recreate .env with fresh secrets
             rm -f .env
             echo "PORT=${{ secrets.PORT }}" >> .env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
@@ -29,4 +32,27 @@ jobs:
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
             echo "EMAIL=${{ secrets.EMAIL }}" >> .env
             echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
-            docker-compose -p sevenc up -d --build
+            echo "TURN_SECRET=${{ secrets.TURN_SECRET }}" >> .env
+            echo "REMOTE_HOST=${{ secrets.REMOTE_DEV_HOST }}" >> .env 
+
+            # Ensure coturn directory exists
+            mkdir -p coturn
+
+            # Write turnserver.conf
+            cat > coturn/turnserver.conf <<EOL
+            listening-port=3478
+            tls-listening-port=5349
+            listening-ip=0.0.0.0
+            external-ip=${{ secrets.REMOTE_DEV_HOST }}
+            fingerprint
+            use-auth-secret
+            static-auth-secret=${{ secrets.TURN_SECRET }}
+            realm=${{ secrets.REMOTE_DEV_HOST }}
+            total-quota=100
+            bps-capacity=0cs
+            log-file=/var/log/turn.log
+            simple-log
+            EOL
+
+            # Restart Docker stack
+            docker compose -p sevenc up -d --build

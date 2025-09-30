@@ -1,4 +1,5 @@
 node_modules/
+coturn/
 .env
 .vscode
 service_account.json

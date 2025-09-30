@@ -13,17 +13,19 @@ services:
     restart: always
     ports:
       - "5500:3000"
+    env_file:
+      - .env
     environment:
-      - MONGO_URI=mongodb://shukwudi:L0k0m0t1f@mongo_main,mongo_sec,mongo_tri:27017/churchlify?replicaSet=rs0
+      - MONGO_URI=${MONGO_URI}
       - NODE_ENV=production
       - PORT=3000
       - REDIS_HOST=redis
-      - TURN_URL=127.0.0.1
-      - TURN_SHARED_SECRET=ea5048a3e83702a7392ded70d8a2a821c9a9ca2643092457efe8123ab50b3f59
+      - TURN_URL=${REMOTE_HOST}
+      - TURN_SHARED_SECRET=${TURN_SECRET}
       - TURN_USER_EXPIRY_SEC=600
       - MEDIASOUP_MIN_PORT=40000
       - MEDIASOUP_MAX_PORT=40100
-      - PUBLIC_IP=10.0.0.15
+      - PUBLIC_IP=${REMOTE_HOST}
     networks:
       - db_network
       - webrtc-net
