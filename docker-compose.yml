@@ -35,8 +35,7 @@ services:
       - coturn
 
   mediasoup:
-    build: 
-      context: ./mediasoup
+    image: ghcr.io/churchlify/mediasoup:latest
     platform: linux/amd64
     container_name: mediasoup
     restart: unless-stopped
