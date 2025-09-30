@@ -25,6 +25,7 @@
     "firebase-admin": "^12.7.0",
     "ioredis": "^5.8.0",
     "jsonwebtoken": "^9.0.2",
+    "mediasoup": "^3.19.3",
     "moment-timezone": "^0.5.34",
     "mongoose": "^8.8.0",
     "mongoose-to-swagger": "^1.5.1",
