@@ -1,11 +1,6 @@
 name: Build and Push Mediasoup
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "mediasoup/**"
   workflow_dispatch:
 
 jobs:
