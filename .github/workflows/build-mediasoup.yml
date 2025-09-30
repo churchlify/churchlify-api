@@ -33,5 +33,5 @@ jobs:
           context: ./mediasoup
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/mediasoup:latest
-            ghcr.io/${{ github.repository }}/mediasoup:${{ github.sha }}
+            ghcr.io/churchlify/mediasoup:latest
+            ghcr.io/churchlify/mediasoup:${{ github.sha }}
