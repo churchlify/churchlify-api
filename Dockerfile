@@ -9,7 +9,7 @@ RUN npm install
 COPY . .
 ENV GOOGLE_APPLICATION_CREDENTIALS=service_account.json
 # Expose the port the app will run on
-EXPOSE 5500
+EXPOSE 3000
 # Command to run the app
 CMD ["npm", "run", "api"]
 # Run the index drop script

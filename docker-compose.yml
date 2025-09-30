@@ -1,16 +1,77 @@
 networks:
-  db_network: # Define the app_network
+  db_network:
     driver: bridge
+  webrtc-net:
+
+volumes:
+  redis_data:
+
 services:
-  # Node.js backend applications
   churchlify_api:
     build: .
     container_name: churchlify_api
     restart: always
     ports:
-      - "5500:5500"
+      - "5500:3000"
     environment:
       - MONGO_URI=mongodb://shukwudi:L0k0m0t1f@mongo_main,mongo_sec,mongo_tri:27017/churchlify?replicaSet=rs0
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_HOST=redis
+      - TURN_URL=127.0.0.1
+      - TURN_SHARED_SECRET=ea5048a3e83702a7392ded70d8a2a821c9a9ca2643092457efe8123ab50b3f59
+      - TURN_USER_EXPIRY_SEC=600
+      - MEDIASOUP_MIN_PORT=40000
+      - MEDIASOUP_MAX_PORT=40100
+      - PUBLIC_IP=10.0.0.15
     networks:
       - db_network
+      - webrtc-net
+    depends_on:
+      - redis
+      - mediasoup
+      - coturn
 
+  mediasoup:
+    build: 
+      context: ./mediasoup
+    platform: linux/amd64
+    container_name: mediasoup
+    restart: unless-stopped
+    environment:
+      - MEDIASOUP_MIN_PORT=40000
+      - MEDIASOUP_MAX_PORT=40100
+    ports:
+      - "40000-40100:40000-40100/udp"
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - webrtc-net
+
+  coturn:
+    image: instrumentisto/coturn
+    container_name: coturn
+    platform: linux/amd64
+    restart: unless-stopped
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/tcp"
+    volumes:
+      - ./coturn/turnserver.conf:/etc/coturn/turnserver.conf:ro
+    networks:
+      - webrtc-net
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --save 60 1
+      --save 300 100
+    volumes:
+      - redis_data:/data
+    networks:
+      - webrtc-net
