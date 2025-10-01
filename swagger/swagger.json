@@ -77,6 +77,77 @@
         }
       }
     },
+    "/Root/turn-credentials": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "description": "GET /turn-credentials",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Root"
+            }
+          }
+        }
+      }
+    },
+    "/Root/rooms": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "description": "POST /rooms",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Root data",
+            "schema": {
+              "$ref": "#/definitions/Root"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Root"
+            }
+          }
+        }
+      }
+    },
+    "/Root/rooms/join": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "description": "POST /rooms/join",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "description": "Root data",
+            "schema": {
+              "$ref": "#/definitions/Root"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/Root"
+            }
+          }
+        }
+      }
+    },
     "/CheckIn/initiate": {
       "post": {
         "tags": [
