@@ -5,6 +5,7 @@
   "scripts": {
     "test": "artillery run test/load-test.yml",
     "api": "node server.js",
+    "gen-doc": "node swagger/generate-swagger.js ",
     "loadtest": "artillery run test/load-test.yml",
     "lint": "jshint .",
     "validate": "npm ls"

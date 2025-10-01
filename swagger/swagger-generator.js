@@ -120,7 +120,8 @@ const routeDefinitionMap = {
   'subscription.js': 'Subscription',
   'payment.js': 'Payment',
   'module.js': 'Module',
-  'settings.js': 'Settings' 
+  'settings.js': 'Settings' ,
+  'chat.js': 'Chat'
 };
 
 /**

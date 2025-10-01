@@ -5,9 +5,9 @@ const router = express.Router();
 const { rooms, redisClient } = require('../media-client');
 // TURN credentials endpoint
 
-/*#swagger.tags = ['Root']
+/*#swagger.tags = ['Chat']
 #swagger.description = "GET /turn-credentials"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Root" } }*/
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Chat" } }*/
 router.get('/turn-credentials', (req, res) => {
   const username = Math.floor(Date.now() / 1000) + 600; // valid for 10 min
   const credential = crypto
@@ -26,9 +26,9 @@ router.get('/turn-credentials', (req, res) => {
 });
 // Create room
 
-/*#swagger.tags = ['Root']
+/*#swagger.tags = ['Chat']
 #swagger.description = "POST /rooms"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Root" } }*/
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Chat" } }*/
 router.post('/rooms', async (req, res) => {
   const { roomId } = req.body;
   if (!roomId) {return res.status(400).json({ error: 'roomId required' });}
@@ -38,9 +38,9 @@ router.post('/rooms', async (req, res) => {
 });
 // Join room (optional, handled by WebSocket)
 
-/*#swagger.tags = ['Root']
+/*#swagger.tags = ['Chat']
 #swagger.description = "POST /rooms/join"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Root" } }*/
+#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Chat" } }*/
 router.post('/rooms/join', async (req, res) => {
   const { roomId, userId } = req.body;
   if (!roomId || !userId) {return res.status(400).json({ error: 'roomId and userId required' });}

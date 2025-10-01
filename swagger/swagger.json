@@ -77,10 +77,10 @@
         }
       }
     },
-    "/Root/turn-credentials": {
+    "/Chat/turn-credentials": {
       "get": {
         "tags": [
-          "Root"
+          "Chat"
         ],
         "description": "GET /turn-credentials",
         "parameters": [],
@@ -88,16 +88,16 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/Root"
+              "$ref": "#/definitions/Chat"
             }
           }
         }
       }
     },
-    "/Root/rooms": {
+    "/Chat/rooms": {
       "post": {
         "tags": [
-          "Root"
+          "Chat"
         ],
         "description": "POST /rooms",
         "parameters": [
@@ -105,9 +105,9 @@
             "name": "body",
             "in": "body",
             "required": true,
-            "description": "Root data",
+            "description": "Chat data",
             "schema": {
-              "$ref": "#/definitions/Root"
+              "$ref": "#/definitions/Chat"
             }
           }
         ],
@@ -115,16 +115,16 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/Root"
+              "$ref": "#/definitions/Chat"
             }
           }
         }
       }
     },
-    "/Root/rooms/join": {
+    "/Chat/rooms/join": {
       "post": {
         "tags": [
-          "Root"
+          "Chat"
         ],
         "description": "POST /rooms/join",
         "parameters": [
@@ -132,9 +132,9 @@
             "name": "body",
             "in": "body",
             "required": true,
-            "description": "Root data",
+            "description": "Chat data",
             "schema": {
-              "$ref": "#/definitions/Root"
+              "$ref": "#/definitions/Chat"
             }
           }
         ],
@@ -142,7 +142,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/Root"
+              "$ref": "#/definitions/Chat"
             }
           }
         }
