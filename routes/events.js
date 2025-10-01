@@ -59,7 +59,7 @@ router.post('/create', validateEvent(), async(req, res) => {
         });
     } catch (err) {
        console.error('Error creating event:', err);
-        res.status(400).json({ 
+        res.status(500).json({ 
             error: err.message,
             details: err.errors ? Object.values(err.errors).map(e => e.message) : null
         }); 
@@ -75,7 +75,7 @@ router.post('/create', validateEvent(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const event = await Events.findById(id);
-    if (!event){ return res.status(400).json({ message: `Event with id ${id} not found` });}
+    if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
 });
 /*
@@ -158,7 +158,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
          await EventService.expandRecurringEvents(); // re-cache
         res.status(200).json({ message: 'Record updated successfully', Event: updatedEvent });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

@@ -79,7 +79,7 @@ router.patch('/:id/status', async (req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const checkin = await CheckIn.findById(id).populate('child');
-    if (!checkin){ return res.status(400).json({ message: `CheckIn with id ${id} not found` });}
+    if (!checkin){ return res.status(404).json({ message: `CheckIn with id ${id} not found` });}
     res.json({ checkin });
 });
 /*

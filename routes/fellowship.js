@@ -23,7 +23,7 @@ router.post('/create', validateFellowship(), async(req, res) => {
       await createFcmTopic(topic, 'New Fellowship Created', `Welcome to ${name}!`);
       res.status(201).json({ message: 'Fellowship registered successfully', fellowship: newItem });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -36,7 +36,7 @@ router.post('/create', validateFellowship(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const fellowship = await Fellowship.findById(id).populate('church');
-    if (!fellowship) {return res.status(400).json({ message: `Fellowship with id ${id} not found` });}
+    if (!fellowship) {return res.status(404).json({ message: `Fellowship with id ${id} not found` });}
     res.json({ fellowship });
 });
 /*
@@ -52,7 +52,7 @@ router.patch('/update/:id', async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', fellowship: updatedFellowship });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

@@ -22,12 +22,12 @@ router.post('/create', validateUser(), async(req, res) => {
     try {
         const existingEmail= await User.findOne({ emailAddress });
         const existingPhone = await User.findOne({ phoneNumber });
-        if (existingEmail) {return res.status(400).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
-        if (existingPhone) {return res.status(400).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
+        if (existingEmail) {return res.status(404).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
+        if (existingPhone) {return res.status(404).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
         await newItem.save();
         res.status(201).json({ message: 'User registered successfully', user: newItem });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -40,7 +40,7 @@ router.post('/create', validateUser(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const user = await User.findById(id).populate('church');
-    if (!user) {return res.status(400).json({ message: `User with id ${id} not found` });}
+    if (!user) {return res.status(404).json({ message: `User with id ${id} not found` });}
     res.json({ user });
 });
 /*
@@ -53,7 +53,7 @@ router.get('/find/:id', async(req, res) => {
 router.get('/findByUid/:firebaseId', async(req, res) => {
     const { firebaseId } = req.params;
     const user = await User.findOne({ firebaseId });
-    if (!user) {return res.status(400).json({ message: `User with firebaseId ${firebaseId} not found` });}
+    if (!user) {return res.status(404).json({ message: `User with firebaseId ${firebaseId} not found` });}
     res.json({ user });
 });
 /*
@@ -73,7 +73,7 @@ router.put('/update/:id',validateUser(),  async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 // PATCH route to update one field
@@ -90,7 +90,7 @@ router.patch('/update/:id', async (req, res) => {
     }
     res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 /*

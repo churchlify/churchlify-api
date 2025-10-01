@@ -23,7 +23,7 @@ router.post('/create', validateEvent(), async(req, res) => {
         await newItem.save();
         res.status(201).json({ message: 'Event registered successfully' , event: newItem});
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -36,7 +36,7 @@ router.post('/create', validateEvent(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const event = await Event.findById(id);
-    if (!event){ return res.status(400).json({ message: `Event with id ${id} not found` });}
+    if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
 });
 /*
@@ -49,7 +49,7 @@ router.get('/find/:id', async(req, res) => {
 router.get('/findByDate/:date/:church', async(req, res) => {
     const { church, date } = req.params;
     const event = await getFlatennedMonthEvents(date, church);
-    if (!event){ return res.status(400).json({ message: `Event with date ${date} not found` });}
+    if (!event){ return res.status(404).json({ message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 /*
@@ -62,7 +62,7 @@ router.get('/findByDate/:date/:church', async(req, res) => {
 router.get('/findByDate/:date', async(req, res) => {
     const { date } = req.params;
     const event = await getFlatennedMonthEvents(date);
-    if (!event) {return res.status(400).json({ message: `Event with date ${date} not found` });}
+    if (!event) {return res.status(404).json({ message: `Event with date ${date} not found` });}
     res.json({ event });
 });
 /*
@@ -83,7 +83,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', Event: updatedEvent });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

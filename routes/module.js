@@ -13,7 +13,7 @@ router.post('/create', validateModule(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Module registered successfully', module: newItem });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -33,7 +33,7 @@ router.patch('/update/:id', async (req, res) => {
     if (!updatedModule) {return res.status(404).json({ message: `Module with id ${id} not found` });}
     res.status(200).json({ message: 'Record updated successfully', module: updatedModule });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

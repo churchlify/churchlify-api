@@ -32,7 +32,7 @@ router.post('/create', validatePrayer(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Prayer registered successfully', prayer: newItem });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 /*
@@ -78,7 +78,7 @@ router.patch('/update/:id', async (req, res) => {
     if (!updatedPrayer) {return res.status(404).json({ message: `Prayer with id ${id} not found` });}
     res.status(200).json({ message: 'Record updated successfully', prayer: updatedPrayer });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 /*

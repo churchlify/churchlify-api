@@ -23,7 +23,7 @@ router.post('/create', validateMinistry(), async(req, res) => {
       await createFcmTopic(topic, 'New Ministry Created', `Welcome to ${name}!`);
       res.status(201).json({ message: 'Ministry registered successfully', ministry: newItem });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -36,7 +36,7 @@ router.post('/create', validateMinistry(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const ministry = await Ministry.findById(id).populate('church');
-    if (!ministry) {return res.status(400).json({ message: `Ministry with id ${id} not found` });}
+    if (!ministry) {return res.status(404).json({ message: `Ministry with id ${id} not found` });}
     res.json({ ministry });
 });
 /*
@@ -52,7 +52,7 @@ router.patch('/update/:id', async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', ministry: updatedMinistry });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

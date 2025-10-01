@@ -17,7 +17,7 @@ router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const audit = await Audit.findById(id);
     if (!audit) {
-        return res.status(400).json({ message: `Audit lo entry with id ${id} not found` });
+        return res.status(404).json({ message: `Audit lo entry with id ${id} not found` });
     }
     res.json({ audit });
 });

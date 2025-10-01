@@ -13,7 +13,7 @@ router.post('/create', validateSettings(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Settings registered successfully', setting: newItem });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

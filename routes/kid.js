@@ -21,7 +21,7 @@ router.post('/create', validateKid(), async(req, res) => {
         await newItem.save();
         res.status(201).json({ message: 'Child registered successfully' , child: newItem});
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -34,7 +34,7 @@ router.post('/create', validateKid(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const kid = await Kid.findById(id).populate('parent');
-    if (!kid) {return res.status(400).json({ message: `Child with id ${id} not found` });}
+    if (!kid) {return res.status(404).json({ message: `Child with id ${id} not found` });}
     res.json({ kid });
 });
 /*
@@ -54,7 +54,7 @@ router.put('/update/:id',validateKid(),  async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', kid: updatedKid });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

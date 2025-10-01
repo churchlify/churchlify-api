@@ -13,7 +13,7 @@ router.post('/create', validatePayment(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Payment registered successfully', payment: newItem });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -33,7 +33,7 @@ router.patch('/update/:id', async (req, res) => {
     if (!updatedPayment) {return res.status(404).json({ message: `Payment with id ${id} not found` });}
     res.status(200).json({ message: 'Record updated successfully', payment: updatedPayment });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

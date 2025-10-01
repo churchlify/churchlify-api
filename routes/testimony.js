@@ -20,7 +20,7 @@ router.post('/create', validateTestimony(), async(req, res) => {
       await newItem.save();
       res.status(201).json({ message: 'Testimony registered successfully', testimony: newItem });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -33,7 +33,7 @@ router.post('/create', validateTestimony(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const testimony = await Testimony.findById(id).populate('church');
-    if (!testimony) {return res.status(400).json({ message: `Testimony with id ${id} not found` });}
+    if (!testimony) {return res.status(404).json({ message: `Testimony with id ${id} not found` });}
     res.json({ testimony });
 });
 /*
@@ -49,7 +49,7 @@ router.patch('/update/:id', async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', testimony: updatedTestimony });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*

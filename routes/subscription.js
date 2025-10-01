@@ -13,7 +13,7 @@ router.post('/create', validateSubscription(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Subscription registered successfully', subscription: newItem });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -33,7 +33,7 @@ router.patch('/update/:id', async (req, res) => {
     if (!updatedSubscription) {return res.status(404).json({ message: `Subscription with id ${id} not found` });}
     res.status(200).json({ message: 'Record updated successfully', subscription: updatedSubscription });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

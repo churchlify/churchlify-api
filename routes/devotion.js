@@ -20,7 +20,7 @@ router.post('/create', validateDevotion(), async(req, res) => {
       await newItem.save();
       res.status(201).json({ message: 'Devotion registered successfully', devotion: newItem });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
@@ -33,7 +33,7 @@ router.post('/create', validateDevotion(), async(req, res) => {
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const devotion = await Devotion.findById(id).populate('church');
-    if (!devotion) {return res.status(400).json({ message: `Devotion with id ${id} not found` });}
+    if (!devotion) {return res.status(404).json({ message: `Devotion with id ${id} not found` });}
     res.json({ devotion });
 });
 /*
@@ -49,7 +49,7 @@ router.patch('/update/:id', async(req, res) => {
         }
         res.status(200).json({ message: 'Record updated successfully', devotion: updatedDevotion });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(500).json({ error: err.message });
     }
 });
 /*
