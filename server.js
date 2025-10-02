@@ -22,6 +22,7 @@ const moduleRoutes = require('./routes/module');
 const paymentRoutes = require('./routes/payment');
 const settingsRoutes = require('./routes/settings');
 const chatRoutes = require('./routes/chat'); // Import chat routes
+const uploadRoutes = require('./routes/upload');
 const eventWorker = require('./common/event.worker');
 dotenv.config();
 
@@ -54,6 +55,8 @@ app.use('/module', moduleRoutes);
 app.use('/payment', paymentRoutes); 
 app.use('/settings', settingsRoutes);
 app.use('/chat', chatRoutes);
+app.use('/upload', uploadRoutes);
+app.use('/uploads', express.static('/files_upload/'));
 
 app.get('/', (req, res) => {
     res.send('Welcome to the Church Management System API');

@@ -6,8 +6,15 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const crypto = require('crypto');
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
+const uploadDir = '/files_upload';
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log(`Created upload directory at ${uploadDir}`);
+}
 // Check file type
 function checkFileType(file, cb) {
     const filetypes = /jpeg|jpg|png|gif/;
@@ -17,12 +24,12 @@ function checkFileType(file, cb) {
 }
 // Set up storage engine with obfuscated file names
 const storage = multer.diskStorage({
-    destination: './uploads/',
-    filename: (req, file, cb) => {
-        const hash = crypto.createHash('sha256').update(Date.now().toString()).digest('hex');
-        const ext = path.extname(file.originalname);
-        cb(null, `${hash}${ext}`);
-    }
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${uuidv4()}${ext}`;
+    cb(null, filename);
+  }
 });
 // Initialize upload
 const upload = multer({
@@ -35,6 +42,7 @@ router.post('/create', (req, res) => {
     upload(req, res, (err) => {
         if (err) {res.status(400).json({ message: err });}
         if (req.file === undefined) {res.status(400).json({ message: 'No file selected!' });}
-        res.status(200).json({ message: 'File uploaded!', fileUrl: 'http://localhost:${PORT}/uploads/${req.file.filename'});
+        res.status(200).json({ message: 'File uploaded!', fileUrl: `${process.env.REMOTE_HOST}/uploads/${req.file.filename}`});
     });
 });
+module.exports = router;

@@ -33,6 +33,8 @@ services:
       - redis
       - mediasoup
       - coturn
+    volumes:
+      - /files_upload/churchlify:/files_upload
 
   mediasoup:
     image: ghcr.io/churchlify/mediasoup:latest
