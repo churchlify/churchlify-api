@@ -42,7 +42,7 @@ router.post('/create', (req, res) => {
     upload(req, res, (err) => {
         if (err) {res.status(400).json({ message: err });}
         if (req.file === undefined) {res.status(400).json({ message: 'No file selected!' });}
-        res.status(200).json({ message: 'File uploaded!', fileUrl: `${process.env.REMOTE_HOST}/uploads/${req.file.filename}`});
+        res.status(200).json({ message: 'File uploaded!', fileUrl: `${process.env.API_BASE_URL}/uploads/${req.file.filename}`});
     });
 });
 module.exports = router;

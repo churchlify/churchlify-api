@@ -33,6 +33,7 @@ jobs:
             echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
             echo "TURN_SECRET=${{ secrets.TURN_SECRET }}" >> .env
             echo "REMOTE_HOST=${{ secrets.REMOTE_PROD_HOST }}" >> .env 
+            echo "API_BASE_URL=${{ secrets.PROD_BASE_URL }}" >> .env 
 
             # Ensure coturn directory exists
             mkdir -p coturn
