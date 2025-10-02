@@ -2,10 +2,6 @@ const express = require('express');
 const Setting = require('../models/settings');
 const { validateSettings } = require('../middlewares/validators');
 const router = express.Router();
-
-/*#swagger.tags = ['Settings']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Settings" } }*/
 router.post('/create', validateSettings(), async (req, res) => {
   const { church, key, value } = req.body;
   const newItem = new Setting({ church, key, value });
@@ -16,10 +12,6 @@ router.post('/create', validateSettings(), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Settings']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Settings" } }*/
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
   const setting = await Setting.findById(id).populate('church');
@@ -36,10 +28,6 @@ router.patch('/update/:id', async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Settings']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Settings" } }*/
 router.get('/list', async (req, res) => {
   try {
     const settings = await Setting.find().populate('church');
@@ -48,10 +36,6 @@ router.get('/list', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Settings']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Settings" } }*/
 router.get('/list/:church', async (req, res) => {
   try {
     const { church } = req.params;
@@ -61,10 +45,6 @@ router.get('/list/:church', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Settings']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Settings" } }*/
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;

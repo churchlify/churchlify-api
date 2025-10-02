@@ -10,10 +10,6 @@ const {createFcmTopic} = require('../common/push.service');
 /*
 #swagger.tags = ['Ministry']
 */
-
-/*#swagger.tags = ['Ministry']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
 router.post('/create', validateMinistry(), async(req, res) => {
     const { church, name, description, leaderId } = req.body;
     const newItem = new Ministry({ church, name, description, leaderId });
@@ -29,10 +25,6 @@ router.post('/create', validateMinistry(), async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-/*#swagger.tags = ['Ministry']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const ministry = await Ministry.findById(id).populate('church');
@@ -58,10 +50,6 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-/*#swagger.tags = ['Ministry']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
 router.get('/list', async(req, res) => {
     try {
         const ministries = await Ministry.find().populate('church');
@@ -73,10 +61,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-/*#swagger.tags = ['Ministry']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -89,10 +73,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-
-/*#swagger.tags = ['Ministry']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Ministry" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;

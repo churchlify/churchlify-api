@@ -15,10 +15,6 @@ const router = express.Router();
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.post('/create', validateEvent(), async(req, res) => {
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } = req.body;
     //const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
@@ -68,10 +64,6 @@ router.post('/create', validateEvent(), async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const event = await Events.findById(id);
@@ -81,10 +73,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /findByDate/:date/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/findByDate/:date/:church', async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
@@ -94,10 +82,6 @@ router.get('/findByDate/:date/:church', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /findByDate/:date"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/findByDate/:date', async(req, res) => {
     const { church, date, to } = req.params;
     const event = await EventService.getEvents({ from:date,to, church });
@@ -107,10 +91,6 @@ router.get('/findByDate/:date', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /events"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/events', async (req, res) => {
   const { from, to, church } = req.query;
   const result = await EventService.getEvents({ from, to, church });
@@ -122,10 +102,6 @@ router.get('/events', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /upcoming"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/upcoming', async (req, res) => {
     try {
         const now = new Date();
@@ -142,10 +118,6 @@ router.get('/upcoming', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "PUT /update/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.put('/update/:id',validateEvent(),  async(req, res) => {
     const { id } = req.params;
     const { church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }  = req.body;
@@ -164,10 +136,6 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/list', async(req, res) => {
     try {
         const events = await EventInstance.find();
@@ -179,10 +147,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -198,10 +162,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -217,10 +177,6 @@ router.delete('/delete/:id', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-
-/*#swagger.tags = ['Events']
-#swagger.description = "PUT /update-checkin-status/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Events" } }*/
 router.put('/update-checkin-status/:id', async (req, res) => {
     try {
         const { id } = req.params;

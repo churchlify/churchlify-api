@@ -10,10 +10,6 @@ const router = express.Router();
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.post('/create', validateKid(), async(req, res) => {
     const { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } = req.body;
     const newItem = new Kid( { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } );
@@ -27,10 +23,6 @@ router.post('/create', validateKid(), async(req, res) => {
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const kid = await Kid.findById(id).populate('parent');
@@ -40,10 +32,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "PUT /update/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.put('/update/:id',validateKid(),  async(req, res) => {
     const { id } = req.params;
     const { parent, firstName, lastName, gender, dateOfBirth, middlename, color, allergies } = req.body;
@@ -60,10 +48,6 @@ router.put('/update/:id',validateKid(),  async(req, res) => {
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.get('/list', async(req, res) => {
     try {
         const kids = await Kid.find().populate('parent');
@@ -75,10 +59,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "GET /list/:parent"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.get('/list/:parent', async(req, res) => {
     try {
         const { parent } = req.params;
@@ -91,10 +71,6 @@ router.get('/list/:parent', async(req, res) => {
 /*
 #swagger.tags = ['Kid']
 */
-
-/*#swagger.tags = ['Kid']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Kid" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;

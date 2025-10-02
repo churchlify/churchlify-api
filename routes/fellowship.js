@@ -10,10 +10,6 @@ const {createFcmTopic} = require('../common/push.service');
 /*
 #swagger.tags = ['Fellowship']
 */
-
-/*#swagger.tags = ['Fellowship']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
 router.post('/create', validateFellowship(), async(req, res) => {
     const { church, name, description, leaderId, address, dayOfWeek, meetingTime } = req.body;
     const newItem = new Fellowship({ church, name, description, leaderId, address  , dayOfWeek, meetingTime });
@@ -29,10 +25,6 @@ router.post('/create', validateFellowship(), async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-/*#swagger.tags = ['Fellowship']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const fellowship = await Fellowship.findById(id).populate('church');
@@ -58,10 +50,6 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-/*#swagger.tags = ['Fellowship']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
 router.get('/list', async(req, res) => {
     try {
         const ministries = await Fellowship.find().populate('church');
@@ -73,10 +61,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-/*#swagger.tags = ['Fellowship']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -89,10 +73,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-
-/*#swagger.tags = ['Fellowship']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Fellowship" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;

@@ -1,249 +1,414 @@
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
-const excludedRoutes = [
-  'audit.js',
-  'upload.js'
-];
+
+// --- Configuration & Global State ---
+const excludedRoutes = ['audit.js', 'upload.js'];
+const subDefinitions = {}; 
+
+// --- Utility Functions ---
 
 /**
- * Map JS/Mongoose types to Swagger types
+ * Map Mongoose type to OpenAPI type.
  */
-function mapType(type) {
-  switch (type.toLowerCase()) {
-    case 'string': return 'string';
-    case 'number': return 'number';
-    case 'boolean': return 'boolean';
-    case 'date': return 'string';
-    case 'objectid': return 'string';
-    default: return 'string';
+function mapMongooseType(mongooseType) {
+  switch (mongooseType) {
+    case String:
+    case mongoose.Schema.Types.String:
+      return { type: 'string' };
+    case Number:
+    case mongoose.Schema.Types.Number:
+      return { type: 'number' };
+    case Boolean:
+    case mongoose.Schema.Types.Boolean:
+      return { type: 'boolean' };
+    case Date:
+    case mongoose.Schema.Types.Date:
+      return { type: 'string', format: 'date-time' };
+    case mongoose.Schema.Types.ObjectId:
+      return {
+        type: 'string',
+        pattern: '^[a-fA-F0-9]{24}$',
+        example: '507f1f77bcf86cd799439011',
+      };
+    case mongoose.Schema.Types.Mixed:
+      return { type: 'object', properties: {} };
+    case Array:
+      return { type: 'array', items: { type: 'string' } };
+    default:
+      return { type: 'string' };
   }
 }
 
-function getTypeName(type) {
-  if (!type){ return 'string';}
-  if (typeof type === 'function') {return type.name;}
-  if (typeof type === 'string') {return type;}
-  if (type.constructor && type.constructor.name) {return type.constructor.name;}
-  return 'string';
+/**
+ * Detect a simple [long, lat] array defined in the schema: { type: [Number] }.
+ */
+function isSimpleLocationArray(opts) {
+  return Array.isArray(opts.type) && opts.type.length === 1 && opts.type[0] === Number;
 }
 
+/**
+ * Detect a Mongoose-style GeoJSON object definition.
+ */
+function isGeoJSON(typeDef) {
+  return (
+    typeof typeDef === 'object' &&
+    typeDef !== null &&
+    !Array.isArray(typeDef) &&
+    (typeDef.type || typeDef.coordinates)
+  );
+}
+
+/**
+ * Capitalize string
+ */
 function capitalize(str) {
+  if (!str) {
+    return '';
+  }
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 /**
- * Convert a Mongoose schema to Swagger definition recursively
+ * Helper to generate a definition name from parts.
  */
-function schemaToSwagger(schema) {
-  const swaggerSchema = { type: 'object', properties: {} };
-
-  for (const [key, value] of Object.entries(schema.obj)) {
-    let fieldType;
-
-    // Embedded schema
-    if (value instanceof mongoose.Schema) {
-      swaggerSchema.properties[key] = { $ref: `#/definitions/${capitalize(key)}` };
-      continue;
-    }
-
-    // Arrays
-    if (Array.isArray(value)) {
-      if (value.length && value[0] instanceof mongoose.Schema) {
-        swaggerSchema.properties[key] = {
-          type: 'array',
-          items: { $ref: `#/definitions/${capitalize(key)}Item` }
-        };
-      } else {
-        swaggerSchema.properties[key] = {
-          type: 'array',
-          items: { type: mapType(getTypeName(value[0])) }
-        };
-      }
-      continue;
-    }
-
-    // { type: Something }
-    if (value && value.type) {
-      if (value.type instanceof mongoose.Schema) {
-        swaggerSchema.properties[key] = { $ref: `#/definitions/${capitalize(key)}` };
-        continue;
-      }
-      fieldType = getTypeName(value.type);
-    } else {
-      fieldType = getTypeName(value);
-    }
-
-    swaggerSchema.properties[key] = { type: mapType(fieldType) };
-  }
-
-  return swaggerSchema;
+function getDefinitionName(...parts) {
+    return parts.map(capitalize).join('');
 }
 
+
+let schemaToSwagger;
+let expandInlineObject;
+let processSchemaType;
+
+schemaToSwagger = (schema, parentName = '') => {
+  const swaggerSchema = { type: 'object', properties: {} };
+
+  schema.eachPath((pathKey, schemaType) => {
+    if (pathKey === '__v' || pathKey.startsWith('_')) {
+      return;
+    }
+
+    const opts = schemaType.options;
+
+    // This call is now safe because processSchemaType is defined below
+    const schemaFragment = processSchemaType(pathKey, opts, parentName);
+    
+    if (opts.required) {
+        if (!swaggerSchema.required) {
+          swaggerSchema.required = [];
+        }
+        swaggerSchema.required.push(pathKey);
+    }
+    if (opts.default !== undefined) {
+        schemaFragment.default = opts.default;
+    }
+    if (opts.enum) {
+        schemaFragment.enum = opts.enum;
+    }
+    if (opts.description) {
+        schemaFragment.description = opts.description;
+    }
+
+    swaggerSchema.properties[pathKey] = schemaFragment;
+  });
+
+  return swaggerSchema;
+};
+
+expandInlineObject = (obj, name = 'InlineObject') => {
+  const swaggerObj = { type: 'object', properties: {} };
+
+  for (const [k, v] of Object.entries(obj)) {
+    if (!v) {
+      continue;
+    }
+
+    const opts = typeof v === 'object' && v.type ? v : { type: v };
+
+    // This call is now safe because processSchemaType is defined below
+    const schemaFragment = processSchemaType(k, opts, name); 
+
+    if (v.required) {
+        if (!swaggerObj.required) {
+          swaggerObj.required = [];
+        }
+        swaggerObj.required.push(k);
+    }
+    if (v.default !== undefined) {
+        schemaFragment.default = v.default;
+    }
+    if (v.enum) {
+        schemaFragment.enum = v.enum;
+    }
+
+    swaggerObj.properties[k] = schemaFragment;
+  }
+
+  return swaggerObj;
+};
+
+processSchemaType = (pathKey, opts, parentName) => {
+  // 1. Array Handling
+  if (Array.isArray(opts.type)) {
+    const item = opts.type[0];
+
+    // Simple [long, lat] location array
+    if (isSimpleLocationArray(opts)) {
+      return {
+        type: 'array',
+        items: { type: 'number' },
+        description: 'Location array: [Longitude, Latitude]',
+        minItems: 2,
+        maxItems: 2,
+        example: [0, 0], // lng, lat
+      };
+    }
+
+    // Array of Subdocuments/Inline Objects
+    if (item instanceof mongoose.Schema) {
+      const defName = getDefinitionName(parentName, pathKey, 'Item');
+      subDefinitions[defName] = schemaToSwagger(item, defName);
+      return { type: 'array', items: { $ref: `#/components/schemas/${defName}` } };
+    } 
+    if (typeof item === 'object' && item !== null) {
+        const defName = getDefinitionName(parentName, pathKey, 'Item');
+        subDefinitions[defName] = expandInlineObject(item, defName);
+        return { type: 'array', items: { $ref: `#/components/schemas/${defName}` } };
+    }
+
+    // Array of Primitives
+    return { type: 'array', items: mapMongooseType(item) };
+  }
+
+  // 2. Subdocuments (Mongoose Schema)
+  if (opts.type instanceof mongoose.Schema) {
+    const defName = capitalize(pathKey);
+    subDefinitions[defName] = schemaToSwagger(opts.type, defName);
+    return { $ref: `#/components/schemas/${defName}` };
+  }
+
+  // 3. Inline Nested Object / GeoJSON
+  if (typeof opts.type === 'object' && opts.type !== null) {
+    if (isGeoJSON(opts.type)) {
+      return {
+        type: 'object',
+        properties: {
+          type: { type: 'string', enum: ['Point', 'Polygon', 'LineString'], default: 'Point' },
+          coordinates: {
+            type: 'array',
+            items: { type: 'number' },
+            description: 'GeoJSON coordinates: [Longitude, Latitude] for Point',
+            example: [0, 0],
+          },
+        },
+      };
+    }
+
+    // General Inline Nested Object
+    const defName = getDefinitionName(parentName, pathKey);
+    subDefinitions[defName] = expandInlineObject(opts.type, defName);
+    return { $ref: `#/components/schemas/${defName}` };
+  }
+
+  // 4. Primitive Types
+  return mapMongooseType(opts.type);
+};
+
+
+// --- Route Scanning and Mapping ---
+
 /**
- * Recursively scan a folder for route files
+ * Scan route files recursively.
  */
 function scanRoutes(dir) {
   let files = [];
-  fs.readdirSync(dir).forEach(file => {
-    const fullPath = path.join(dir, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      files = files.concat(scanRoutes(fullPath));
-    } else if (file.endsWith('.js')) {
-      if (!excludedRoutes.includes(file)) { // skip excluded files
+  try {
+    fs.readdirSync(dir).forEach(file => {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat.isDirectory()) {
+        files = files.concat(scanRoutes(fullPath));
+      } else if (file.endsWith('.js') && !excludedRoutes.includes(file)) {
         files.push(fullPath);
       }
-    }
-  });
+    });
+  } catch (err) {
+      console.error(`Error scanning routes directory ${dir}:`, err.message);
+  }
   return files;
 }
 
-/**
- * Explicit route file -> definition mapping
- */
 const routeDefinitionMap = {
-  'checkin.js': 'CheckIn',
-  'auth.js': 'Auth',
-  'user.js': 'User',
-  'church.js': 'Church',
-  'event.js': 'Event',
-  'eventInstance.js': 'EventInstance',
-  'devotion.js': 'Devotion',
-  'fellowship.js': 'Fellowship',
-  'kid.js': 'Kid',
-  'ministry.js': 'Ministry',
-  'prayer.js': 'Prayer',
-  'testimony.js': 'Testimony',
-  'audit.js': 'Audit',
-  'assignment.js': 'Assignment',
-  'events.js': 'Events',
-  'subscription.js': 'Subscription',
-  'payment.js': 'Payment',
-  'module.js': 'Module',
-  'settings.js': 'Settings' ,
-  'chat.js': 'Chat'
+  'checkin.js': 'CheckIn', 'auth.js': 'Auth', 'user.js': 'User', 'church.js': 'Church',
+  'event.js': 'Event', 'eventInstance.js': 'EventInstance', 'devotion.js': 'Devotion',
+  'fellowship.js': 'Fellowship', 'kid.js': 'Kid', 'ministry.js': 'Ministry',
+  'prayer.js': 'Prayer', 'testimony.js': 'Testimony', 'assignment.js': 'Assignment',
+  'events.js': 'Events', 'subscription.js': 'Subscription', 'payment.js': 'Payment',
+  'module.js': 'Module', 'settings.js': 'Settings', 'chat.js': 'Chat',
 };
 
-/**
- * Guess definition based on route file and URL
- */
 function guessDefinitionFromRoute(routeFile, url, definitions) {
   const fileName = path.basename(routeFile);
-  if (routeDefinitionMap[fileName]) {return routeDefinitionMap[fileName];}
-
+  if (routeDefinitionMap[fileName]) {
+    return routeDefinitionMap[fileName];
+  }
   const firstSegment = url.split('/').filter(Boolean)[0];
-  if (firstSegment && definitions[capitalize(firstSegment)]) {return capitalize(firstSegment);}
-
+  if (firstSegment && definitions[capitalize(firstSegment)]) {
+    return capitalize(firstSegment);
+  }
   return 'Root';
 }
 
-/**
- * Inject Swagger comments into route files
- */
-function injectSwaggerComments(routeFile, definitions) {
+function extractSwaggerPaths(routeFile, definitions) {
   let content = fs.readFileSync(routeFile, 'utf-8');
-
-  // Remove swagger comments and clean blank lines
-  content = content.replace(/\/\*#swagger[\s\S]*?\*\//g, '');
-  content = content.replace(/\n{2,}/g, '\n');
-
   const paths = {};
-  const routeRegex = /(router\.(get|post|put|delete))\(['"`](.*?)['"`],/g;
+  const routeRegex = /router\.(get|post|put|delete|patch|all)\s*\(['"`](.*?)['"`]/g;
 
-  content = content.replace(routeRegex, (match, p1, method, url) => {
-    const defName = guessDefinitionFromRoute(routeFile, url, definitions);
-    const swaggerUrl = `/${defName}${url}`;
+  let match;
+  while ((match = routeRegex.exec(content)) !== null) {
+    const method = match[1];
+    const rawUrl = match[2]; 
 
-    if (!paths[swaggerUrl]) { paths[swaggerUrl] = {}; }
+    if (rawUrl.length === 0 && rawUrl !== '/') {
+      continue;
+    }
 
-    // Prepare parameters
+    const defName = guessDefinitionFromRoute(routeFile, rawUrl, definitions);
+    
+    let swaggerUrl = rawUrl.replace(/:([a-zA-Z0-9_]+)/g, '{$1}'); 
+    swaggerUrl = `/${defName}${swaggerUrl}`;
+    swaggerUrl = swaggerUrl.replace(/\/\//g, '/');
+
+    if (!paths[swaggerUrl]) {
+      paths[swaggerUrl] = {};
+    }
+
     const parameters = [];
     const paramRegex = /:([a-zA-Z0-9_]+)/g;
     let matchParam;
-    while ((matchParam = paramRegex.exec(url)) !== null) {
-      parameters.push({
-        name: matchParam[1],
-        in: 'path',
-        required: true,
-        type: 'string'
+    
+    while ((matchParam = paramRegex.exec(rawUrl)) !== null) {
+      parameters.push({ 
+        name: matchParam[1], 
+        in: 'path', 
+        required: true, 
+        schema: { type: 'string' },
+        description: `ID of the referenced ${defName}`
       });
     }
 
-    if (['post', 'put'].includes(method)) {
-      parameters.push({
-        name: 'body',
-        in: 'body',
+    let requestBody;
+    if (['post', 'put', 'patch'].includes(method)) {
+      requestBody = {
         required: true,
-        description: `${defName} data`,
-        schema: { $ref: `#/definitions/${defName}` }
-      });
+        content: {
+          'application/json': { 
+            schema: { $ref: `#/components/schemas/${defName}` } 
+          },
+        },
+      };
     }
+
+    const responses = {
+      200: {
+        description: 'Success',
+        content: { 
+          'application/json': { 
+            schema: { $ref: `#/components/schemas/${defName}` } 
+          } 
+        },
+      },
+      400: { description: 'Bad Request' },
+      404: { description: 'Not Found' },
+    };
 
     paths[swaggerUrl][method] = {
       tags: [defName],
-      description: `${method.toUpperCase()} ${url}`,
+      summary: `${capitalize(method)} ${swaggerUrl}`,
       parameters,
-      responses: {
-        200: { description: 'Success', schema: { $ref: `#/definitions/${defName}` } }
-      }
+      requestBody,
+      responses,
     };
+  }
 
-    // Ensure exactly one line before each comment
-    const comment = `\n/*#swagger.tags = ['${defName}']
-#swagger.description = "${method.toUpperCase()} ${url}"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/${defName}" } }*/`;
-
-    console.log(`Swagger path: [${method.toUpperCase()}] ${swaggerUrl} -> ${defName}`);
-    return comment + '\n' + match;
-  });
-
-  content = content.replace(/\n{3,}/g, '\n\n');
-
-  fs.writeFileSync(routeFile, content, 'utf-8');
   return paths;
 }
 
-/**
- * Generate Swagger definitions from Mongoose models folder
- */
+
+// --- Main Generation Functions ---
+
 function generateDefinitions(modelsDir) {
   const definitions = {};
-  const files = fs.readdirSync(modelsDir).filter(f => f.endsWith('.js'));
+  try {
+      const files = fs.readdirSync(modelsDir).filter(f => f.endsWith('.js'));
 
-  files.forEach(file => {
-    const model = require(path.join(modelsDir, file));
-    if (model.schema) {
-      const name = model.modelName || path.basename(file, '.js');
-      console.log(`✅ Processing model: ${capitalize(name)}`);
-      definitions[capitalize(name)] = schemaToSwagger(model.schema);
-    }
-  });
+      files.forEach(file => {
+          const filePath = path.join(modelsDir, file);
+          const exported = require(filePath);
+          const baseName = path.basename(file, '.js');
+          
+          let schema = null;
+          let modelName = null;
 
-  return definitions;
+          if (exported instanceof mongoose.Schema) {
+              schema = exported;
+              modelName = baseName;
+          } else if (exported && exported.schema) {
+              schema = exported.schema;
+              modelName = exported.modelName || baseName;
+          }
+
+          if (schema) {
+              const defName = capitalize(modelName);
+              definitions[defName] = schemaToSwagger(schema, defName);
+          }
+      });
+  } catch (err) {
+      console.error(`Error generating definitions from ${modelsDir}:`, err.message);
+  }
+
+  return { ...definitions, ...subDefinitions };
 }
 
-/**
- * Main generator
- */
 function generateSwagger(modelsDir, routesDir, outputFile = 'swagger.json') {
+  Object.keys(subDefinitions).forEach(key => delete subDefinitions[key]);
+
   const definitions = generateDefinitions(modelsDir);
   const routes = scanRoutes(routesDir);
 
   const paths = {};
   routes.forEach(route => {
-    const newPaths = injectSwaggerComments(route, definitions);
-    Object.assign(paths, newPaths);
+    Object.assign(paths, extractSwaggerPaths(route, definitions));
   });
 
   const swaggerDoc = {
-    swagger: '2.0',
-    info: { version: '1.0.0', title: 'Churchlify API Documentation' , description: 'Comprehensive API documentation for Churchlify, the church management system.'},
+    openapi: '3.0.3',
+    info: {
+      title: 'Churchlify API',
+      version: '1.0.0',
+      description: 'Comprehensive Churchlify API documentation',
+    },
     paths,
-    definitions
+    components: { 
+        schemas: definitions,
+        securitySchemes: {
+            bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            },
+        },
+    },
+    security: [{ bearerAuth: [] }],
   };
 
-  fs.writeFileSync(outputFile, JSON.stringify(swaggerDoc, null, 2), 'utf-8');
-  console.log(`🚀 Swagger generated at ${outputFile}`);
+  try {
+      fs.writeFileSync(outputFile, JSON.stringify(swaggerDoc, null, 2), 'utf-8');
+      console.log(`🚀 OpenAPI 3.0 Swagger generated at ${outputFile}`);
+  } catch (err) {
+      console.error(`Error writing swagger file to ${outputFile}:`, err.message);
+  }
 }
 
 module.exports = generateSwagger;

@@ -21,10 +21,6 @@ const router = express.Router();
   schema: { $ref: "#/definitions/Prayer" }
 }
 */
-
-/*#swagger.tags = ['Prayer']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
 router.post('/create', validatePrayer(), async (req, res) => {
   const { church, author, title, prayerRequest, anonymous, isPublic, urgency } = req.body;
   const newItem = new Prayer({ church, author, title, prayerRequest, anonymous, isPublic, urgency });
@@ -44,10 +40,6 @@ router.post('/create', validatePrayer(), async (req, res) => {
 }
 #swagger.responses[404] = { description: 'Prayer not found' }
 */
-
-/*#swagger.tags = ['Prayer']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
   const prayer = await Prayer.findById(id).populate('church');
@@ -89,10 +81,6 @@ router.patch('/update/:id', async (req, res) => {
   schema: [{ $ref: "#/definitions/Prayer" }]
 }
 */
-
-/*#swagger.tags = ['Prayer']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
 router.get('/list', async (req, res) => {
   try {
     const prayers = await Prayer.find().populate('church');
@@ -115,10 +103,6 @@ router.get('/list', async (req, res) => {
   schema: [{ $ref: "#/definitions/Prayer" }]
 }
 */
-
-/*#swagger.tags = ['Prayer']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
 router.get('/list/:church', async (req, res) => {
   try {
     const { church } = req.params;
@@ -137,10 +121,6 @@ router.get('/list/:church', async (req, res) => {
 }
 #swagger.responses[404] = { description: 'Prayer not found' }
 */
-
-/*#swagger.tags = ['Prayer']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Prayer" } }*/
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;

@@ -2,10 +2,6 @@ const express = require('express');
 const Subscription = require('../models/subscription');
 const { validateSubscription } = require('../middlewares/validators');
 const router = express.Router();
-
-/*#swagger.tags = ['Subscription']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Subscription" } }*/
 router.post('/create', validateSubscription(), async (req, res) => {
   const { church, modules, startDate, expiryDate, status, payments } = req.body;
   const newItem = new Subscription({ church, modules, startDate, expiryDate, status, payments });
@@ -16,10 +12,6 @@ router.post('/create', validateSubscription(), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Subscription']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Subscription" } }*/
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
   const subscription = await Subscription.findById(id).populate('church');
@@ -36,10 +28,6 @@ router.patch('/update/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Subscription']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Subscription" } }*/
 router.get('/list', async (req, res) => {
   try {
     const subscriptions = await Subscription.find().populate('church');
@@ -48,10 +36,6 @@ router.get('/list', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Subscription']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Subscription" } }*/
 router.get('/list/:church', async (req, res) => {
   try {
     const { church } = req.params;
@@ -61,10 +45,6 @@ router.get('/list/:church', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Subscription']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Subscription" } }*/
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;

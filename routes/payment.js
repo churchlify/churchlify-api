@@ -2,10 +2,6 @@ const express = require('express');
 const Payment = require('../models/payment');
 const { validatePayment } = require('../middlewares/validators');
 const router = express.Router();
-
-/*#swagger.tags = ['Payment']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Payment" } }*/
 router.post('/create', validatePayment(), async (req, res) => {
   const { user, church, payment, paymentId, amount, status, metadata } = req.body;
   const newItem = new Payment({ user, church, payment, paymentId, amount, status, metadata  });
@@ -16,10 +12,6 @@ router.post('/create', validatePayment(), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Payment']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Payment" } }*/
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
   const payment = await Payment.findById(id).populate('church');
@@ -36,10 +28,6 @@ router.patch('/update/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-/*#swagger.tags = ['Payment']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Payment" } }*/
 router.get('/list', async (req, res) => {
   try {
     const payments = await Payment.find().populate('church');
@@ -48,10 +36,6 @@ router.get('/list', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Payment']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Payment" } }*/
 router.get('/list/:church', async (req, res) => {
   try {
     const { church } = req.params;
@@ -61,10 +45,6 @@ router.get('/list/:church', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
-/*#swagger.tags = ['Payment']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Payment" } }*/
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;

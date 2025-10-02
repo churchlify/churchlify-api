@@ -1,9 +1,9 @@
 {
-  "swagger": "2.0",
+  "openapi": "3.0.3",
   "info": {
+    "title": "Churchlify API",
     "version": "1.0.0",
-    "title": "Churchlify API Documentation",
-    "description": "Comprehensive API documentation for Churchlify, the church management system."
+    "description": "Comprehensive Churchlify API documentation"
   },
   "paths": {
     "/Auth/register": {
@@ -11,24 +11,34 @@
         "tags": [
           "Auth"
         ],
-        "description": "POST /register",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Auth data",
-            "schema": {
-              "$ref": "#/definitions/Auth"
+        "summary": "Post /Auth/register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Auth"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Auth"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -38,14 +48,24 @@
         "tags": [
           "Auth"
         ],
-        "description": "GET /protected",
+        "summary": "Get /Auth/protected",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Auth"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Auth"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -55,24 +75,34 @@
         "tags": [
           "Auth"
         ],
-        "description": "POST /login",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Auth data",
-            "schema": {
-              "$ref": "#/definitions/Auth"
+        "summary": "Post /Auth/login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Auth"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Auth"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Auth"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -82,14 +112,24 @@
         "tags": [
           "Chat"
         ],
-        "description": "GET /turn-credentials",
+        "summary": "Get /Chat/turn-credentials",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Chat"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chat"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -99,24 +139,34 @@
         "tags": [
           "Chat"
         ],
-        "description": "POST /rooms",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Chat data",
-            "schema": {
-              "$ref": "#/definitions/Chat"
+        "summary": "Post /Chat/rooms",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chat"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Chat"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chat"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -126,24 +176,34 @@
         "tags": [
           "Chat"
         ],
-        "description": "POST /rooms/join",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Chat data",
-            "schema": {
-              "$ref": "#/definitions/Chat"
+        "summary": "Post /Chat/rooms/join",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Chat"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Chat"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Chat"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -153,48 +213,118 @@
         "tags": [
           "CheckIn"
         ],
-        "description": "POST /initiate",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "CheckIn data",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+        "summary": "Post /CheckIn/initiate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckIn"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/CheckIn/find/:id": {
-      "get": {
+    "/CheckIn/{id}/status": {
+      "patch": {
         "tags": [
           "CheckIn"
         ],
-        "description": "GET /find/:id",
+        "summary": "Patch /CheckIn/{id}/status",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced CheckIn"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/CheckIn/find/{id}": {
+      "get": {
+        "tags": [
+          "CheckIn"
+        ],
+        "summary": "Get /CheckIn/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced CheckIn"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -204,62 +334,98 @@
         "tags": [
           "CheckIn"
         ],
-        "description": "GET /list",
+        "summary": "Get /CheckIn/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/CheckIn/list/:child": {
+    "/CheckIn/list/{child}": {
       "get": {
         "tags": [
           "CheckIn"
         ],
-        "description": "GET /list/:child",
+        "summary": "Get /CheckIn/list/{child}",
         "parameters": [
           {
             "name": "child",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced CheckIn"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/CheckIn/delete/:id": {
+    "/CheckIn/delete/{id}": {
       "delete": {
         "tags": [
           "CheckIn"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /CheckIn/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced CheckIn"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/CheckIn"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckIn"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -269,81 +435,118 @@
         "tags": [
           "Church"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Church data",
-            "schema": {
-              "$ref": "#/definitions/Church"
+        "summary": "Post /Church/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Church"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Church"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Church"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Church/find/:id": {
+    "/Church/find/{id}": {
       "get": {
         "tags": [
           "Church"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Church/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Church"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Church"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Church"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Church/update/:id": {
+    "/Church/update/{id}": {
       "put": {
         "tags": [
           "Church"
         ],
-        "description": "PUT /update/:id",
+        "summary": "Put /Church/update/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Church data",
             "schema": {
-              "$ref": "#/definitions/Church"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced Church"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Church"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Church"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Church"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -353,38 +556,61 @@
         "tags": [
           "Church"
         ],
-        "description": "GET /list",
+        "summary": "Get /Church/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Church"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Church"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Church/delete/:id": {
+    "/Church/delete/{id}": {
       "delete": {
         "tags": [
           "Church"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Church/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Church"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Church"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Church"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -394,48 +620,118 @@
         "tags": [
           "Devotion"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Devotion data",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+        "summary": "Post /Devotion/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Devotion"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Devotion/find/:id": {
+    "/Devotion/find/{id}": {
       "get": {
         "tags": [
           "Devotion"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Devotion/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Devotion"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Devotion/update/{id}": {
+      "patch": {
+        "tags": [
+          "Devotion"
+        ],
+        "summary": "Patch /Devotion/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Devotion"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Devotion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -445,62 +741,98 @@
         "tags": [
           "Devotion"
         ],
-        "description": "GET /list",
+        "summary": "Get /Devotion/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Devotion/list/:church": {
+    "/Devotion/list/{church}": {
       "get": {
         "tags": [
           "Devotion"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Devotion/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Devotion"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Devotion/delete/:id": {
+    "/Devotion/delete/{id}": {
       "delete": {
         "tags": [
           "Devotion"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Devotion/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Devotion"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Devotion"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Devotion"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -510,135 +842,201 @@
         "tags": [
           "Event"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Event data",
-            "schema": {
-              "$ref": "#/definitions/Event"
+        "summary": "Post /Event/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Event"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/find/:id": {
+    "/Event/find/{id}": {
       "get": {
         "tags": [
           "Event"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Event/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/findByDate/:date/:church": {
+    "/Event/findByDate/{date}/{church}": {
       "get": {
         "tags": [
           "Event"
         ],
-        "description": "GET /findByDate/:date/:church",
+        "summary": "Get /Event/findByDate/{date}/{church}",
         "parameters": [
           {
             "name": "date",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           },
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/findByDate/:date": {
+    "/Event/findByDate/{date}": {
       "get": {
         "tags": [
           "Event"
         ],
-        "description": "GET /findByDate/:date",
+        "summary": "Get /Event/findByDate/{date}",
         "parameters": [
           {
             "name": "date",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/update/:id": {
+    "/Event/update/{id}": {
       "put": {
         "tags": [
           "Event"
         ],
-        "description": "PUT /update/:id",
+        "summary": "Put /Event/update/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Event data",
             "schema": {
-              "$ref": "#/definitions/Event"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Event"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -648,62 +1046,98 @@
         "tags": [
           "Event"
         ],
-        "description": "GET /list",
+        "summary": "Get /Event/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/list/:church": {
+    "/Event/list/{church}": {
       "get": {
         "tags": [
           "Event"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Event/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Event/delete/:id": {
+    "/Event/delete/{id}": {
       "delete": {
         "tags": [
           "Event"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Event/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Event"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Event"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -713,102 +1147,154 @@
         "tags": [
           "Events"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Events data",
-            "schema": {
-              "$ref": "#/definitions/Events"
+        "summary": "Post /Events/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Events"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/find/:id": {
+    "/Events/find/{id}": {
       "get": {
         "tags": [
           "Events"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Events/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/findByDate/:date/:church": {
+    "/Events/findByDate/{date}/{church}": {
       "get": {
         "tags": [
           "Events"
         ],
-        "description": "GET /findByDate/:date/:church",
+        "summary": "Get /Events/findByDate/{date}/{church}",
         "parameters": [
           {
             "name": "date",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           },
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/findByDate/:date": {
+    "/Events/findByDate/{date}": {
       "get": {
         "tags": [
           "Events"
         ],
-        "description": "GET /findByDate/:date",
+        "summary": "Get /Events/findByDate/{date}",
         "parameters": [
           {
             "name": "date",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -818,14 +1304,24 @@
         "tags": [
           "Events"
         ],
-        "description": "GET /events",
+        "summary": "Get /Events/events",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -835,47 +1331,71 @@
         "tags": [
           "Events"
         ],
-        "description": "GET /upcoming",
+        "summary": "Get /Events/upcoming",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/update/:id": {
+    "/Events/update/{id}": {
       "put": {
         "tags": [
           "Events"
         ],
-        "description": "PUT /update/:id",
+        "summary": "Put /Events/update/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Events data",
             "schema": {
-              "$ref": "#/definitions/Events"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Events"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -885,95 +1405,145 @@
         "tags": [
           "Events"
         ],
-        "description": "GET /list",
+        "summary": "Get /Events/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/list/:church": {
+    "/Events/list/{church}": {
       "get": {
         "tags": [
           "Events"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Events/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/delete/:id": {
+    "/Events/delete/{id}": {
       "delete": {
         "tags": [
           "Events"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Events/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Events/update-checkin-status/:id": {
+    "/Events/update-checkin-status/{id}": {
       "put": {
         "tags": [
           "Events"
         ],
-        "description": "PUT /update-checkin-status/:id",
+        "summary": "Put /Events/update-checkin-status/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Events data",
             "schema": {
-              "$ref": "#/definitions/Events"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced Events"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Events"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Events"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Events"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -983,48 +1553,118 @@
         "tags": [
           "Fellowship"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Fellowship data",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+        "summary": "Post /Fellowship/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Fellowship"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Fellowship/find/:id": {
+    "/Fellowship/find/{id}": {
       "get": {
         "tags": [
           "Fellowship"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Fellowship/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Fellowship"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Fellowship/update/{id}": {
+      "patch": {
+        "tags": [
+          "Fellowship"
+        ],
+        "summary": "Patch /Fellowship/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Fellowship"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Fellowship"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1034,62 +1674,98 @@
         "tags": [
           "Fellowship"
         ],
-        "description": "GET /list",
+        "summary": "Get /Fellowship/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Fellowship/list/:church": {
+    "/Fellowship/list/{church}": {
       "get": {
         "tags": [
           "Fellowship"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Fellowship/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Fellowship"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Fellowship/delete/:id": {
+    "/Fellowship/delete/{id}": {
       "delete": {
         "tags": [
           "Fellowship"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Fellowship/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Fellowship"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Fellowship"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Fellowship"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1099,81 +1775,118 @@
         "tags": [
           "Kid"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Kid data",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+        "summary": "Post /Kid/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kid"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Kid/find/:id": {
+    "/Kid/find/{id}": {
       "get": {
         "tags": [
           "Kid"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Kid/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Kid"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Kid/update/:id": {
+    "/Kid/update/{id}": {
       "put": {
         "tags": [
           "Kid"
         ],
-        "description": "PUT /update/:id",
+        "summary": "Put /Kid/update/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Kid data",
             "schema": {
-              "$ref": "#/definitions/Kid"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced Kid"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Kid"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1183,62 +1896,98 @@
         "tags": [
           "Kid"
         ],
-        "description": "GET /list",
+        "summary": "Get /Kid/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Kid/list/:parent": {
+    "/Kid/list/{parent}": {
       "get": {
         "tags": [
           "Kid"
         ],
-        "description": "GET /list/:parent",
+        "summary": "Get /Kid/list/{parent}",
         "parameters": [
           {
             "name": "parent",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Kid"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Kid/delete/:id": {
+    "/Kid/delete/{id}": {
       "delete": {
         "tags": [
           "Kid"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Kid/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Kid"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Kid"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kid"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1248,48 +1997,118 @@
         "tags": [
           "Ministry"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Ministry data",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+        "summary": "Post /Ministry/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ministry"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Ministry/find/:id": {
+    "/Ministry/find/{id}": {
       "get": {
         "tags": [
           "Ministry"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Ministry/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Ministry"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Ministry/update/{id}": {
+      "patch": {
+        "tags": [
+          "Ministry"
+        ],
+        "summary": "Patch /Ministry/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Ministry"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Ministry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1299,62 +2118,98 @@
         "tags": [
           "Ministry"
         ],
-        "description": "GET /list",
+        "summary": "Get /Ministry/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Ministry/list/:church": {
+    "/Ministry/list/{church}": {
       "get": {
         "tags": [
           "Ministry"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Ministry/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Ministry"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Ministry/delete/:id": {
+    "/Ministry/delete/{id}": {
       "delete": {
         "tags": [
           "Ministry"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Ministry/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Ministry"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Ministry"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ministry"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1364,48 +2219,118 @@
         "tags": [
           "Module"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Module data",
-            "schema": {
-              "$ref": "#/definitions/Module"
+        "summary": "Post /Module/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Module"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Module"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Module/find/:id": {
+    "/Module/find/{id}": {
       "get": {
         "tags": [
           "Module"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Module/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Module"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Module"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Module/update/{id}": {
+      "patch": {
+        "tags": [
+          "Module"
+        ],
+        "summary": "Patch /Module/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Module"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Module"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1415,62 +2340,98 @@
         "tags": [
           "Module"
         ],
-        "description": "GET /list",
+        "summary": "Get /Module/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Module"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Module/list/:church": {
+    "/Module/list/{church}": {
       "get": {
         "tags": [
           "Module"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Module/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Module"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Module"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Module/delete/:id": {
+    "/Module/delete/{id}": {
       "delete": {
         "tags": [
           "Module"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Module/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Module"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Module"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Module"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1480,48 +2441,118 @@
         "tags": [
           "Payment"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Payment data",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+        "summary": "Post /Payment/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payment"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Payment/find/:id": {
+    "/Payment/find/{id}": {
       "get": {
         "tags": [
           "Payment"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Payment/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Payment"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Payment/update/{id}": {
+      "patch": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Patch /Payment/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Payment"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1531,62 +2562,98 @@
         "tags": [
           "Payment"
         ],
-        "description": "GET /list",
+        "summary": "Get /Payment/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Payment/list/:church": {
+    "/Payment/list/{church}": {
       "get": {
         "tags": [
           "Payment"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Payment/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Payment"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Payment/delete/:id": {
+    "/Payment/delete/{id}": {
       "delete": {
         "tags": [
           "Payment"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Payment/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Payment"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Payment"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1596,48 +2663,118 @@
         "tags": [
           "Prayer"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Prayer data",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+        "summary": "Post /Prayer/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Prayer"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Prayer/find/:id": {
+    "/Prayer/find/{id}": {
       "get": {
         "tags": [
           "Prayer"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Prayer/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Prayer"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Prayer/update/{id}": {
+      "patch": {
+        "tags": [
+          "Prayer"
+        ],
+        "summary": "Patch /Prayer/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Prayer"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Prayer"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1647,62 +2784,98 @@
         "tags": [
           "Prayer"
         ],
-        "description": "GET /list",
+        "summary": "Get /Prayer/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Prayer/list/:church": {
+    "/Prayer/list/{church}": {
       "get": {
         "tags": [
           "Prayer"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Prayer/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Prayer"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Prayer/delete/:id": {
+    "/Prayer/delete/{id}": {
       "delete": {
         "tags": [
           "Prayer"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Prayer/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Prayer"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Prayer"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prayer"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1712,48 +2885,118 @@
         "tags": [
           "Settings"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Settings data",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+        "summary": "Post /Settings/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Settings/find/:id": {
+    "/Settings/find/{id}": {
       "get": {
         "tags": [
           "Settings"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Settings/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Settings"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Settings/update/{id}": {
+      "patch": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Patch /Settings/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Settings"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1763,62 +3006,98 @@
         "tags": [
           "Settings"
         ],
-        "description": "GET /list",
+        "summary": "Get /Settings/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Settings/list/:church": {
+    "/Settings/list/{church}": {
       "get": {
         "tags": [
           "Settings"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Settings/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Settings"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Settings/delete/:id": {
+    "/Settings/delete/{id}": {
       "delete": {
         "tags": [
           "Settings"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Settings/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Settings"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Settings"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1828,48 +3107,118 @@
         "tags": [
           "Subscription"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Subscription data",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+        "summary": "Post /Subscription/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Subscription"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Subscription/find/:id": {
+    "/Subscription/find/{id}": {
       "get": {
         "tags": [
           "Subscription"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Subscription/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Subscription"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Subscription/update/{id}": {
+      "patch": {
+        "tags": [
+          "Subscription"
+        ],
+        "summary": "Patch /Subscription/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Subscription"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Subscription"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1879,62 +3228,98 @@
         "tags": [
           "Subscription"
         ],
-        "description": "GET /list",
+        "summary": "Get /Subscription/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Subscription/list/:church": {
+    "/Subscription/list/{church}": {
       "get": {
         "tags": [
           "Subscription"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Subscription/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Subscription"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Subscription/delete/:id": {
+    "/Subscription/delete/{id}": {
       "delete": {
         "tags": [
           "Subscription"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Subscription/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Subscription"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Subscription"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Subscription"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1944,48 +3329,118 @@
         "tags": [
           "Testimony"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "Testimony data",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+        "summary": "Post /Testimony/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Testimony"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Testimony/find/:id": {
+    "/Testimony/find/{id}": {
       "get": {
         "tags": [
           "Testimony"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /Testimony/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Testimony"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Testimony/update/{id}": {
+      "patch": {
+        "tags": [
+          "Testimony"
+        ],
+        "summary": "Patch /Testimony/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Testimony"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Testimony"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1995,62 +3450,98 @@
         "tags": [
           "Testimony"
         ],
-        "description": "GET /list",
+        "summary": "Get /Testimony/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Testimony/list/:church": {
+    "/Testimony/list/{church}": {
       "get": {
         "tags": [
           "Testimony"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /Testimony/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Testimony"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/Testimony/delete/:id": {
+    "/Testimony/delete/{id}": {
       "delete": {
         "tags": [
           "Testimony"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /Testimony/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Testimony"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/Testimony"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Testimony"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -2060,105 +3551,200 @@
         "tags": [
           "User"
         ],
-        "description": "POST /create",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "User data",
-            "schema": {
-              "$ref": "#/definitions/User"
+        "summary": "Post /User/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/User/find/:id": {
+    "/User/find/{id}": {
       "get": {
         "tags": [
           "User"
         ],
-        "description": "GET /find/:id",
+        "summary": "Get /User/find/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/User/findByUid/:firebaseId": {
+    "/User/findByUid/{firebaseId}": {
       "get": {
         "tags": [
           "User"
         ],
-        "description": "GET /findByUid/:firebaseId",
+        "summary": "Get /User/findByUid/{firebaseId}",
         "parameters": [
           {
             "name": "firebaseId",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/User/update/:id": {
+    "/User/update/{id}": {
       "put": {
         "tags": [
           "User"
         ],
-        "description": "PUT /update/:id",
+        "summary": "Put /User/update/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "description": "User data",
             "schema": {
-              "$ref": "#/definitions/User"
-            }
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Patch /User/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -2168,621 +3754,1249 @@
         "tags": [
           "User"
         ],
-        "description": "GET /list",
+        "summary": "Get /User/list",
         "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/User/list/:church": {
+    "/User/list/{church}": {
       "get": {
         "tags": [
           "User"
         ],
-        "description": "GET /list/:church",
+        "summary": "Get /User/list/{church}",
         "parameters": [
           {
             "name": "church",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     },
-    "/User/delete/:id": {
+    "/User/delete/{id}": {
       "delete": {
         "tags": [
           "User"
         ],
-        "description": "DELETE /delete/:id",
+        "summary": "Delete /User/delete/{id}",
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string"
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced User"
           }
         ],
         "responses": {
           "200": {
             "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/User"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
     }
   },
-  "definitions": {
-    "Assignment": {
-      "type": "object",
-      "properties": {
-        "userId": {
-          "type": "string"
-        },
-        "ministryId": {
-          "type": "string"
-        },
-        "FellowshipId": {
-          "type": "string"
-        },
-        "role": {
-          "type": "string"
-        },
-        "availability": {
-          "type": "string"
-        },
-        "skills": {
-          "type": "array",
-          "items": {
+  "components": {
+    "schemas": {
+      "Address": {
+        "type": "object",
+        "properties": {
+          "state": {
             "type": "string"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "location.type": {
+            "type": "string",
+            "default": "Point",
+            "enum": [
+              "Point"
+            ]
+          },
+          "location.coordinates": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Location array: [Longitude, Latitude]",
+            "minItems": 2,
+            "maxItems": 2,
+            "example": [
+              0,
+              0
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
-        "status": {
-          "type": "string"
-        },
-        "dateAssigned": {
-          "type": "string"
-        }
-      }
-    },
-    "Audit": {
-      "type": "object",
-      "properties": {
-        "url": {
-          "type": "string"
-        },
-        "activity": {
-          "type": "string"
-        },
-        "params": {
-          "type": "string"
-        },
-        "query": {
-          "type": "string"
-        },
-        "payload": {
-          "type": "string"
-        },
-        "response": {
-          "type": "string"
-        }
-      }
-    },
-    "Auth": {
-      "type": "object",
-      "properties": {
-        "email": {
-          "type": "string"
-        },
-        "password": {
-          "type": "string"
-        }
-      }
-    },
-    "CheckIn": {
-      "type": "object",
-      "properties": {
-        "child": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "createdAt": {
-          "type": "string"
-        },
-        "expiresAt": {
-          "type": "string"
-        }
-      }
-    },
-    "Church": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "createdBy": {
-          "type": "string"
-        },
-        "shortName": {
-          "type": "string"
-        },
-        "emailAddress": {
-          "type": "string"
-        },
-        "phoneNumber": {
-          "type": "string"
-        },
-        "address": {
-          "$ref": "#/definitions/Address"
-        },
-        "timeZone": {
-          "type": "string"
-        },
-        "logo": {
-          "type": "string"
-        }
-      }
-    },
-    "Devotion": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "scripture": {
-          "type": "string"
-        },
-        "content": {
-          "type": "string"
-        },
-        "date": {
-          "type": "string"
-        },
-        "author": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
+        "required": [
+          "state",
+          "postalCode",
+          "street",
+          "city",
+          "country",
+          "location.type",
+          "location.coordinates"
+        ]
+      },
+      "Assignment": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ministryId": {
             "type": "string"
+          },
+          "FellowshipId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "availability": {
+            "type": "string"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "dateAssigned": {
+            "type": "string",
+            "format": "date-time"
           }
         },
-        "isPublished": {
-          "type": "boolean"
-        }
-      }
-    },
-    "Event": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
+        "required": [
+          "userId",
+          "role",
+          "status",
+          "dateAssigned"
+        ]
+      },
+      "Audit": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "activity": {
+            "type": "string"
+          },
+          "params": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "createdBy": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "startDate": {
-          "type": "string"
-        },
-        "endDate": {
-          "type": "string"
-        },
-        "startTime": {
-          "type": "string"
-        },
-        "endTime": {
-          "type": "string"
-        },
-        "location": {
-          "type": "string"
-        },
-        "flier": {
-          "type": "string"
-        },
-        "allowKidsCheckin": {
-          "type": "boolean"
-        },
-        "rsvp": {
-          "type": "boolean"
-        },
-        "checkinStartTime": {
-          "type": "string"
-        },
-        "isRecurring": {
-          "type": "boolean"
-        },
-        "recurrence": {
-          "type": "string"
-        }
-      }
-    },
-    "EventInstance": {
-      "type": "object",
-      "properties": {
-        "eventId": {
-          "type": "string"
-        },
-        "church": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "location": {
-          "type": "string"
-        },
-        "flier": {
-          "type": "string"
-        },
-        "date": {
-          "type": "string"
-        },
-        "startTime": {
-          "type": "string"
-        },
-        "endTime": {
-          "type": "string"
-        },
-        "isCheckinOpen": {
-          "type": "boolean"
-        }
-      }
-    },
-    "Events": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "createdBy": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "startDate": {
-          "type": "string"
-        },
-        "endDate": {
-          "type": "string"
-        },
-        "startTime": {
-          "type": "string"
-        },
-        "endTime": {
-          "type": "string"
-        },
-        "location": {
-          "type": "string"
-        },
-        "flier": {
-          "type": "string"
-        },
-        "allowKidsCheckin": {
-          "type": "boolean"
-        },
-        "rsvp": {
-          "type": "boolean"
-        },
-        "checkinStartTime": {
-          "type": "string"
-        },
-        "isRecurring": {
-          "type": "boolean"
-        },
-        "recurrence": {
-          "$ref": "#/definitions/Recurrence"
-        },
-        "isInstance": {
-          "type": "boolean"
-        },
-        "masterEventId": {
-          "type": "string"
-        },
-        "originalStartDate": {
-          "type": "string"
-        },
-        "nextCheckDate": {
-          "type": "string"
-        }
-      }
-    },
-    "Fellowship": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "address": {
-          "$ref": "#/definitions/Address"
-        },
-        "dayOfWeek": {
-          "type": "string"
-        },
-        "meetingTime": {
-          "type": "string"
-        },
-        "leaderId": {
-          "type": "string"
-        },
-        "church": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        }
-      }
-    },
-    "Kid": {
-      "type": "object",
-      "properties": {
-        "parent": {
-          "type": "string"
-        },
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "middleName": {
-          "type": "string"
-        },
-        "dateOfBirth": {
-          "type": "string"
-        },
-        "gender": {
-          "type": "string"
-        },
-        "allergies": {
-          "type": "string"
-        },
-        "color": {
-          "type": "string"
-        }
-      }
-    },
-    "Ministry": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "leaderId": {
-          "type": "string"
-        }
-      }
-    },
-    "Module": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "baseCost": {
-          "type": "number"
-        },
-        "features": {
-          "type": "array",
-          "items": {
+        "required": [
+          "url",
+          "activity",
+          "params",
+          "query",
+          "payload",
+          "response"
+        ]
+      },
+      "Auth": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
             "type": "string"
           }
         }
-      }
-    },
-    "Payment": {
-      "type": "object",
-      "properties": {
-        "user": {
-          "type": "string"
-        },
-        "church": {
-          "type": "string"
-        },
-        "subscription": {
-          "type": "string"
-        },
-        "paymentId": {
-          "type": "string"
-        },
-        "amount": {
-          "type": "number"
-        },
-        "status": {
-          "type": "string"
-        },
-        "metadata": {
-          "type": "string"
-        }
-      }
-    },
-    "Prayer": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "author": {
-          "type": "string"
-        },
-        "anonymous": {
-          "type": "boolean"
-        },
-        "isPublic": {
-          "type": "boolean"
-        },
-        "title": {
-          "type": "string"
-        },
-        "prayerRequest": {
-          "type": "string"
-        },
-        "urgency": {
-          "type": "string"
-        }
-      }
-    },
-    "Settings": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
-    "Subscription": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "modules": {
-          "type": "array",
-          "items": {
-            "type": "string"
+      },
+      "CheckIn": {
+        "type": "object",
+        "properties": {
+          "child": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "status": {
+            "type": "string",
+            "default": "check_in_request",
+            "enum": [
+              "check_in_request",
+              "dropped_off",
+              "pickup_request",
+              "picked_up"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
-        "startDate": {
-          "type": "string"
+        "required": [
+          "child",
+          "expiresAt"
+        ]
+      },
+      "Church": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "shortName": {
+            "type": "string"
+          },
+          "emailAddress": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "logo": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "expiryDate": {
-          "type": "string"
+        "required": [
+          "name",
+          "createdBy",
+          "shortName",
+          "emailAddress",
+          "phoneNumber",
+          "address",
+          "timeZone"
+        ]
+      },
+      "Devotion": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "title": {
+            "type": "string"
+          },
+          "scripture": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "author": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DevotionTagsItem"
+            }
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "status": {
-          "type": "string"
+        "required": [
+          "church",
+          "title",
+          "scripture",
+          "content",
+          "date",
+          "author"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "flier": {
+            "type": "string"
+          },
+          "allowKidsCheckin": {
+            "type": "boolean",
+            "default": false
+          },
+          "rsvp": {
+            "type": "boolean",
+            "default": false
+          },
+          "checkinStartTime": {
+            "type": "string"
+          },
+          "isRecurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "recurrence.frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ]
+          },
+          "recurrence.interval": {
+            "type": "number",
+            "default": 1
+          },
+          "recurrence.daysOfWeek": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Location array: [Longitude, Latitude]",
+            "minItems": 2,
+            "maxItems": 2,
+            "example": [
+              0,
+              0
+            ]
+          },
+          "recurrence.endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         },
-        "payments": {
-          "type": "array",
-          "items": {
+        "required": [
+          "church",
+          "createdBy",
+          "title",
+          "startDate",
+          "endDate",
+          "startTime",
+          "endTime",
+          "allowKidsCheckin",
+          "rsvp",
+          "checkinStartTime",
+          "recurrence.frequency"
+        ]
+      },
+      "EventInstance": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "flier": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "isCheckinOpen": {
+            "type": "boolean",
+            "default": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "eventId",
+          "church",
+          "date",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "Events": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "flier": {
+            "type": "string"
+          },
+          "allowKidsCheckin": {
+            "type": "boolean",
+            "default": false
+          },
+          "rsvp": {
+            "type": "boolean",
+            "default": false
+          },
+          "checkinStartTime": {
+            "type": "string"
+          },
+          "isRecurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "recurrence": {
+            "$ref": "#/components/schemas/Recurrence"
+          },
+          "isInstance": {
+            "type": "boolean",
+            "default": false
+          },
+          "masterEventId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "originalStartDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextCheckDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "createdBy",
+          "title",
+          "startDate",
+          "endDate",
+          "startTime",
+          "endTime",
+          "allowKidsCheckin",
+          "rsvp",
+          "checkinStartTime"
+        ]
+      },
+      "Fellowship": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "dayOfWeek": {
+            "type": "string"
+          },
+          "meetingTime": {
+            "type": "string"
+          },
+          "leaderId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "description": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "church"
+        ]
+      },
+      "Kid": {
+        "type": "object",
+        "properties": {
+          "parent": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "middleName": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female"
+            ]
+          },
+          "allergies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "color": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "parent",
+          "firstName",
+          "lastName",
+          "dateOfBirth"
+        ]
+      },
+      "Ministry": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "leaderId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church"
+        ]
+      },
+      "Module": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "baseCost": {
+            "type": "number"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "name",
+          "baseCost"
+        ]
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "subscription": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "paymentId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "default": "pending",
+            "enum": [
+              "pending",
+              "succeeded",
+              "failed",
+              "refunded"
+            ]
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "user",
+          "church",
+          "subscription",
+          "paymentId",
+          "amount",
+          "status"
+        ]
+      },
+      "Prayer": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "author": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "anonymous": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "prayerRequest": {
+            "type": "string"
+          },
+          "urgency": {
+            "type": "string",
+            "default": "medium",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "author",
+          "title",
+          "prayerRequest"
+        ]
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "key",
+          "value"
+        ]
+      },
+      "Subscription": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionModulesItem"
+            }
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "default": "pending",
+            "enum": [
+              "active",
+              "expired",
+              "cancelled",
+              "pending"
+            ]
+          },
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionPaymentsItem"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "expiryDate"
+        ]
+      },
+      "Testimony": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "author": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "anonymous": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPublic": {
+            "type": "boolean",
+            "default": false
+          },
+          "title": {
+            "type": "string"
+          },
+          "story": {
+            "type": "string"
+          },
+          "impact": {
+            "type": "string"
+          },
+          "gratitude": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "author",
+          "title",
+          "story"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female"
+            ]
+          },
+          "isMarried": {
+            "type": "boolean",
+            "default": false
+          },
+          "anniversaryDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "emailAddress": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "pushToken": {
+            "type": "string"
+          },
+          "firebaseId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "default": "member",
+            "enum": [
+              "admin",
+              "member",
+              "churchAdmin"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "dateOfBirth",
+          "emailAddress",
+          "phoneNumber",
+          "address",
+          "firebaseId"
+        ]
+      },
+      "DevotionTagsItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "trim": {
+            "type": "string"
+          }
+        }
+      },
+      "RecurrenceByWeekDayItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "number"
+          }
+        }
+      },
+      "RecurrenceByMonthDayItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "number"
+          }
+        }
+      },
+      "RecurrenceExceptionsItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Recurrence": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "YEARLY"
+            ]
+          },
+          "interval": {
+            "type": "number",
+            "default": 1
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAfterOccurrences": {
+            "type": "number"
+          },
+          "byWeekDay": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurrenceByWeekDayItem"
+            }
+          },
+          "byMonthDay": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurrenceByMonthDayItem"
+            }
+          },
+          "exceptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecurrenceExceptionsItem"
+            }
+          }
+        },
+        "required": [
+          "frequency"
+        ]
+      },
+      "SubscriptionModulesItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ref": {
+            "type": "string"
+          },
+          "required": {
+            "type": "string"
+          }
+        }
+      },
+      "SubscriptionPaymentsItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ref": {
             "type": "string"
           }
         }
       }
     },
-    "Testimony": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "author": {
-          "type": "string"
-        },
-        "anonymous": {
-          "type": "boolean"
-        },
-        "isPublic": {
-          "type": "boolean"
-        },
-        "title": {
-          "type": "string"
-        },
-        "story": {
-          "type": "string"
-        },
-        "impact": {
-          "type": "string"
-        },
-        "gratitude": {
-          "type": "string"
-        }
-      }
-    },
-    "User": {
-      "type": "object",
-      "properties": {
-        "church": {
-          "type": "string"
-        },
-        "firstName": {
-          "type": "string"
-        },
-        "lastName": {
-          "type": "string"
-        },
-        "dateOfBirth": {
-          "type": "string"
-        },
-        "gender": {
-          "type": "string"
-        },
-        "isMarried": {
-          "type": "boolean"
-        },
-        "anniversaryDate": {
-          "type": "string"
-        },
-        "emailAddress": {
-          "type": "string"
-        },
-        "phoneNumber": {
-          "type": "string"
-        },
-        "address": {
-          "$ref": "#/definitions/Address"
-        },
-        "photoUrl": {
-          "type": "string"
-        },
-        "pushToken": {
-          "type": "string"
-        },
-        "firebaseId": {
-          "type": "string"
-        },
-        "role": {
-          "type": "string"
-        }
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
 }

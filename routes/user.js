@@ -12,10 +12,6 @@ const router = express.Router();
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.post('/create', validateUser(), async(req, res) => {
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, firebaseId, photoUrl, pushToken, role } = req.body;
     const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate,  firebaseId, photoUrl, pushToken, role });
@@ -33,10 +29,6 @@ router.post('/create', validateUser(), async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const user = await User.findById(id).populate('church');
@@ -46,10 +38,6 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "GET /findByUid/:firebaseId"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.get('/findByUid/:firebaseId', async(req, res) => {
     const { firebaseId } = req.params;
     const user = await User.findOne({ firebaseId });
@@ -59,10 +47,6 @@ router.get('/findByUid/:firebaseId', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "PUT /update/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.put('/update/:id',validateUser(),  async(req, res) => {
     const { id } = req.params;
     const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role } = req.body;
@@ -96,10 +80,6 @@ router.patch('/update/:id', async (req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.get('/list', async(req, res) => {
     try {
         const users = await User.find().populate('church');
@@ -111,10 +91,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -127,10 +103,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['User']
 */
-
-/*#swagger.tags = ['User']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/User" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;

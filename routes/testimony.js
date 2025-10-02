@@ -9,10 +9,6 @@ const router = express.Router();
 /*
 #swagger.tags = ['Testimony']
 */
-
-/*#swagger.tags = ['Testimony']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Testimony" } }*/
 router.post('/create', validateTestimony(), async(req, res) => {
     const { church, author, title, story, anonymous, isPublic, impact, gratitude } = req.body;
     const newItem = new Testimony({ church, author, title, story, anonymous, isPublic, impact, gratitude  }); 
@@ -26,10 +22,6 @@ router.post('/create', validateTestimony(), async(req, res) => {
 /*
 #swagger.tags = ['Testimony']
 */
-
-/*#swagger.tags = ['Testimony']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Testimony" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const testimony = await Testimony.findById(id).populate('church');
@@ -55,10 +47,6 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Testimony']
 */
-
-/*#swagger.tags = ['Testimony']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Testimony" } }*/
 router.get('/list', async(req, res) => {
     try {
         const ministries = await Testimony.find().populate('church');
@@ -70,10 +58,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Testimony']
 */
-
-/*#swagger.tags = ['Testimony']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Testimony" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -86,10 +70,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Testimony']
 */
-
-/*#swagger.tags = ['Testimony']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Testimony" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;

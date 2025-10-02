@@ -9,10 +9,6 @@ const router = express.Router();
 /*
 #swagger.tags = ['Devotion']
 */
-
-/*#swagger.tags = ['Devotion']
-#swagger.description = "POST /create"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.post('/create', validateDevotion(), async(req, res) => {
     const { church, title, scripture, content, date, author, tags, isPublished } = req.body;
     const newItem = new Devotion({ church, title, scripture, content, date, author, tags, isPublished  });
@@ -26,10 +22,6 @@ router.post('/create', validateDevotion(), async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-
-/*#swagger.tags = ['Devotion']
-#swagger.description = "GET /find/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
     const devotion = await Devotion.findById(id).populate('church');
@@ -55,10 +47,6 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-
-/*#swagger.tags = ['Devotion']
-#swagger.description = "GET /list"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.get('/list', async(req, res) => {
     try {
         const ministries = await Devotion.find().populate('church');
@@ -70,10 +58,6 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-
-/*#swagger.tags = ['Devotion']
-#swagger.description = "GET /list/:church"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
@@ -86,10 +70,6 @@ router.get('/list/:church', async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-
-/*#swagger.tags = ['Devotion']
-#swagger.description = "DELETE /delete/:id"
-#swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Devotion" } }*/
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
