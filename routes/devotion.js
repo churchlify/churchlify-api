@@ -49,8 +49,8 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const ministries = await Devotion.find().populate('church');
-        res.status(200).json({ ministries });
+        const devotions = await Devotion.find().populate('church');
+        res.status(200).json({ devotions });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -61,7 +61,9 @@ router.get('/list', async(req, res) => {
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
-        const ministries = await Devotion.find({church: church});
+        const inputDate = new Date(req.query.date || new Date());
+        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+        const ministries = await Devotion.find({ church: church, date: { $gte: start}}).sort({ date: 1 }); 
         res.status(200).json({ ministries });
     } catch (error) {
         res.status(500).json({ message: error.message });

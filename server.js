@@ -6,6 +6,7 @@ const {logAuditTrails} = require('./middlewares/audits');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
+const assignmentRoutes = require('./routes/assignment');
 const userRoutes = require('./routes/user');
 const churchRoutes = require('./routes/church');
 const eventRoutes = require('./routes/events');
@@ -39,6 +40,7 @@ app.use(express.json());
 app.use(logAuditTrails);
 // server.js
 app.use('/auth', authRoutes);
+app.use('/assignment', assignmentRoutes);
 app.use('/user', userRoutes);
 app.use('/church', churchRoutes);
 app.use('/event', eventRoutes);

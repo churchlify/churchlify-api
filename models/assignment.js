@@ -8,7 +8,7 @@ const AssignmentSchema = new mongoose.Schema({
   role: { type: String, required: true},
   availability: Object, // Can be used to store a map of data
   skills: [String],
-  status: { type: String,required: true},
+  status: { type: String,required: true, enum: ['pending', 'approved'], default: 'pending' },
   dateAssigned: { type: Date, required: true }
 });
 AssignmentSchema.plugin(validateRefs, {

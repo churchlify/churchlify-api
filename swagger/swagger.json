@@ -6,6 +6,228 @@
     "description": "Comprehensive Churchlify API documentation"
   },
   "paths": {
+    "/Assignment/create": {
+      "post": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Post /Assignment/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Assignment/find/{id}": {
+      "get": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Get /Assignment/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Assignment/update/{id}": {
+      "patch": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Patch /Assignment/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Assignment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Assignment/list": {
+      "get": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Get /Assignment/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Assignment/list/{userId}": {
+      "get": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Get /Assignment/list/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Assignment/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Delete /Assignment/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/Auth/register": {
       "post": {
         "tags": [
@@ -3937,7 +4159,12 @@
             }
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "default": "pending",
+            "enum": [
+              "pending",
+              "approved"
+            ]
           },
           "dateAssigned": {
             "type": "string",
@@ -4116,6 +4343,9 @@
             "items": {
               "$ref": "#/components/schemas/DevotionTagsItem"
             }
+          },
+          "image": {
+            "type": "string"
           },
           "isPublished": {
             "type": "boolean",

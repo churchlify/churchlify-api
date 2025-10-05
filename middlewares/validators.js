@@ -277,6 +277,22 @@ const validateSettings = () => [
             next();
         }
     ];
+const validateAssignment = () => [
+        body('userId').notEmpty().withMessage('User ID is required').custom((value) => {
+                if (!mongoose.Types.ObjectId.isValid(value)) {
+                    throw new Error('Invalid User ID');
+                }
+                return true;
+            }),
+        body('dateAssigned').notEmpty().withMessage('Date Assigned is required').isISO8601().withMessage('Invalid date format').toDate(),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        }
+    ];
 
 const validateObjectId = () => [
     check('id').optional().isMongoId().withMessage('Invalid Object Id provided'),
@@ -288,4 +304,4 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, 
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
-    validateModule, validatePayment, validateSettings };
+    validateModule, validatePayment, validateSettings, validateAssignment };

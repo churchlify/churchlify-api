@@ -9,6 +9,7 @@ const devotionSchema = new mongoose.Schema({
   date: { type: Date, required: true, index: true },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   tags: [{ type: String, trim: true}],
+  image: { type: String, trim: true},
   isPublished: { type: Boolean, default: false},
 }, { timestamps: true });
 
