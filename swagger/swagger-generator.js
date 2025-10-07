@@ -245,7 +245,7 @@ const routeDefinitionMap = {
   'fellowship.js': 'Fellowship', 'kid.js': 'Kid', 'ministry.js': 'Ministry',
   'prayer.js': 'Prayer', 'testimony.js': 'Testimony', 'assignment.js': 'Assignment',
   'events.js': 'Events', 'subscription.js': 'Subscription', 'payment.js': 'Payment',
-  'module.js': 'Module', 'settings.js': 'Settings', 'chat.js': 'Chat',
+  'module.js': 'Module', 'settings.js': 'Settings', 'chat.js': 'Chat','timezone.js': 'Timezone',
 };
 
 function guessDefinitionFromRoute(routeFile, url, definitions) {

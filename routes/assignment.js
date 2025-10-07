@@ -8,8 +8,8 @@ const { validateAssignment } = require('../middlewares/validators');
 const router = express.Router();
 
 router.post('/create', validateAssignment(), async (req, res) => {
-  const { userId, ministryId, FellowshipId, role,availability,skills,status,dateAssigned } = req.body;
-  const newItem = new Assignment({ userId, ministryId, FellowshipId, role,availability,skills,status,dateAssigned } );
+  const { userId, ministryId, fellowshipId, role,availability,skills,status,dateAssigned } = req.body;
+  const newItem = new Assignment({ userId, ministryId, fellowshipId, role,availability,skills,status,dateAssigned } );
   try {
     await newItem.save();
     res.status(201).json({ message: 'Assignment registered successfully', setting: newItem });
@@ -83,10 +83,18 @@ router.get('/:churchId/:userId', async (req, res) => {
     // Helper to check if user is joined
     const isJoined = (itemId, type) => {
       return assignments.some(a =>
-        a.status === 'joined' &&
+        a.status === 'approved' &&
         ((type === 'ministry' && a.ministryId === String(itemId)) ||
          (type === 'fellowship' && a.FellowshipId === String(itemId)))
       );
+    };
+
+    const getStatus = (itemId, type) => {
+      const match = assignments.find(a =>
+        (type === 'ministry' && a.ministryId === String(itemId)) ||
+        (type === 'fellowship' && a.FellowshipId === String(itemId))
+      );
+      return match ? match.status : 'unregistered';
     };
 
     // Map ministries
@@ -96,7 +104,8 @@ router.get('/:churchId/:userId', async (req, res) => {
       leaderId: min.leaderId,
       category: 'ministry',
       address: `${church.address.street}, ${church.address.city}, ${church.address.state}` || null,
-      joined: isJoined(min._id, 'ministry')
+      joined: isJoined(min._id, 'ministry'),
+      status: getStatus(min._id, 'ministry')
     }));
 
     // Map fellowships
@@ -106,12 +115,13 @@ router.get('/:churchId/:userId', async (req, res) => {
       leaderId: fel.leaderId,
       category: 'fellowship',
       address: `${fel.address.street}, ${fel.address.city}, ${fel.address.state}` || null,
-      joined: isJoined(fel._id, 'fellowship')
+      joined: isJoined(fel._id, 'fellowship'),
+      status: getStatus(fel._id, 'fellowship')
     }));
 
     // Combine and return
-    const results = [...ministryResults, ...fellowshipResults];
-    res.json({ success: true, data: results });
+    const groups = [...ministryResults, ...fellowshipResults];
+    res.json({ success: true, data: groups });
 
   } catch (error) {
     console.error('Error fetching assignments:', error);

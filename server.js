@@ -23,6 +23,7 @@ const moduleRoutes = require('./routes/module');
 const paymentRoutes = require('./routes/payment');
 const settingsRoutes = require('./routes/settings');
 const chatRoutes = require('./routes/chat'); // Import chat routes
+const timezoneRoutes = require('./routes/timezone');
 const uploadRoutes = require('./routes/upload');
 const eventWorker = require('./common/event.worker');
 dotenv.config();
@@ -31,7 +32,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const cors = require('cors');
-const { resetIndexesForAllModels } = require('./common/shared');
+const { resetIndexesForAllModels, seedTimezones } = require('./common/shared');
 const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('./swagger/swagger.json');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
@@ -56,6 +57,7 @@ app.use('/subscription', subscriptionRoutes);
 app.use('/module', moduleRoutes);
 app.use('/payment', paymentRoutes); 
 app.use('/settings', settingsRoutes);
+app.use('/timezone', timezoneRoutes);
 app.use('/chat', chatRoutes);
 app.use('/upload', uploadRoutes);
 app.use('/uploads', express.static('/files_upload/'));
@@ -68,6 +70,7 @@ const PORT = process.env.PORT || 5500;
 
 mongoose.connect(process.env.MONGO_URI).then(async () => {
     console.log('Connected to MongoDB');
+    await seedTimezones();
     await resetIndexesForAllModels();
     (async () => {
   try {

@@ -14,45 +14,86 @@ const router = express.Router();
 #swagger.tags = ['Checkin']
 */
 router.post('/initiate', async (req, res) => {
-    const { child } = req.body;
-    const now = Date.now();
-    const expiresAt = new Date(now + 15 * 60 * 1000); // 15 minutes from now
-    const oneDayAgo = new Date(now - 24 * 3600 * 1000);
-    try {
-        // Basic validation of child and church
-        if (!isValidObjectId(child)) { return res.status(400).json({ error: 'Invalid Child ID provided' }); }
-        const kid = await Kid.findById(child).populate('parent');
-        if (!kid) { return res.status(400).json({ error: 'Child ID provided does not exist' });}
-        const churchId = kid.parent.church;
-        // Find an active event instance that is open for check-in
-        const checkinOpenInstance = await EventInstance.findOne({ church: churchId, isCheckinOpen: true,
-            date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } 
-        });
-        if (!checkinOpenInstance) { return res.status(400).json({ message: 'Check-in is not currently open for any events at your church.'
-            });
-        }
-        // Check for existing check-in requests or dropped-off status for the child
-        const existingCheckIn = await CheckIn.findOne({ child, status: 'check_in_request', expiresAt: { $gt: new Date() } });
-        if (existingCheckIn) {
-            return res.status(400).json({
-                message: 'Check-in already started, please wait for the current request to expire.'
-            });
-        }
-        const droppedOff = await CheckIn.findOne({ child, status: { $in: ['dropped_off', 'pickup_request'] }, createdAt: { $gte: oneDayAgo }});
-        if (droppedOff) {
-            return res.status(400).json({ message: 'Child has not been picked up yet.' });
-        }
-        // Create and save the new check-in record, linking it to the event instance
-        const newCheckIn = new CheckIn({  child, expiresAt, eventInstance: checkinOpenInstance._id });
-        await newCheckIn.save();
-        res.status(201).json({  message: 'Check-in request created successfully', checkIn: newCheckIn, 
-            eventTitle: checkinOpenInstance.title
-        });
-    } catch (err) {
-        console.error('Check-in error:', err);
-        res.status(500).json({ error: err.message });
+  const { child } = req.body; // expecting an array of ObjectIds
+  const now = Date.now();
+  const expiresAt = new Date(now + 15 * 60 * 1000); // 15 minutes from now
+  const oneDayAgo = new Date(now - 24 * 3600 * 1000);
+
+  try {
+    // Validate input
+    if (!Array.isArray(child) || child.length === 0 || !child.every(isValidObjectId)) {
+      return res.status(400).json({ error: 'Invalid or missing child IDs' });
     }
+
+    // Fetch all kids and validate existence
+    const kids = await Kid.find({ _id: { $in: child } }).populate('parent');
+    if (kids.length !== child.length) {
+      return res.status(400).json({ error: 'One or more child IDs do not exist' });
+    }
+
+    // Assume all kids share the same parent/church
+    const churchId = kids[0].parent.church;
+
+    // Find an active event instance
+    const checkinOpenInstance = await EventInstance.findOne({
+      church: churchId,
+      isCheckinOpen: true,
+      date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+    });
+
+    if (!checkinOpenInstance) {
+      return res.status(400).json({
+        message: 'Check-in is not currently open for any event at your church.'
+      });
+    }
+
+    // Check for conflicts per child
+    for (const kidId of child) {
+      const existingCheckIn = await CheckIn.findOne({
+        child: kidId,
+        status: 'check_in_request',
+        expiresAt: { $gt: new Date() }
+      });
+
+      if (existingCheckIn) {
+        return res.status(400).json({
+          message: `Check-in already started for child ${kidId}, please wait for the current request to expire.`
+        });
+      }
+
+      const droppedOff = await CheckIn.findOne({
+        child: kidId,
+        status: { $in: ['dropped_off', 'pickup_request'] },
+        createdAt: { $gte: oneDayAgo }
+      });
+
+      if (droppedOff) {
+        return res.status(400).json({
+          message: `Child ${kidId} has not been picked up yet.`
+        });
+      }
+    }
+
+    // Create and save the new check-in record
+    const newCheckIn = new CheckIn({
+      child,
+      expiresAt,
+      eventInstance: checkinOpenInstance._id
+    });
+
+    await newCheckIn.save();
+
+    res.status(201).json({
+      message: 'Check-in request created successfully',
+      checkIn: newCheckIn,
+      eventTitle: checkinOpenInstance.title
+    });
+  } catch (err) {
+    console.error('Check-in error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
+
   // Update status
   /*
 #swagger.tags = ['Checkin']

@@ -49,8 +49,8 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const ministries = await Testimony.find().populate('church');
-        res.status(200).json({ ministries });
+        const testimonies = await Testimony.find().populate('church');
+        res.status(200).json({ testimonies });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -61,8 +61,8 @@ router.get('/list', async(req, res) => {
 router.get('/list/:church', async(req, res) => {
     try {
         const { church } = req.params;
-        const ministries = await Testimony.find({church: church});
-        res.status(200).json({ ministries });
+        const testimonies = await Testimony.find({church: church});
+        res.status(200).json({ testimonies });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

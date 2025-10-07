@@ -84,7 +84,7 @@ const validateKid = () => [
     body('lastName').notEmpty().withMessage('Last Name is required'),
     body('dateOfBirth').notEmpty().withMessage('Date of birth is Invalid'),
     body('gender').notEmpty().withMessage('Gender is required'),
-    body('middleName').optional().custom(value => value.length < 3).withMessage('Please provide a vallid middle name'),
+    body('middleName').optional().custom(value => value.length > 3).withMessage('Please provide a vallid middle name'),
     body('allergies').optional().custom(value => Array.isArray(value)).withMessage('Allergies must be array of string'),
     (req, res, next) => {
     const errors = validationResult(req);
@@ -284,6 +284,18 @@ const validateAssignment = () => [
                 }
                 return true;
             }),
+        body('ministryId').optional().notEmpty().withMessage('Ministry ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Ministry ID');
+            }
+            return true;
+        }),
+        body('fellowshipId').optional().notEmpty().withMessage('Fellowship ID is required').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Fellowship ID');
+            }
+            return true;
+        }),
         body('dateAssigned').notEmpty().withMessage('Date Assigned is required').isISO8601().withMessage('Invalid date format').toDate(),
         (req, res, next) => {
             const errors = validationResult(req);

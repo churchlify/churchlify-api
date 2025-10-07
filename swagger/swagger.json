@@ -228,6 +228,52 @@
         }
       }
     },
+    "/Assignment/{churchId}/{userId}": {
+      "get": {
+        "tags": [
+          "Assignment"
+        ],
+        "summary": "Get /Assignment/{churchId}/{userId}",
+        "parameters": [
+          {
+            "name": "churchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/Auth/register": {
       "post": {
         "tags": [
@@ -3768,6 +3814,191 @@
         }
       }
     },
+    "/Timezone/create": {
+      "post": {
+        "tags": [
+          "Timezone"
+        ],
+        "summary": "Post /Timezone/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Timezone"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timezone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Timezone/find/{id}": {
+      "get": {
+        "tags": [
+          "Timezone"
+        ],
+        "summary": "Get /Timezone/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Timezone"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timezone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Timezone/update/{id}": {
+      "patch": {
+        "tags": [
+          "Timezone"
+        ],
+        "summary": "Patch /Timezone/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Timezone"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Timezone"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timezone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Timezone/list": {
+      "get": {
+        "tags": [
+          "Timezone"
+        ],
+        "summary": "Get /Timezone/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timezone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Timezone/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Timezone"
+        ],
+        "summary": "Delete /Timezone/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Timezone"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timezone"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/User/create": {
       "post": {
         "tags": [
@@ -4140,14 +4371,19 @@
             "pattern": "^[a-fA-F0-9]{24}$",
             "example": "507f1f77bcf86cd799439011"
           },
-          "ministryId": {
-            "type": "string"
+          "fellowshipId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
           },
-          "FellowshipId": {
-            "type": "string"
+          "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
           },
           "role": {
-            "type": "string"
+            "type": "string",
+            "default": "member"
           },
           "availability": {
             "type": "string"
@@ -4232,9 +4468,10 @@
         "type": "object",
         "properties": {
           "child": {
-            "type": "string",
-            "pattern": "^[a-fA-F0-9]{24}$",
-            "example": "507f1f77bcf86cd799439011"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckInChildItem"
+            }
           },
           "status": {
             "type": "string",
@@ -5025,6 +5262,25 @@
           "story"
         ]
       },
+      "Timezone": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "continent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "continent"
+        ]
+      },
       "User": {
         "type": "object",
         "properties": {
@@ -5103,6 +5359,19 @@
           "address",
           "firebaseId"
         ]
+      },
+      "CheckInChildItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ref": {
+            "type": "string"
+          }
+        }
       },
       "DevotionTagsItem": {
         "type": "object",
