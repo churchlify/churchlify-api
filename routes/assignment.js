@@ -2,7 +2,6 @@ const express = require('express');
 const Assignment = require('../models/assignment');
 const Ministry = require('../models/ministry');
 const Fellowship = require('../models/fellowship');
-const Church = require('../models/church');
 
 const { validateAssignment } = require('../middlewares/validators');
 const router = express.Router();
@@ -66,19 +65,20 @@ router.delete('/delete/:id', async (req, res) => {
   }
 });
 
-router.get('/:churchId/:userId', async (req, res) => {
+router.get('/:userId', async (req, res) => {
   try {
-    const { churchId, userId } = req.params;
-
+    const {userId } = req.params;
+    const church = req.church;
+    const filter = {};
+    if (church?._id) {
+        filter.church = church?._id;
+    }
     // Fetch ministries and fellowships for the church
     const [ministries, fellowships, assignments] = await Promise.all([
-      Ministry.find({ church: churchId }),
-      Fellowship.find({ church: churchId }),
+      Ministry.find(filter),
+      Fellowship.find(filter),
       Assignment.find({ userId })
     ]);
-
-    // Get church address for ministries
-    const church = await Church.findById(churchId);
 
     // Helper to check if user is joined
     const isJoined = (itemId, type) => {

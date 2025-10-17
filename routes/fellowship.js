@@ -47,25 +47,17 @@ router.patch('/update/:id', async(req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 /*
 #swagger.tags = ['Fellowship']
 */
 router.get('/list', async(req, res) => {
     try {
-        const ministries = await Fellowship.find().populate('church');
-        res.status(200).json({ ministries });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['Fellowship']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const ministries = await Fellowship.find({church: church});
-        res.status(200).json({ ministries });
+        const church = req.church;
+        let filter = {};
+        if(church) { filter.church = church._id; }
+        const fellowships = await Fellowship.find(filter);
+        res.status(200).json({ fellowships });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

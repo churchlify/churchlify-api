@@ -20,8 +20,8 @@ const validateRefs = require('../common/validateRefs');
 //     endTime: { type: String, required: true },   // e.g., "10:30" for 10:30 AM
 //     location: { type: String, required: false },
 //     flier: { type: String, required: false },
-//     allowKidsCheckin: { type: Boolean, required: true , default: false}, 
-//     rsvp: { type: Boolean, required: true , default: false}, 
+//     allowKidsCheckin: { type: Boolean, required: true , default: false},
+//     rsvp: { type: Boolean, required: true , default: false},
 //     checkinStartTime: { type: String, required: true },
 //     recurrence: { type: recurrenceSchema}
 // }, { timestamps: true });
@@ -37,8 +37,8 @@ const eventSchema = new mongoose.Schema({
     endTime: { type: String, required: true },
     location: String,
     flier: { type: String, required: false },
-    allowKidsCheckin: { type: Boolean, required: true , default: false}, 
-    rsvp: { type: Boolean, required: true , default: false}, 
+    allowKidsCheckin: { type: Boolean, required: true , default: false},
+    rsvp: { type: Boolean, required: true , default: false},
     checkinStartTime: { type: String, required: true },
     isRecurring: { type: Boolean, default: false },
     recurrence: {

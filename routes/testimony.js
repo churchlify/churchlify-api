@@ -11,7 +11,7 @@ const router = express.Router();
 */
 router.post('/create', validateTestimony(), async(req, res) => {
     const { church, author, title, story, anonymous, isPublic, impact, gratitude } = req.body;
-    const newItem = new Testimony({ church, author, title, story, anonymous, isPublic, impact, gratitude  }); 
+    const newItem = new Testimony({ church, author, title, story, anonymous, isPublic, impact, gratitude  });
     try {
       await newItem.save();
       res.status(201).json({ message: 'Testimony registered successfully', testimony: newItem });
@@ -49,19 +49,10 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const testimonies = await Testimony.find().populate('church');
-        res.status(200).json({ testimonies });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['Testimony']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const testimonies = await Testimony.find({church: church});
+        const church = req.church;
+        let filter = {};
+        if(church) { filter.church = church._id; }
+        const testimonies = await Testimony.find(filter).populate('church');
         res.status(200).json({ testimonies });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -5,10 +5,10 @@ const user = require('./user');
 const validateRefs = require('../common/validateRefs');
 
 const recurrenceSchema = new mongoose.Schema({
-  frequency: { 
-    type: String, 
-    enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'], 
-    required: true 
+  frequency: {
+    type: String,
+    enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'],
+    required: true
   },
   interval: { type: Number, default: 1 },
   endDate: { type: Date },
@@ -32,14 +32,14 @@ const eventsSchema = new mongoose.Schema({
   allowKidsCheckin: { type: Boolean, required: true, default: false },
   rsvp: { type: Boolean, required: true, default: false },
   checkinStartTime: { type: String, required: true },
-  
+
   // Recurrence fields
   isRecurring: { type: Boolean, default: false },
   recurrence: { type: recurrenceSchema },
   isInstance: { type: Boolean, default: false },
   masterEventId: { type: Schema.Types.ObjectId, ref: 'Event' },
   originalStartDate: { type: Date }, // For instances, tracks original occurrence date
-  
+
   // System fields
   nextCheckDate: { type: Date } // For background job to know when to generate more
 }, { timestamps: true });
@@ -92,5 +92,5 @@ eventsSchema.plugin(validateRefs, {
     { field: 'createdBy', model: 'User' },
     { field: 'masterEventId', model: 'Events' }
   ]
-}); 
+});
 module.exports = mongoose.model('Events', eventsSchema);

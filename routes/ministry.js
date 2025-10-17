@@ -61,10 +61,12 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-router.get('/list/:church', async(req, res) => {
+router.get('/list', async(req, res) => {
     try {
-        const { church } = req.params;
-        const ministries = await Ministry.find({church: church});
+        const church = req.church;
+        let filter = {};
+        if(church) { filter.church = church._id; }
+        const ministries = await Ministry.find(filter);
         res.status(200).json({ ministries });
     } catch (error) {
         res.status(500).json({ message: error.message });

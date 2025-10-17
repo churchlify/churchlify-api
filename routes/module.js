@@ -36,10 +36,12 @@ router.get('/list', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-router.get('/list/:church', async (req, res) => {
+router.get('/list', async (req, res) => {
   try {
-    const { church } = req.params;
-    const modules = await Module.find({ church });
+    const church = req.church;
+    let filter = {};
+    if(church) { filter.church = church._id; }
+    const modules = await Module.find(filter);
     res.status(200).json({ modules });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -30,21 +30,16 @@ router.patch('/update/:id', async (req, res) => {
 });
 router.get('/list', async (req, res) => {
   try {
-    const subscriptions = await Subscription.find().populate('church');
+    const church = req.church;
+    let filter = {};
+    if(church) { filter.church = church._id; }
+    const subscriptions = await Subscription.find(filter).populate('church');
     res.status(200).json({ subscriptions });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
-router.get('/list/:church', async (req, res) => {
-  try {
-    const { church } = req.params;
-    const subscriptions = await Subscription.find({ church });
-    res.status(200).json({ subscriptions });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;

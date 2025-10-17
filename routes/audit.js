@@ -28,9 +28,16 @@ router.get('/find/:id', async(req, res) => {
 /*#swagger.tags = ['Audit']
 #swagger.description = "GET /list"
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Audit" } }*/
-router.get('/list', async(req, res) => {
+router.post('/list', async(req, res) => {
     try {
-        const audits = await Audit.find();
+      const { url, ...otherFilters } = req.body;
+
+    const filters = { ...otherFilters };
+
+    if (url) {
+      filters.url = { $regex: url, $options: 'i' };
+    }
+    const audits = await Audit.find(filters).sort({ createdAt: -1 }).lean(); // lean for performance
         res.status(200).json({ audits });
     } catch (error) {
         res.status(500).json({ message: error.message });

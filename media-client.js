@@ -33,7 +33,7 @@ async function startWorker(io) {
 
     socket.on('joinRoom', async ({ roomId, userId }) => {
       console.log(`${userId} joining room ${roomId}`);
-      
+
       // Add to Redis or memory
       if (redisClient) {
         await redisClient.sadd(`room:${roomId}`, userId);

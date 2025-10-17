@@ -34,7 +34,7 @@ router.post('/rooms', async (req, res) => {
 router.post('/rooms/join', async (req, res) => {
   const { roomId, userId } = req.body;
   if (!roomId || !userId) {return res.status(400).json({ error: 'roomId and userId required' });}
-  if (redisClient){ 
+  if (redisClient){
     await redisClient.sadd(`room:${roomId}`, userId);
   }else {
     if (!rooms.has(roomId)){ rooms.set(roomId, new Set());}

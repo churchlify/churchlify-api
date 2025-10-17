@@ -20,7 +20,7 @@ router.post('/create', validateChurch(), async(req, res) => {
         const existingUser = await Church.findOne({ createdBy });
         if (existingEmail){ return res.status(422).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
         if (existingPhone){ return res.status(422).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
-        if (existingUser){ return res.status(422).json({errors: [{type: 'auth_existing_user', msg: `Current User is currently affiliated to a church` }]});}
+        if (existingUser){ return res.status(422).json({errors: [{type: 'auth_existing_user', msg: 'Current User is currently affiliated to a church' }]});}
         await newItem.save();
             // Update the user with the church ID
         const userId = req.body.createdBy; // Assuming userId is sent in the request body

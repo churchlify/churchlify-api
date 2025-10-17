@@ -1,7 +1,7 @@
 const { body, validationResult, check } = require('express-validator');
 const mongoose = require('mongoose');
-// const Church = require('../models/church'); 
-// const User = require('../models/user'); 
+// const Church = require('../models/church');
+// const User = require('../models/user');
 const validateUser = () => [
     body('church').optional().notEmpty().withMessage('Please provide affiliated church'),
     body('firstName').notEmpty().withMessage('First Name is required'),
@@ -93,7 +93,7 @@ const validateKid = () => [
     }
         next();
     }
-];  
+];
 
 const validateMinistry = () => [
     body('church').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid affiliated church ID'),
@@ -155,7 +155,7 @@ const validateTestimony = () => [
     body('gratitude').optional().notEmpty().withMessage('gratitude cannot be empty'),
     (req, res, next) => {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) { 
+        if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
         next();
@@ -268,7 +268,7 @@ const validateSettings = () => [
                 return true;
             }),
         body('key').trim().notEmpty().withMessage('Setting key is required'),
-        body('value').trim().notEmpty().withMessage('Setting value is required'),
+        body('value').notEmpty().withMessage('Setting value is required'),
         (req, res, next) => {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -306,6 +306,19 @@ const validateAssignment = () => [
         }
     ];
 
+    const validateDonationItem = () =>  [
+        body('title').isString().withMessage('Donation Title is required'),
+        body('description').optional().notEmpty().withMessage('Please provide a valid description'),
+        body('suggestedAmounts').optional().isArray().withMessage('Suggested amounts must be an array of numbers'),
+        (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+    ];
+
 const validateObjectId = () => [
     check('id').optional().isMongoId().withMessage('Invalid Object Id provided'),
     check('church').optional().isMongoId().withMessage('Invalid Object Id, provide valid church ID'),
@@ -314,6 +327,6 @@ const validateObjectId = () => [
 ];
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, 
+module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
-    validateModule, validatePayment, validateSettings, validateAssignment };
+    validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem};

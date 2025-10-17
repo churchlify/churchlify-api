@@ -4,10 +4,12 @@
 // routes/kid.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 const {isValidObjectId} = require('../middlewares/validators');
-const EventInstance = require('../models/eventinstance'); 
+const moment = require('moment-timezone');
+const EventInstance = require('../models/eventinstance');
 const express = require('express');
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
+const Church = require('../models/church');
 const router = express.Router();
 //initiate drop-off
 /*
@@ -15,9 +17,6 @@ const router = express.Router();
 */
 router.post('/initiate', async (req, res) => {
   const { child } = req.body; // expecting an array of ObjectIds
-  const now = Date.now();
-  const expiresAt = new Date(now + 15 * 60 * 1000); // 15 minutes from now
-  const oneDayAgo = new Date(now - 24 * 3600 * 1000);
 
   try {
     // Validate input
@@ -33,12 +32,21 @@ router.post('/initiate', async (req, res) => {
 
     // Assume all kids share the same parent/church
     const churchId = kids[0].parent.church;
+    const churchData = await Church.findById(churchId);
+    const timezone = churchData.timeZone || 'UTC'; // fallback to UTC if not set
+
+    // Timezone-aware calculations
+    const now = moment.tz(timezone);
+    const expiresAt = now.clone().add(15, 'minutes').toDate();
+    const oneDayAgo = now.clone().subtract(1, 'day').toDate();
+    const startOfDay = now.clone().startOf('day').toDate();
+    const endOfDay = now.clone().endOf('day').toDate();
 
     // Find an active event instance
     const checkinOpenInstance = await EventInstance.findOne({
       church: churchId,
       isCheckinOpen: true,
-      date: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
+      date: { $gte: startOfDay, $lte: endOfDay }
     });
 
     if (!checkinOpenInstance) {
@@ -52,7 +60,7 @@ router.post('/initiate', async (req, res) => {
       const existingCheckIn = await CheckIn.findOne({
         child: kidId,
         status: 'check_in_request',
-        expiresAt: { $gt: new Date() }
+        expiresAt: { $gt: now.toDate() }
       });
 
       if (existingCheckIn) {
@@ -93,6 +101,7 @@ router.post('/initiate', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
   // Update status
   /*

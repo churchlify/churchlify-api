@@ -20,10 +20,12 @@ const devotionRoutes = require('./routes/devotion');
 const testimonyRoutes = require('./routes/testimony');
 const subscriptionRoutes = require('./routes/subscription');
 const moduleRoutes = require('./routes/module');
+const donationRoutes = require('./routes/donations');
 const paymentRoutes = require('./routes/payment');
 const settingsRoutes = require('./routes/settings');
 const chatRoutes = require('./routes/chat'); // Import chat routes
 const timezoneRoutes = require('./routes/timezone');
+const webhookRoutes = require('./routes/webhook');
 const uploadRoutes = require('./routes/upload');
 const eventWorker = require('./common/event.worker');
 dotenv.config();
@@ -35,18 +37,31 @@ const cors = require('cors');
 const { resetIndexesForAllModels, seedTimezones } = require('./common/shared');
 const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('./swagger/swagger.json');
+const { churchResolver } = require('./middlewares/churchResolver');
+const { authenticateFirebaseToken } = require('./middlewares/auth');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use(cors());
 app.use(express.json());
 app.use(logAuditTrails);
 // server.js
+
+// Routes that DO NOT require a church
+app.use('/timezone', timezoneRoutes);
+app.use('/webhook', webhookRoutes);
+app.use('/church', churchRoutes);
+app.use('/audit', auditRoutes);
+app.use('/upload', uploadRoutes);
+app.use('/uploads', express.static('/files_upload/'));
+app.get('/health', (req, res) => {
+    res.send('Welcome to the Church Management System API');
+});
+app.use(authenticateFirebaseToken);
+app.use('/user', userRoutes);
+app.use(churchResolver);
 app.use('/auth', authRoutes);
 app.use('/assignment', assignmentRoutes);
-app.use('/user', userRoutes);
-app.use('/church', churchRoutes);
 app.use('/event', eventRoutes);
 app.use('/kid', kidRoutes);
-app.use('/audit', auditRoutes);
 app.use('/checkin', checkinRoutes);
 app.use('/ministry', ministryRoutes);
 app.use('/fellowship', fellowshipRoutes);
@@ -55,16 +70,10 @@ app.use('/devotion', devotionRoutes);
 app.use('/testimony', testimonyRoutes);
 app.use('/subscription', subscriptionRoutes);
 app.use('/module', moduleRoutes);
-app.use('/payment', paymentRoutes); 
+app.use('/payment', paymentRoutes);
 app.use('/settings', settingsRoutes);
-app.use('/timezone', timezoneRoutes);
 app.use('/chat', chatRoutes);
-app.use('/upload', uploadRoutes);
-app.use('/uploads', express.static('/files_upload/'));
-
-app.get('/', (req, res) => {
-    res.send('Welcome to the Church Management System API');
-});
+app.use('/donations', donationRoutes);
 
 const PORT = process.env.PORT || 5500;
 

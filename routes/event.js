@@ -66,24 +66,21 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 /*
 #swagger.tags = ['Event']
 */
 router.get('/list', async(req, res) => {
     try {
-        const events = await Event.find();
-        res.status(200).json({ events });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['Event']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const events = await Event.find({church: church});
+        const church = req.church;
+        // const inputDate = new Date(req.query.date || new Date());
+        // const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+        //{date: { $gte: start }};
+        const filter = {};
+        if (church?._id) {
+            filter.church = church._id;
+        }
+        const events = await Event.find(filter);
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });

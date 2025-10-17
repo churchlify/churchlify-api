@@ -47,18 +47,18 @@ router.post('/create', validateEvent(), async(req, res) => {
         }
          // Use the EventService to create the event
         const newEvent = await EventService.createEvent(eventData);
-         res.status(201).json({ 
-            message: eventData.isRecurring ? 
-                'Recurring event series created successfully' : 
+         res.status(201).json({
+            message: eventData.isRecurring ?
+                'Recurring event series created successfully' :
                 'Event created successfully',
             event: newEvent
         });
     } catch (err) {
        console.error('Error creating event:', err);
-        res.status(500).json({ 
+        res.status(500).json({
             error: err.message,
             details: err.errors ? Object.values(err.errors).map(e => e.message) : null
-        }); 
+        });
     }
 });
 /*
@@ -105,9 +105,9 @@ router.get('/events', async (req, res) => {
 router.get('/upcoming', async (req, res) => {
     try {
         const now = new Date();
-        const body = req.body;
+        const church = req.church;
         let filter = {date: { $gte: now }};
-        if(body.church) { filter.church = body.church; }
+        if(church) { filter.church = church._id; }
         const event = await EventInstance.findOne(filter).sort({ date: 1 });
         res.json({ event});
     } catch (error) {
@@ -133,29 +133,21 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 /*
 #swagger.tags = ['Events']
 */
 router.get('/list', async(req, res) => {
     try {
-        const start = new Date(req.query.start || new Date());
-        const events = await EventInstance.find({ date: { $gte: start }}).sort({ date: 1 });   
-        //const events = await EventInstance.find();
-        res.status(200).json({ events });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['Events']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const start = new Date(req.query.date || new Date());
+        const church = req.church;
+        const inputDate = new Date(req.query.date || new Date());
+        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1); //{date: { $gte: start }};
+        const filter = {date: { $gte: start }};
+        if (church?._id) {
+            filter.church = church._id;
+        }
        // const end = new Date(req.query.end || new Date(Date.now() + 1000 * 60 * 60 * 24 * 30));
-        const events = await EventInstance.find({ church: church, date: { $gte: start}
-        }).sort({ date: 1 });    
+        const events = await EventInstance.find(filter).sort({ date: 1 });
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -195,9 +187,9 @@ router.put('/update-checkin-status/:id', async (req, res) => {
             return res.status(404).json({ error: 'Event instance not found.' });
         }
         const statusMessage = isCheckinOpen ? 'open' : 'closed';
-        res.status(200).json({ 
+        res.status(200).json({
             message: `Check-in for instance "${updatedInstance.title}" on ${updatedInstance.date.toDateString()} is now ${statusMessage}.`,
-            eventInstance: updatedInstance 
+            eventInstance: updatedInstance
         });
     } catch (err) {
         console.error('Error updating check-in status:', err);

@@ -1,29 +1,32 @@
-const AuditTrail = require("../models/audits");
+const AuditTrail = require('../models/audits');
 const methodMappers = {
-    "GET":"Fetching",
-    "POST":"Adding",
-    "PUT":"Updating",
-    "PATCH":"Ppatching",
-    "DELETE":"Deleting"
+    'GET':'Fetching',
+    'POST':'Adding',
+    'PUT':'Updating',
+    'PATCH':'Ppatching',
+    'DELETE':'Deleting'
   };
 
 exports.logAuditTrails = (req,res,next) => {
     try{
         const originalJson = res.json;
         res.json = async function (body){
+            const safeHeaders = { ...req.headers };
+            delete safeHeaders.authorization;
             await AuditTrail.create({
                 url:req.originalUrl,
-                activity:methodMappers[req.method] + " " + req.originalUrl.split("/")[req.originalUrl.split("/").length - 1] || "",
+                activity:methodMappers[req.method] + ' ' + req.originalUrl.split('/')[req.originalUrl.split('/').length - 1] || '',
                 params:JSON.stringify(req.params),
                 query:JSON.stringify(req.query),
                 payload:JSON.stringify(req.body),
+                headers: JSON.stringify(safeHeaders),
                 response:JSON.stringify(body)
             });
             return originalJson.call(this,body);
         };
         next();
     }catch(error){
-        console.log(">>>>> an error occurred logging audit trail >>>>>>>>");
+        console.log('>>>>> an error occurred logging audit trail >>>>>>>>');
         console.log(error.message);
         next();
     }

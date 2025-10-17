@@ -49,26 +49,20 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const devotions = await Devotion.find().populate('church');
+        const churchId = req.church?._id;
+        const inputDate = new Date(req.query.date || new Date());
+        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
+        const filter = {date: { $gte: start }};
+        if (churchId) {
+            filter.church = churchId;
+        }
+        const devotions = await Devotion.find(filter).populate('church');
         res.status(200).json({ devotions });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
-/*
-#swagger.tags = ['Devotion']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const inputDate = new Date(req.query.date || new Date());
-        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
-        const ministries = await Devotion.find({ church: church, date: { $gte: start}}).sort({ date: 1 }); 
-        res.status(200).json({ ministries });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+
 /*
 #swagger.tags = ['Devotion']
 */

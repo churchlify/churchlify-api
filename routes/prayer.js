@@ -75,22 +75,6 @@ router.patch('/update/:id', async (req, res) => {
 });
 /*
 #swagger.tags = ['Prayer']
-#swagger.summary = 'Get all prayers'
-#swagger.responses[200] = {
-  description: 'List of all prayers',
-  schema: [{ $ref: "#/definitions/Prayer" }]
-}
-*/
-router.get('/list', async (req, res) => {
-  try {
-    const prayers = await Prayer.find().populate('church');
-    res.status(200).json({ prayers });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-/*
-#swagger.tags = ['Prayer']
 #swagger.summary = 'Get prayers for a church'
 #swagger.parameters['church'] = {
   in: 'path',
@@ -103,10 +87,12 @@ router.get('/list', async (req, res) => {
   schema: [{ $ref: "#/definitions/Prayer" }]
 }
 */
-router.get('/list/:church', async (req, res) => {
+router.get('/list', async (req, res) => {
   try {
-    const { church } = req.params;
-    const prayers = await Prayer.find({ church });
+    const church = req.church;
+    let filter = {};
+    if(church) { filter.church = church._id; }
+    const prayers = await Prayer.find(filter);
     res.status(200).json({ prayers });
   } catch (error) {
     res.status(500).json({ message: error.message });

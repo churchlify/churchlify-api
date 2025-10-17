@@ -19,6 +19,4 @@ devotionSchema.plugin(validateRefs, {
     { field: 'author', model: 'User' }
   ]
 });
-
-// Export the Mongoose model and the Joi validation schema
 module.exports = mongoose.model('Devotion', devotionSchema);

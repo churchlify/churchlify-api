@@ -6,19 +6,19 @@
     "description": "Comprehensive Churchlify API documentation"
   },
   "paths": {
-    "/Assignment/create": {
+    "/assignment/create": {
       "post": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Post /Assignment/create",
+        "summary": "Post /assignment/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Assignment"
+                "$ref": "#/components/schemas/assignment"
               }
             }
           }
@@ -29,7 +29,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -43,12 +43,12 @@
         }
       }
     },
-    "/Assignment/find/{id}": {
+    "/assignment/find/{id}": {
       "get": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Get /Assignment/find/{id}",
+        "summary": "Get /assignment/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -57,7 +57,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Assignment"
+            "description": "ID of the referenced assignment"
           }
         ],
         "responses": {
@@ -66,7 +66,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -80,12 +80,12 @@
         }
       }
     },
-    "/Assignment/update/{id}": {
+    "/assignment/update/{id}": {
       "patch": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Patch /Assignment/update/{id}",
+        "summary": "Patch /assignment/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -94,7 +94,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Assignment"
+            "description": "ID of the referenced assignment"
           }
         ],
         "requestBody": {
@@ -102,7 +102,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Assignment"
+                "$ref": "#/components/schemas/assignment"
               }
             }
           }
@@ -113,7 +113,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -127,12 +127,12 @@
         }
       }
     },
-    "/Assignment/list": {
+    "/assignment/list": {
       "get": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Get /Assignment/list",
+        "summary": "Get /assignment/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -140,7 +140,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -154,12 +154,12 @@
         }
       }
     },
-    "/Assignment/list/{userId}": {
+    "/assignment/list/{userId}": {
       "get": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Get /Assignment/list/{userId}",
+        "summary": "Get /assignment/list/{userId}",
         "parameters": [
           {
             "name": "userId",
@@ -168,7 +168,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Assignment"
+            "description": "ID of the referenced assignment"
           }
         ],
         "responses": {
@@ -177,7 +177,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -191,12 +191,12 @@
         }
       }
     },
-    "/Assignment/delete/{id}": {
+    "/assignment/delete/{id}": {
       "delete": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Delete /Assignment/delete/{id}",
+        "summary": "Delete /assignment/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -205,7 +205,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Assignment"
+            "description": "ID of the referenced assignment"
           }
         ],
         "responses": {
@@ -214,7 +214,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -228,22 +228,13 @@
         }
       }
     },
-    "/Assignment/{churchId}/{userId}": {
+    "/assignment/{userId}": {
       "get": {
         "tags": [
-          "Assignment"
+          "assignment"
         ],
-        "summary": "Get /Assignment/{churchId}/{userId}",
+        "summary": "Get /assignment/{userId}",
         "parameters": [
-          {
-            "name": "churchId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Assignment"
-          },
           {
             "name": "userId",
             "in": "path",
@@ -251,7 +242,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Assignment"
+            "description": "ID of the referenced assignment"
           }
         ],
         "responses": {
@@ -260,7 +251,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Assignment"
+                  "$ref": "#/components/schemas/assignment"
                 }
               }
             }
@@ -274,19 +265,19 @@
         }
       }
     },
-    "/Auth/register": {
+    "/auth/register": {
       "post": {
         "tags": [
-          "Auth"
+          "auth"
         ],
-        "summary": "Post /Auth/register",
+        "summary": "Post /auth/register",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Auth"
+                "$ref": "#/components/schemas/auth"
               }
             }
           }
@@ -297,7 +288,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Auth"
+                  "$ref": "#/components/schemas/auth"
                 }
               }
             }
@@ -311,12 +302,12 @@
         }
       }
     },
-    "/Auth/protected": {
+    "/auth/protected": {
       "get": {
         "tags": [
-          "Auth"
+          "auth"
         ],
-        "summary": "Get /Auth/protected",
+        "summary": "Get /auth/protected",
         "parameters": [],
         "responses": {
           "200": {
@@ -324,7 +315,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Auth"
+                  "$ref": "#/components/schemas/auth"
                 }
               }
             }
@@ -338,19 +329,19 @@
         }
       }
     },
-    "/Auth/login": {
+    "/auth/login": {
       "post": {
         "tags": [
-          "Auth"
+          "auth"
         ],
-        "summary": "Post /Auth/login",
+        "summary": "Post /auth/login",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Auth"
+                "$ref": "#/components/schemas/auth"
               }
             }
           }
@@ -361,7 +352,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Auth"
+                  "$ref": "#/components/schemas/auth"
                 }
               }
             }
@@ -375,12 +366,12 @@
         }
       }
     },
-    "/Chat/turn-credentials": {
+    "/chat/turn-credentials": {
       "get": {
         "tags": [
-          "Chat"
+          "chat"
         ],
-        "summary": "Get /Chat/turn-credentials",
+        "summary": "Get /chat/turn-credentials",
         "parameters": [],
         "responses": {
           "200": {
@@ -388,7 +379,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Chat"
+                  "$ref": "#/components/schemas/chat"
                 }
               }
             }
@@ -402,19 +393,19 @@
         }
       }
     },
-    "/Chat/rooms": {
+    "/chat/rooms": {
       "post": {
         "tags": [
-          "Chat"
+          "chat"
         ],
-        "summary": "Post /Chat/rooms",
+        "summary": "Post /chat/rooms",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Chat"
+                "$ref": "#/components/schemas/chat"
               }
             }
           }
@@ -425,7 +416,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Chat"
+                  "$ref": "#/components/schemas/chat"
                 }
               }
             }
@@ -439,19 +430,19 @@
         }
       }
     },
-    "/Chat/rooms/join": {
+    "/chat/rooms/join": {
       "post": {
         "tags": [
-          "Chat"
+          "chat"
         ],
-        "summary": "Post /Chat/rooms/join",
+        "summary": "Post /chat/rooms/join",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Chat"
+                "$ref": "#/components/schemas/chat"
               }
             }
           }
@@ -462,7 +453,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Chat"
+                  "$ref": "#/components/schemas/chat"
                 }
               }
             }
@@ -476,19 +467,19 @@
         }
       }
     },
-    "/CheckIn/initiate": {
+    "/checkIn/initiate": {
       "post": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Post /CheckIn/initiate",
+        "summary": "Post /checkIn/initiate",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckIn"
+                "$ref": "#/components/schemas/checkIn"
               }
             }
           }
@@ -499,7 +490,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -513,12 +504,12 @@
         }
       }
     },
-    "/CheckIn/{id}/status": {
+    "/checkIn/{id}/status": {
       "patch": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Patch /CheckIn/{id}/status",
+        "summary": "Patch /checkIn/{id}/status",
         "parameters": [
           {
             "name": "id",
@@ -527,7 +518,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced CheckIn"
+            "description": "ID of the referenced checkIn"
           }
         ],
         "requestBody": {
@@ -535,7 +526,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckIn"
+                "$ref": "#/components/schemas/checkIn"
               }
             }
           }
@@ -546,7 +537,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -560,12 +551,12 @@
         }
       }
     },
-    "/CheckIn/find/{id}": {
+    "/checkIn/find/{id}": {
       "get": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Get /CheckIn/find/{id}",
+        "summary": "Get /checkIn/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -574,7 +565,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced CheckIn"
+            "description": "ID of the referenced checkIn"
           }
         ],
         "responses": {
@@ -583,7 +574,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -597,12 +588,12 @@
         }
       }
     },
-    "/CheckIn/list": {
+    "/checkIn/list": {
       "get": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Get /CheckIn/list",
+        "summary": "Get /checkIn/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -610,7 +601,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -624,12 +615,12 @@
         }
       }
     },
-    "/CheckIn/list/{child}": {
+    "/checkIn/list/{child}": {
       "get": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Get /CheckIn/list/{child}",
+        "summary": "Get /checkIn/list/{child}",
         "parameters": [
           {
             "name": "child",
@@ -638,7 +629,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced CheckIn"
+            "description": "ID of the referenced checkIn"
           }
         ],
         "responses": {
@@ -647,7 +638,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -661,12 +652,12 @@
         }
       }
     },
-    "/CheckIn/delete/{id}": {
+    "/checkIn/delete/{id}": {
       "delete": {
         "tags": [
-          "CheckIn"
+          "checkIn"
         ],
-        "summary": "Delete /CheckIn/delete/{id}",
+        "summary": "Delete /checkIn/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -675,7 +666,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced CheckIn"
+            "description": "ID of the referenced checkIn"
           }
         ],
         "responses": {
@@ -684,7 +675,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckIn"
+                  "$ref": "#/components/schemas/checkIn"
                 }
               }
             }
@@ -698,19 +689,19 @@
         }
       }
     },
-    "/Church/create": {
+    "/church/create": {
       "post": {
         "tags": [
-          "Church"
+          "church"
         ],
-        "summary": "Post /Church/create",
+        "summary": "Post /church/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Church"
+                "$ref": "#/components/schemas/church"
               }
             }
           }
@@ -721,7 +712,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Church"
+                  "$ref": "#/components/schemas/church"
                 }
               }
             }
@@ -735,12 +726,12 @@
         }
       }
     },
-    "/Church/find/{id}": {
+    "/church/find/{id}": {
       "get": {
         "tags": [
-          "Church"
+          "church"
         ],
-        "summary": "Get /Church/find/{id}",
+        "summary": "Get /church/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -749,7 +740,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Church"
+            "description": "ID of the referenced church"
           }
         ],
         "responses": {
@@ -758,7 +749,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Church"
+                  "$ref": "#/components/schemas/church"
                 }
               }
             }
@@ -772,12 +763,12 @@
         }
       }
     },
-    "/Church/update/{id}": {
+    "/church/update/{id}": {
       "put": {
         "tags": [
-          "Church"
+          "church"
         ],
-        "summary": "Put /Church/update/{id}",
+        "summary": "Put /church/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -786,7 +777,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Church"
+            "description": "ID of the referenced church"
           }
         ],
         "requestBody": {
@@ -794,7 +785,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Church"
+                "$ref": "#/components/schemas/church"
               }
             }
           }
@@ -805,7 +796,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Church"
+                  "$ref": "#/components/schemas/church"
                 }
               }
             }
@@ -819,12 +810,12 @@
         }
       }
     },
-    "/Church/list": {
+    "/church/list": {
       "get": {
         "tags": [
-          "Church"
+          "church"
         ],
-        "summary": "Get /Church/list",
+        "summary": "Get /church/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -832,7 +823,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Church"
+                  "$ref": "#/components/schemas/church"
                 }
               }
             }
@@ -846,12 +837,12 @@
         }
       }
     },
-    "/Church/delete/{id}": {
+    "/church/delete/{id}": {
       "delete": {
         "tags": [
-          "Church"
+          "church"
         ],
-        "summary": "Delete /Church/delete/{id}",
+        "summary": "Delete /church/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -860,7 +851,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Church"
+            "description": "ID of the referenced church"
           }
         ],
         "responses": {
@@ -869,7 +860,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Church"
+                  "$ref": "#/components/schemas/church"
                 }
               }
             }
@@ -883,19 +874,19 @@
         }
       }
     },
-    "/Devotion/create": {
+    "/devotion/create": {
       "post": {
         "tags": [
-          "Devotion"
+          "devotion"
         ],
-        "summary": "Post /Devotion/create",
+        "summary": "Post /devotion/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Devotion"
+                "$ref": "#/components/schemas/devotion"
               }
             }
           }
@@ -906,7 +897,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Devotion"
+                  "$ref": "#/components/schemas/devotion"
                 }
               }
             }
@@ -920,12 +911,12 @@
         }
       }
     },
-    "/Devotion/find/{id}": {
+    "/devotion/find/{id}": {
       "get": {
         "tags": [
-          "Devotion"
+          "devotion"
         ],
-        "summary": "Get /Devotion/find/{id}",
+        "summary": "Get /devotion/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -934,7 +925,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Devotion"
+            "description": "ID of the referenced devotion"
           }
         ],
         "responses": {
@@ -943,7 +934,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Devotion"
+                  "$ref": "#/components/schemas/devotion"
                 }
               }
             }
@@ -957,12 +948,12 @@
         }
       }
     },
-    "/Devotion/update/{id}": {
+    "/devotion/update/{id}": {
       "patch": {
         "tags": [
-          "Devotion"
+          "devotion"
         ],
-        "summary": "Patch /Devotion/update/{id}",
+        "summary": "Patch /devotion/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -971,7 +962,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Devotion"
+            "description": "ID of the referenced devotion"
           }
         ],
         "requestBody": {
@@ -979,7 +970,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Devotion"
+                "$ref": "#/components/schemas/devotion"
               }
             }
           }
@@ -990,7 +981,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Devotion"
+                  "$ref": "#/components/schemas/devotion"
                 }
               }
             }
@@ -1004,12 +995,12 @@
         }
       }
     },
-    "/Devotion/list": {
+    "/devotion/list": {
       "get": {
         "tags": [
-          "Devotion"
+          "devotion"
         ],
-        "summary": "Get /Devotion/list",
+        "summary": "Get /devotion/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -1017,7 +1008,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Devotion"
+                  "$ref": "#/components/schemas/devotion"
                 }
               }
             }
@@ -1031,49 +1022,12 @@
         }
       }
     },
-    "/Devotion/list/{church}": {
-      "get": {
-        "tags": [
-          "Devotion"
-        ],
-        "summary": "Get /Devotion/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Devotion"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Devotion"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Devotion/delete/{id}": {
+    "/devotion/delete/{id}": {
       "delete": {
         "tags": [
-          "Devotion"
+          "devotion"
         ],
-        "summary": "Delete /Devotion/delete/{id}",
+        "summary": "Delete /devotion/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1082,7 +1036,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Devotion"
+            "description": "ID of the referenced devotion"
           }
         ],
         "responses": {
@@ -1091,7 +1045,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Devotion"
+                  "$ref": "#/components/schemas/devotion"
                 }
               }
             }
@@ -1105,19 +1059,44 @@
         }
       }
     },
-    "/Event/create": {
+    "/donations/items": {
+      "get": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Get /donations/items",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
       "post": {
         "tags": [
-          "Event"
+          "donations"
         ],
-        "summary": "Post /Event/create",
+        "summary": "Post /donations/items",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Event"
+                "$ref": "#/components/schemas/donations"
               }
             }
           }
@@ -1128,7 +1107,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/donations"
                 }
               }
             }
@@ -1142,12 +1121,86 @@
         }
       }
     },
-    "/Event/find/{id}": {
+    "/donations/stripe/pay": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/stripe/pay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/stripe/create-subscription": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/stripe/create-subscription",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/stripe/session/{id}": {
       "get": {
         "tags": [
-          "Event"
+          "donations"
         ],
-        "summary": "Get /Event/find/{id}",
+        "summary": "Get /donations/stripe/session/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1156,7 +1209,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced donations"
           }
         ],
         "responses": {
@@ -1165,7 +1218,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/donations"
                 }
               }
             }
@@ -1179,12 +1232,399 @@
         }
       }
     },
-    "/Event/findByDate/{date}/{church}": {
+    "/donations/paypal/create": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paypal/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/create-order": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paypal/create-order",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/capture-order": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paypal/capture-order",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/create-subscription": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paypal/create-subscription",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/client-token": {
       "get": {
         "tags": [
-          "Event"
+          "donations"
         ],
-        "summary": "Get /Event/findByDate/{date}/{church}",
+        "summary": "Get /donations/paypal/client-token",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/bt-token": {
+      "get": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Get /donations/paypal/bt-token",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paypal/pay": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paypal/pay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paystack/pays": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paystack/pays",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/paystack/pay": {
+      "post": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Post /donations/paystack/pay",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/donations"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/event/create": {
+      "post": {
+        "tags": [
+          "event"
+        ],
+        "summary": "Post /event/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/event"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/event/find/{id}": {
+      "get": {
+        "tags": [
+          "event"
+        ],
+        "summary": "Get /event/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced event"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/event/findByDate/{date}/{church}": {
+      "get": {
+        "tags": [
+          "event"
+        ],
+        "summary": "Get /event/findByDate/{date}/{church}",
         "parameters": [
           {
             "name": "date",
@@ -1193,7 +1633,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced event"
           },
           {
             "name": "church",
@@ -1202,7 +1642,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced event"
           }
         ],
         "responses": {
@@ -1211,7 +1651,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/event"
                 }
               }
             }
@@ -1225,12 +1665,12 @@
         }
       }
     },
-    "/Event/findByDate/{date}": {
+    "/event/findByDate/{date}": {
       "get": {
         "tags": [
-          "Event"
+          "event"
         ],
-        "summary": "Get /Event/findByDate/{date}",
+        "summary": "Get /event/findByDate/{date}",
         "parameters": [
           {
             "name": "date",
@@ -1239,7 +1679,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced event"
           }
         ],
         "responses": {
@@ -1248,7 +1688,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/event"
                 }
               }
             }
@@ -1262,12 +1702,12 @@
         }
       }
     },
-    "/Event/update/{id}": {
+    "/event/update/{id}": {
       "put": {
         "tags": [
-          "Event"
+          "event"
         ],
-        "summary": "Put /Event/update/{id}",
+        "summary": "Put /event/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1276,7 +1716,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced event"
           }
         ],
         "requestBody": {
@@ -1284,7 +1724,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Event"
+                "$ref": "#/components/schemas/event"
               }
             }
           }
@@ -1295,7 +1735,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/event"
                 }
               }
             }
@@ -1309,12 +1749,12 @@
         }
       }
     },
-    "/Event/list": {
+    "/event/list": {
       "get": {
         "tags": [
-          "Event"
+          "event"
         ],
-        "summary": "Get /Event/list",
+        "summary": "Get /event/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -1322,7 +1762,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/event"
                 }
               }
             }
@@ -1336,49 +1776,12 @@
         }
       }
     },
-    "/Event/list/{church}": {
-      "get": {
-        "tags": [
-          "Event"
-        ],
-        "summary": "Get /Event/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Event"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Event"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Event/delete/{id}": {
+    "/event/delete/{id}": {
       "delete": {
         "tags": [
-          "Event"
+          "event"
         ],
-        "summary": "Delete /Event/delete/{id}",
+        "summary": "Delete /event/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1387,7 +1790,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Event"
+            "description": "ID of the referenced event"
           }
         ],
         "responses": {
@@ -1396,7 +1799,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Event"
+                  "$ref": "#/components/schemas/event"
                 }
               }
             }
@@ -1410,19 +1813,19 @@
         }
       }
     },
-    "/Events/create": {
+    "/events/create": {
       "post": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Post /Events/create",
+        "summary": "Post /events/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Events"
+                "$ref": "#/components/schemas/events"
               }
             }
           }
@@ -1433,7 +1836,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1447,12 +1850,12 @@
         }
       }
     },
-    "/Events/find/{id}": {
+    "/events/find/{id}": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/find/{id}",
+        "summary": "Get /events/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1461,7 +1864,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "responses": {
@@ -1470,7 +1873,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1484,12 +1887,12 @@
         }
       }
     },
-    "/Events/findByDate/{date}/{church}": {
+    "/events/findByDate/{date}/{church}": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/findByDate/{date}/{church}",
+        "summary": "Get /events/findByDate/{date}/{church}",
         "parameters": [
           {
             "name": "date",
@@ -1498,7 +1901,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           },
           {
             "name": "church",
@@ -1507,7 +1910,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "responses": {
@@ -1516,7 +1919,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1530,12 +1933,12 @@
         }
       }
     },
-    "/Events/findByDate/{date}": {
+    "/events/findByDate/{date}": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/findByDate/{date}",
+        "summary": "Get /events/findByDate/{date}",
         "parameters": [
           {
             "name": "date",
@@ -1544,7 +1947,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "responses": {
@@ -1553,7 +1956,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1567,12 +1970,12 @@
         }
       }
     },
-    "/Events/events": {
+    "/events/events": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/events",
+        "summary": "Get /events/events",
         "parameters": [],
         "responses": {
           "200": {
@@ -1580,7 +1983,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1594,12 +1997,12 @@
         }
       }
     },
-    "/Events/upcoming": {
+    "/events/upcoming": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/upcoming",
+        "summary": "Get /events/upcoming",
         "parameters": [],
         "responses": {
           "200": {
@@ -1607,7 +2010,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1621,12 +2024,12 @@
         }
       }
     },
-    "/Events/update/{id}": {
+    "/events/update/{id}": {
       "put": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Put /Events/update/{id}",
+        "summary": "Put /events/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1635,7 +2038,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "requestBody": {
@@ -1643,7 +2046,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Events"
+                "$ref": "#/components/schemas/events"
               }
             }
           }
@@ -1654,7 +2057,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1668,12 +2071,12 @@
         }
       }
     },
-    "/Events/list": {
+    "/events/list": {
       "get": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Get /Events/list",
+        "summary": "Get /events/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -1681,7 +2084,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1695,49 +2098,12 @@
         }
       }
     },
-    "/Events/list/{church}": {
-      "get": {
-        "tags": [
-          "Events"
-        ],
-        "summary": "Get /Events/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Events"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Events"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Events/delete/{id}": {
+    "/events/delete/{id}": {
       "delete": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Delete /Events/delete/{id}",
+        "summary": "Delete /events/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1746,7 +2112,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "responses": {
@@ -1755,7 +2121,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1769,12 +2135,12 @@
         }
       }
     },
-    "/Events/update-checkin-status/{id}": {
+    "/events/update-checkin-status/{id}": {
       "put": {
         "tags": [
-          "Events"
+          "events"
         ],
-        "summary": "Put /Events/update-checkin-status/{id}",
+        "summary": "Put /events/update-checkin-status/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1783,7 +2149,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Events"
+            "description": "ID of the referenced events"
           }
         ],
         "requestBody": {
@@ -1791,7 +2157,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Events"
+                "$ref": "#/components/schemas/events"
               }
             }
           }
@@ -1802,7 +2168,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Events"
+                  "$ref": "#/components/schemas/events"
                 }
               }
             }
@@ -1816,19 +2182,19 @@
         }
       }
     },
-    "/Fellowship/create": {
+    "/fellowship/create": {
       "post": {
         "tags": [
-          "Fellowship"
+          "fellowship"
         ],
-        "summary": "Post /Fellowship/create",
+        "summary": "Post /fellowship/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Fellowship"
+                "$ref": "#/components/schemas/fellowship"
               }
             }
           }
@@ -1839,7 +2205,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
+                  "$ref": "#/components/schemas/fellowship"
                 }
               }
             }
@@ -1853,12 +2219,12 @@
         }
       }
     },
-    "/Fellowship/find/{id}": {
+    "/fellowship/find/{id}": {
       "get": {
         "tags": [
-          "Fellowship"
+          "fellowship"
         ],
-        "summary": "Get /Fellowship/find/{id}",
+        "summary": "Get /fellowship/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1867,7 +2233,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Fellowship"
+            "description": "ID of the referenced fellowship"
           }
         ],
         "responses": {
@@ -1876,7 +2242,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
+                  "$ref": "#/components/schemas/fellowship"
                 }
               }
             }
@@ -1890,12 +2256,12 @@
         }
       }
     },
-    "/Fellowship/update/{id}": {
+    "/fellowship/update/{id}": {
       "patch": {
         "tags": [
-          "Fellowship"
+          "fellowship"
         ],
-        "summary": "Patch /Fellowship/update/{id}",
+        "summary": "Patch /fellowship/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -1904,7 +2270,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Fellowship"
+            "description": "ID of the referenced fellowship"
           }
         ],
         "requestBody": {
@@ -1912,7 +2278,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Fellowship"
+                "$ref": "#/components/schemas/fellowship"
               }
             }
           }
@@ -1923,7 +2289,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
+                  "$ref": "#/components/schemas/fellowship"
                 }
               }
             }
@@ -1937,12 +2303,12 @@
         }
       }
     },
-    "/Fellowship/list": {
+    "/fellowship/list": {
       "get": {
         "tags": [
-          "Fellowship"
+          "fellowship"
         ],
-        "summary": "Get /Fellowship/list",
+        "summary": "Get /fellowship/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -1950,7 +2316,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
+                  "$ref": "#/components/schemas/fellowship"
                 }
               }
             }
@@ -1964,49 +2330,12 @@
         }
       }
     },
-    "/Fellowship/list/{church}": {
-      "get": {
-        "tags": [
-          "Fellowship"
-        ],
-        "summary": "Get /Fellowship/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Fellowship"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Fellowship/delete/{id}": {
+    "/fellowship/delete/{id}": {
       "delete": {
         "tags": [
-          "Fellowship"
+          "fellowship"
         ],
-        "summary": "Delete /Fellowship/delete/{id}",
+        "summary": "Delete /fellowship/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2015,7 +2344,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Fellowship"
+            "description": "ID of the referenced fellowship"
           }
         ],
         "responses": {
@@ -2024,7 +2353,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Fellowship"
+                  "$ref": "#/components/schemas/fellowship"
                 }
               }
             }
@@ -2038,19 +2367,19 @@
         }
       }
     },
-    "/Kid/create": {
+    "/kid/create": {
       "post": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Post /Kid/create",
+        "summary": "Post /kid/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kid"
+                "$ref": "#/components/schemas/kid"
               }
             }
           }
@@ -2061,7 +2390,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2075,12 +2404,12 @@
         }
       }
     },
-    "/Kid/find/{id}": {
+    "/kid/find/{id}": {
       "get": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Get /Kid/find/{id}",
+        "summary": "Get /kid/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2089,7 +2418,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Kid"
+            "description": "ID of the referenced kid"
           }
         ],
         "responses": {
@@ -2098,7 +2427,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2112,12 +2441,12 @@
         }
       }
     },
-    "/Kid/update/{id}": {
+    "/kid/update/{id}": {
       "put": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Put /Kid/update/{id}",
+        "summary": "Put /kid/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2126,7 +2455,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Kid"
+            "description": "ID of the referenced kid"
           }
         ],
         "requestBody": {
@@ -2134,7 +2463,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Kid"
+                "$ref": "#/components/schemas/kid"
               }
             }
           }
@@ -2145,7 +2474,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2159,12 +2488,12 @@
         }
       }
     },
-    "/Kid/list": {
+    "/kid/list": {
       "get": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Get /Kid/list",
+        "summary": "Get /kid/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -2172,7 +2501,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2186,12 +2515,12 @@
         }
       }
     },
-    "/Kid/list/{parent}": {
+    "/kid/list/{parent}": {
       "get": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Get /Kid/list/{parent}",
+        "summary": "Get /kid/list/{parent}",
         "parameters": [
           {
             "name": "parent",
@@ -2200,7 +2529,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Kid"
+            "description": "ID of the referenced kid"
           }
         ],
         "responses": {
@@ -2209,7 +2538,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2223,12 +2552,12 @@
         }
       }
     },
-    "/Kid/delete/{id}": {
+    "/kid/delete/{id}": {
       "delete": {
         "tags": [
-          "Kid"
+          "kid"
         ],
-        "summary": "Delete /Kid/delete/{id}",
+        "summary": "Delete /kid/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2237,7 +2566,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Kid"
+            "description": "ID of the referenced kid"
           }
         ],
         "responses": {
@@ -2246,7 +2575,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Kid"
+                  "$ref": "#/components/schemas/kid"
                 }
               }
             }
@@ -2260,19 +2589,19 @@
         }
       }
     },
-    "/Ministry/create": {
+    "/ministry/create": {
       "post": {
         "tags": [
-          "Ministry"
+          "ministry"
         ],
-        "summary": "Post /Ministry/create",
+        "summary": "Post /ministry/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ministry"
+                "$ref": "#/components/schemas/ministry"
               }
             }
           }
@@ -2283,7 +2612,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ministry"
+                  "$ref": "#/components/schemas/ministry"
                 }
               }
             }
@@ -2297,12 +2626,12 @@
         }
       }
     },
-    "/Ministry/find/{id}": {
+    "/ministry/find/{id}": {
       "get": {
         "tags": [
-          "Ministry"
+          "ministry"
         ],
-        "summary": "Get /Ministry/find/{id}",
+        "summary": "Get /ministry/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2311,7 +2640,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Ministry"
+            "description": "ID of the referenced ministry"
           }
         ],
         "responses": {
@@ -2320,7 +2649,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ministry"
+                  "$ref": "#/components/schemas/ministry"
                 }
               }
             }
@@ -2334,12 +2663,12 @@
         }
       }
     },
-    "/Ministry/update/{id}": {
+    "/ministry/update/{id}": {
       "patch": {
         "tags": [
-          "Ministry"
+          "ministry"
         ],
-        "summary": "Patch /Ministry/update/{id}",
+        "summary": "Patch /ministry/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2348,7 +2677,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Ministry"
+            "description": "ID of the referenced ministry"
           }
         ],
         "requestBody": {
@@ -2356,7 +2685,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Ministry"
+                "$ref": "#/components/schemas/ministry"
               }
             }
           }
@@ -2367,7 +2696,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ministry"
+                  "$ref": "#/components/schemas/ministry"
                 }
               }
             }
@@ -2381,12 +2710,12 @@
         }
       }
     },
-    "/Ministry/list": {
+    "/ministry/list": {
       "get": {
         "tags": [
-          "Ministry"
+          "ministry"
         ],
-        "summary": "Get /Ministry/list",
+        "summary": "Get /ministry/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -2394,7 +2723,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ministry"
+                  "$ref": "#/components/schemas/ministry"
                 }
               }
             }
@@ -2408,49 +2737,12 @@
         }
       }
     },
-    "/Ministry/list/{church}": {
-      "get": {
-        "tags": [
-          "Ministry"
-        ],
-        "summary": "Get /Ministry/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Ministry"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Ministry"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Ministry/delete/{id}": {
+    "/ministry/delete/{id}": {
       "delete": {
         "tags": [
-          "Ministry"
+          "ministry"
         ],
-        "summary": "Delete /Ministry/delete/{id}",
+        "summary": "Delete /ministry/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2459,7 +2751,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Ministry"
+            "description": "ID of the referenced ministry"
           }
         ],
         "responses": {
@@ -2468,7 +2760,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Ministry"
+                  "$ref": "#/components/schemas/ministry"
                 }
               }
             }
@@ -2482,19 +2774,19 @@
         }
       }
     },
-    "/Module/create": {
+    "/module/create": {
       "post": {
         "tags": [
-          "Module"
+          "module"
         ],
-        "summary": "Post /Module/create",
+        "summary": "Post /module/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Module"
+                "$ref": "#/components/schemas/module"
               }
             }
           }
@@ -2505,7 +2797,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Module"
+                  "$ref": "#/components/schemas/module"
                 }
               }
             }
@@ -2519,12 +2811,12 @@
         }
       }
     },
-    "/Module/find/{id}": {
+    "/module/find/{id}": {
       "get": {
         "tags": [
-          "Module"
+          "module"
         ],
-        "summary": "Get /Module/find/{id}",
+        "summary": "Get /module/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2533,7 +2825,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Module"
+            "description": "ID of the referenced module"
           }
         ],
         "responses": {
@@ -2542,7 +2834,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Module"
+                  "$ref": "#/components/schemas/module"
                 }
               }
             }
@@ -2556,12 +2848,12 @@
         }
       }
     },
-    "/Module/update/{id}": {
+    "/module/update/{id}": {
       "patch": {
         "tags": [
-          "Module"
+          "module"
         ],
-        "summary": "Patch /Module/update/{id}",
+        "summary": "Patch /module/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2570,7 +2862,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Module"
+            "description": "ID of the referenced module"
           }
         ],
         "requestBody": {
@@ -2578,7 +2870,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Module"
+                "$ref": "#/components/schemas/module"
               }
             }
           }
@@ -2589,7 +2881,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Module"
+                  "$ref": "#/components/schemas/module"
                 }
               }
             }
@@ -2603,12 +2895,12 @@
         }
       }
     },
-    "/Module/list": {
+    "/module/list": {
       "get": {
         "tags": [
-          "Module"
+          "module"
         ],
-        "summary": "Get /Module/list",
+        "summary": "Get /module/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -2616,7 +2908,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Module"
+                  "$ref": "#/components/schemas/module"
                 }
               }
             }
@@ -2630,49 +2922,12 @@
         }
       }
     },
-    "/Module/list/{church}": {
-      "get": {
-        "tags": [
-          "Module"
-        ],
-        "summary": "Get /Module/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Module"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Module"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Module/delete/{id}": {
+    "/module/delete/{id}": {
       "delete": {
         "tags": [
-          "Module"
+          "module"
         ],
-        "summary": "Delete /Module/delete/{id}",
+        "summary": "Delete /module/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2681,7 +2936,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Module"
+            "description": "ID of the referenced module"
           }
         ],
         "responses": {
@@ -2690,7 +2945,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Module"
+                  "$ref": "#/components/schemas/module"
                 }
               }
             }
@@ -2704,19 +2959,19 @@
         }
       }
     },
-    "/Payment/create": {
+    "/payment/create": {
       "post": {
         "tags": [
-          "Payment"
+          "payment"
         ],
-        "summary": "Post /Payment/create",
+        "summary": "Post /payment/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Payment"
+                "$ref": "#/components/schemas/payment"
               }
             }
           }
@@ -2727,7 +2982,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Payment"
+                  "$ref": "#/components/schemas/payment"
                 }
               }
             }
@@ -2741,12 +2996,12 @@
         }
       }
     },
-    "/Payment/find/{id}": {
+    "/payment/find/{id}": {
       "get": {
         "tags": [
-          "Payment"
+          "payment"
         ],
-        "summary": "Get /Payment/find/{id}",
+        "summary": "Get /payment/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2755,7 +3010,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Payment"
+            "description": "ID of the referenced payment"
           }
         ],
         "responses": {
@@ -2764,7 +3019,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Payment"
+                  "$ref": "#/components/schemas/payment"
                 }
               }
             }
@@ -2778,12 +3033,12 @@
         }
       }
     },
-    "/Payment/update/{id}": {
+    "/payment/update/{id}": {
       "patch": {
         "tags": [
-          "Payment"
+          "payment"
         ],
-        "summary": "Patch /Payment/update/{id}",
+        "summary": "Patch /payment/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2792,7 +3047,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Payment"
+            "description": "ID of the referenced payment"
           }
         ],
         "requestBody": {
@@ -2800,7 +3055,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Payment"
+                "$ref": "#/components/schemas/payment"
               }
             }
           }
@@ -2811,7 +3066,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Payment"
+                  "$ref": "#/components/schemas/payment"
                 }
               }
             }
@@ -2825,12 +3080,12 @@
         }
       }
     },
-    "/Payment/list": {
+    "/payment/list": {
       "get": {
         "tags": [
-          "Payment"
+          "payment"
         ],
-        "summary": "Get /Payment/list",
+        "summary": "Get /payment/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -2838,7 +3093,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Payment"
+                  "$ref": "#/components/schemas/payment"
                 }
               }
             }
@@ -2852,49 +3107,12 @@
         }
       }
     },
-    "/Payment/list/{church}": {
-      "get": {
-        "tags": [
-          "Payment"
-        ],
-        "summary": "Get /Payment/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Payment"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Payment"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Payment/delete/{id}": {
+    "/payment/delete/{id}": {
       "delete": {
         "tags": [
-          "Payment"
+          "payment"
         ],
-        "summary": "Delete /Payment/delete/{id}",
+        "summary": "Delete /payment/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2903,7 +3121,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Payment"
+            "description": "ID of the referenced payment"
           }
         ],
         "responses": {
@@ -2912,7 +3130,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Payment"
+                  "$ref": "#/components/schemas/payment"
                 }
               }
             }
@@ -2926,19 +3144,19 @@
         }
       }
     },
-    "/Prayer/create": {
+    "/prayer/create": {
       "post": {
         "tags": [
-          "Prayer"
+          "prayer"
         ],
-        "summary": "Post /Prayer/create",
+        "summary": "Post /prayer/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Prayer"
+                "$ref": "#/components/schemas/prayer"
               }
             }
           }
@@ -2949,7 +3167,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Prayer"
+                  "$ref": "#/components/schemas/prayer"
                 }
               }
             }
@@ -2963,12 +3181,12 @@
         }
       }
     },
-    "/Prayer/find/{id}": {
+    "/prayer/find/{id}": {
       "get": {
         "tags": [
-          "Prayer"
+          "prayer"
         ],
-        "summary": "Get /Prayer/find/{id}",
+        "summary": "Get /prayer/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2977,7 +3195,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Prayer"
+            "description": "ID of the referenced prayer"
           }
         ],
         "responses": {
@@ -2986,7 +3204,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Prayer"
+                  "$ref": "#/components/schemas/prayer"
                 }
               }
             }
@@ -3000,12 +3218,12 @@
         }
       }
     },
-    "/Prayer/update/{id}": {
+    "/prayer/update/{id}": {
       "patch": {
         "tags": [
-          "Prayer"
+          "prayer"
         ],
-        "summary": "Patch /Prayer/update/{id}",
+        "summary": "Patch /prayer/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3014,7 +3232,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Prayer"
+            "description": "ID of the referenced prayer"
           }
         ],
         "requestBody": {
@@ -3022,7 +3240,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Prayer"
+                "$ref": "#/components/schemas/prayer"
               }
             }
           }
@@ -3033,7 +3251,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Prayer"
+                  "$ref": "#/components/schemas/prayer"
                 }
               }
             }
@@ -3047,12 +3265,12 @@
         }
       }
     },
-    "/Prayer/list": {
+    "/prayer/list": {
       "get": {
         "tags": [
-          "Prayer"
+          "prayer"
         ],
-        "summary": "Get /Prayer/list",
+        "summary": "Get /prayer/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -3060,7 +3278,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Prayer"
+                  "$ref": "#/components/schemas/prayer"
                 }
               }
             }
@@ -3074,49 +3292,12 @@
         }
       }
     },
-    "/Prayer/list/{church}": {
-      "get": {
-        "tags": [
-          "Prayer"
-        ],
-        "summary": "Get /Prayer/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Prayer"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Prayer"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Prayer/delete/{id}": {
+    "/prayer/delete/{id}": {
       "delete": {
         "tags": [
-          "Prayer"
+          "prayer"
         ],
-        "summary": "Delete /Prayer/delete/{id}",
+        "summary": "Delete /prayer/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3125,7 +3306,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Prayer"
+            "description": "ID of the referenced prayer"
           }
         ],
         "responses": {
@@ -3134,7 +3315,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Prayer"
+                  "$ref": "#/components/schemas/prayer"
                 }
               }
             }
@@ -3148,19 +3329,19 @@
         }
       }
     },
-    "/Settings/create": {
+    "/settings/create": {
       "post": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Post /Settings/create",
+        "summary": "Post /settings/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Settings"
+                "$ref": "#/components/schemas/settings"
               }
             }
           }
@@ -3171,7 +3352,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3185,12 +3366,12 @@
         }
       }
     },
-    "/Settings/find/{id}": {
+    "/settings/find/{id}": {
       "get": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Get /Settings/find/{id}",
+        "summary": "Get /settings/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3199,7 +3380,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Settings"
+            "description": "ID of the referenced settings"
           }
         ],
         "responses": {
@@ -3208,7 +3389,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3222,12 +3403,12 @@
         }
       }
     },
-    "/Settings/update/{id}": {
+    "/settings/update/{id}": {
       "patch": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Patch /Settings/update/{id}",
+        "summary": "Patch /settings/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3236,7 +3417,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Settings"
+            "description": "ID of the referenced settings"
           }
         ],
         "requestBody": {
@@ -3244,7 +3425,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Settings"
+                "$ref": "#/components/schemas/settings"
               }
             }
           }
@@ -3255,7 +3436,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3269,12 +3450,12 @@
         }
       }
     },
-    "/Settings/list": {
+    "/settings/list": {
       "get": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Get /Settings/list",
+        "summary": "Get /settings/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -3282,7 +3463,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3296,30 +3477,20 @@
         }
       }
     },
-    "/Settings/list/{church}": {
+    "/settings/payment": {
       "get": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Get /Settings/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Settings"
-          }
-        ],
+        "summary": "Get /settings/payment",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3333,12 +3504,12 @@
         }
       }
     },
-    "/Settings/delete/{id}": {
+    "/settings/delete/{id}": {
       "delete": {
         "tags": [
-          "Settings"
+          "settings"
         ],
-        "summary": "Delete /Settings/delete/{id}",
+        "summary": "Delete /settings/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3347,7 +3518,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Settings"
+            "description": "ID of the referenced settings"
           }
         ],
         "responses": {
@@ -3356,7 +3527,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Settings"
+                  "$ref": "#/components/schemas/settings"
                 }
               }
             }
@@ -3370,19 +3541,19 @@
         }
       }
     },
-    "/Subscription/create": {
+    "/subscription/create": {
       "post": {
         "tags": [
-          "Subscription"
+          "subscription"
         ],
-        "summary": "Post /Subscription/create",
+        "summary": "Post /subscription/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Subscription"
+                "$ref": "#/components/schemas/subscription"
               }
             }
           }
@@ -3393,7 +3564,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Subscription"
+                  "$ref": "#/components/schemas/subscription"
                 }
               }
             }
@@ -3407,12 +3578,12 @@
         }
       }
     },
-    "/Subscription/find/{id}": {
+    "/subscription/find/{id}": {
       "get": {
         "tags": [
-          "Subscription"
+          "subscription"
         ],
-        "summary": "Get /Subscription/find/{id}",
+        "summary": "Get /subscription/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3421,7 +3592,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Subscription"
+            "description": "ID of the referenced subscription"
           }
         ],
         "responses": {
@@ -3430,7 +3601,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Subscription"
+                  "$ref": "#/components/schemas/subscription"
                 }
               }
             }
@@ -3444,12 +3615,12 @@
         }
       }
     },
-    "/Subscription/update/{id}": {
+    "/subscription/update/{id}": {
       "patch": {
         "tags": [
-          "Subscription"
+          "subscription"
         ],
-        "summary": "Patch /Subscription/update/{id}",
+        "summary": "Patch /subscription/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3458,7 +3629,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Subscription"
+            "description": "ID of the referenced subscription"
           }
         ],
         "requestBody": {
@@ -3466,7 +3637,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Subscription"
+                "$ref": "#/components/schemas/subscription"
               }
             }
           }
@@ -3477,7 +3648,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Subscription"
+                  "$ref": "#/components/schemas/subscription"
                 }
               }
             }
@@ -3491,12 +3662,12 @@
         }
       }
     },
-    "/Subscription/list": {
+    "/subscription/list": {
       "get": {
         "tags": [
-          "Subscription"
+          "subscription"
         ],
-        "summary": "Get /Subscription/list",
+        "summary": "Get /subscription/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -3504,7 +3675,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Subscription"
+                  "$ref": "#/components/schemas/subscription"
                 }
               }
             }
@@ -3518,49 +3689,12 @@
         }
       }
     },
-    "/Subscription/list/{church}": {
-      "get": {
-        "tags": [
-          "Subscription"
-        ],
-        "summary": "Get /Subscription/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Subscription"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Subscription"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Subscription/delete/{id}": {
+    "/subscription/delete/{id}": {
       "delete": {
         "tags": [
-          "Subscription"
+          "subscription"
         ],
-        "summary": "Delete /Subscription/delete/{id}",
+        "summary": "Delete /subscription/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3569,7 +3703,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Subscription"
+            "description": "ID of the referenced subscription"
           }
         ],
         "responses": {
@@ -3578,7 +3712,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Subscription"
+                  "$ref": "#/components/schemas/subscription"
                 }
               }
             }
@@ -3592,19 +3726,19 @@
         }
       }
     },
-    "/Testimony/create": {
+    "/testimony/create": {
       "post": {
         "tags": [
-          "Testimony"
+          "testimony"
         ],
-        "summary": "Post /Testimony/create",
+        "summary": "Post /testimony/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Testimony"
+                "$ref": "#/components/schemas/testimony"
               }
             }
           }
@@ -3615,7 +3749,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Testimony"
+                  "$ref": "#/components/schemas/testimony"
                 }
               }
             }
@@ -3629,12 +3763,12 @@
         }
       }
     },
-    "/Testimony/find/{id}": {
+    "/testimony/find/{id}": {
       "get": {
         "tags": [
-          "Testimony"
+          "testimony"
         ],
-        "summary": "Get /Testimony/find/{id}",
+        "summary": "Get /testimony/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3643,7 +3777,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Testimony"
+            "description": "ID of the referenced testimony"
           }
         ],
         "responses": {
@@ -3652,7 +3786,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Testimony"
+                  "$ref": "#/components/schemas/testimony"
                 }
               }
             }
@@ -3666,12 +3800,12 @@
         }
       }
     },
-    "/Testimony/update/{id}": {
+    "/testimony/update/{id}": {
       "patch": {
         "tags": [
-          "Testimony"
+          "testimony"
         ],
-        "summary": "Patch /Testimony/update/{id}",
+        "summary": "Patch /testimony/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3680,7 +3814,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Testimony"
+            "description": "ID of the referenced testimony"
           }
         ],
         "requestBody": {
@@ -3688,7 +3822,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Testimony"
+                "$ref": "#/components/schemas/testimony"
               }
             }
           }
@@ -3699,7 +3833,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Testimony"
+                  "$ref": "#/components/schemas/testimony"
                 }
               }
             }
@@ -3713,12 +3847,12 @@
         }
       }
     },
-    "/Testimony/list": {
+    "/testimony/list": {
       "get": {
         "tags": [
-          "Testimony"
+          "testimony"
         ],
-        "summary": "Get /Testimony/list",
+        "summary": "Get /testimony/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -3726,7 +3860,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Testimony"
+                  "$ref": "#/components/schemas/testimony"
                 }
               }
             }
@@ -3740,49 +3874,12 @@
         }
       }
     },
-    "/Testimony/list/{church}": {
-      "get": {
-        "tags": [
-          "Testimony"
-        ],
-        "summary": "Get /Testimony/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Testimony"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Testimony"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Testimony/delete/{id}": {
+    "/testimony/delete/{id}": {
       "delete": {
         "tags": [
-          "Testimony"
+          "testimony"
         ],
-        "summary": "Delete /Testimony/delete/{id}",
+        "summary": "Delete /testimony/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3791,7 +3888,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Testimony"
+            "description": "ID of the referenced testimony"
           }
         ],
         "responses": {
@@ -3800,7 +3897,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Testimony"
+                  "$ref": "#/components/schemas/testimony"
                 }
               }
             }
@@ -3814,19 +3911,19 @@
         }
       }
     },
-    "/Timezone/create": {
+    "/timezone/create": {
       "post": {
         "tags": [
-          "Timezone"
+          "timezone"
         ],
-        "summary": "Post /Timezone/create",
+        "summary": "Post /timezone/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Timezone"
+                "$ref": "#/components/schemas/timezone"
               }
             }
           }
@@ -3837,7 +3934,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Timezone"
+                  "$ref": "#/components/schemas/timezone"
                 }
               }
             }
@@ -3851,12 +3948,12 @@
         }
       }
     },
-    "/Timezone/find/{id}": {
+    "/timezone/find/{id}": {
       "get": {
         "tags": [
-          "Timezone"
+          "timezone"
         ],
-        "summary": "Get /Timezone/find/{id}",
+        "summary": "Get /timezone/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3865,7 +3962,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Timezone"
+            "description": "ID of the referenced timezone"
           }
         ],
         "responses": {
@@ -3874,7 +3971,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Timezone"
+                  "$ref": "#/components/schemas/timezone"
                 }
               }
             }
@@ -3888,12 +3985,12 @@
         }
       }
     },
-    "/Timezone/update/{id}": {
+    "/timezone/update/{id}": {
       "patch": {
         "tags": [
-          "Timezone"
+          "timezone"
         ],
-        "summary": "Patch /Timezone/update/{id}",
+        "summary": "Patch /timezone/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3902,7 +3999,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Timezone"
+            "description": "ID of the referenced timezone"
           }
         ],
         "requestBody": {
@@ -3910,7 +4007,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Timezone"
+                "$ref": "#/components/schemas/timezone"
               }
             }
           }
@@ -3921,7 +4018,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Timezone"
+                  "$ref": "#/components/schemas/timezone"
                 }
               }
             }
@@ -3935,12 +4032,12 @@
         }
       }
     },
-    "/Timezone/list": {
+    "/timezone/list": {
       "get": {
         "tags": [
-          "Timezone"
+          "timezone"
         ],
-        "summary": "Get /Timezone/list",
+        "summary": "Get /timezone/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -3948,7 +4045,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Timezone"
+                  "$ref": "#/components/schemas/timezone"
                 }
               }
             }
@@ -3962,12 +4059,12 @@
         }
       }
     },
-    "/Timezone/delete/{id}": {
+    "/timezone/delete/{id}": {
       "delete": {
         "tags": [
-          "Timezone"
+          "timezone"
         ],
-        "summary": "Delete /Timezone/delete/{id}",
+        "summary": "Delete /timezone/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -3976,7 +4073,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Timezone"
+            "description": "ID of the referenced timezone"
           }
         ],
         "responses": {
@@ -3985,7 +4082,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Timezone"
+                  "$ref": "#/components/schemas/timezone"
                 }
               }
             }
@@ -3999,19 +4096,19 @@
         }
       }
     },
-    "/User/create": {
+    "/user/create": {
       "post": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Post /User/create",
+        "summary": "Post /user/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/user"
               }
             }
           }
@@ -4022,7 +4119,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4036,12 +4133,12 @@
         }
       }
     },
-    "/User/find/{id}": {
+    "/user/find/{id}": {
       "get": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Get /User/find/{id}",
+        "summary": "Get /user/find/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4050,7 +4147,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced User"
+            "description": "ID of the referenced user"
           }
         ],
         "responses": {
@@ -4059,7 +4156,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4073,12 +4170,12 @@
         }
       }
     },
-    "/User/findByUid/{firebaseId}": {
+    "/user/findByUid/{firebaseId}": {
       "get": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Get /User/findByUid/{firebaseId}",
+        "summary": "Get /user/findByUid/{firebaseId}",
         "parameters": [
           {
             "name": "firebaseId",
@@ -4087,7 +4184,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced User"
+            "description": "ID of the referenced user"
           }
         ],
         "responses": {
@@ -4096,7 +4193,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4110,12 +4207,12 @@
         }
       }
     },
-    "/User/update/{id}": {
+    "/user/update/{id}": {
       "put": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Put /User/update/{id}",
+        "summary": "Put /user/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4124,7 +4221,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced User"
+            "description": "ID of the referenced user"
           }
         ],
         "requestBody": {
@@ -4132,7 +4229,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/user"
               }
             }
           }
@@ -4143,7 +4240,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4158,9 +4255,9 @@
       },
       "patch": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Patch /User/update/{id}",
+        "summary": "Patch /user/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4169,7 +4266,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced User"
+            "description": "ID of the referenced user"
           }
         ],
         "requestBody": {
@@ -4177,7 +4274,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/User"
+                "$ref": "#/components/schemas/user"
               }
             }
           }
@@ -4188,7 +4285,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4202,12 +4299,12 @@
         }
       }
     },
-    "/User/list": {
+    "/user/list": {
       "get": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Get /User/list",
+        "summary": "Get /user/list",
         "parameters": [],
         "responses": {
           "200": {
@@ -4215,7 +4312,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
                 }
               }
             }
@@ -4229,49 +4326,12 @@
         }
       }
     },
-    "/User/list/{church}": {
-      "get": {
-        "tags": [
-          "User"
-        ],
-        "summary": "Get /User/list/{church}",
-        "parameters": [
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced User"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/User/delete/{id}": {
+    "/user/delete/{id}": {
       "delete": {
         "tags": [
-          "User"
+          "user"
         ],
-        "summary": "Delete /User/delete/{id}",
+        "summary": "Delete /user/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4280,7 +4340,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced User"
+            "description": "ID of the referenced user"
           }
         ],
         "responses": {
@@ -4289,7 +4349,81 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/webhook/stripe": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Post /webhook/stripe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/webhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/webhook/paypal": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Post /webhook/paypal",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/webhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook"
                 }
               }
             }
@@ -4432,6 +4566,9 @@
           "payload": {
             "type": "string"
           },
+          "headers": {
+            "type": "string"
+          },
           "response": {
             "type": "string"
           },
@@ -4450,6 +4587,7 @@
           "params",
           "query",
           "payload",
+          "headers",
           "response"
         ]
       },
@@ -4604,6 +4742,208 @@
           "content",
           "date",
           "author"
+        ]
+      },
+      "DonationItem": {
+        "type": "object",
+        "properties": {
+          "churchId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "suggestedAmounts": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "description": "Location array: [Longitude, Latitude]",
+            "minItems": 2,
+            "maxItems": 2,
+            "example": [
+              0,
+              0
+            ]
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "recurringAvailable": {
+            "type": "boolean",
+            "default": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "churchId",
+          "title"
+        ]
+      },
+      "DonationPlan": {
+        "type": "object",
+        "properties": {
+          "churchId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "planCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly",
+              "annually"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "default": "paystack",
+            "enum": [
+              "paystack",
+              "stripe"
+            ]
+          },
+          "providerId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "churchId",
+          "planCode",
+          "name",
+          "amount",
+          "interval",
+          "provider"
+        ]
+      },
+      "Donation": {
+        "type": "object",
+        "properties": {
+          "churchId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "userId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "donationId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "default": "USD"
+          },
+          "fund": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "stripe",
+              "paypal"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "default": "initiated",
+            "enum": [
+              "initiated",
+              "pending",
+              "completed",
+              "failed"
+            ]
+          },
+          "stripeSessionId": {
+            "type": "string"
+          },
+          "stripeEventId": {
+            "type": "string"
+          },
+          "stripeMetadata": {
+            "type": "object",
+            "properties": {}
+          },
+          "paypalOrderId": {
+            "type": "string"
+          },
+          "paypalCaptureId": {
+            "type": "string"
+          },
+          "paypalWebhookId": {
+            "type": "string"
+          },
+          "paypalPayload": {
+            "type": "object",
+            "properties": {}
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "webhookReceivedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isRecurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "isTestMode": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "churchId",
+          "userId",
+          "donationId",
+          "amount",
+          "platform"
         ]
       },
       "Event": {
@@ -5146,6 +5486,24 @@
           "value": {
             "type": "string"
           },
+          "keyVersion": {
+            "type": "string",
+            "default": "v1"
+          },
+          "audit.encryptedBy": {
+            "type": "string"
+          },
+          "audit.decryptedBy": {
+            "type": "string"
+          },
+          "audit.lastDecryptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "audit.lastEncryptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -5158,7 +5516,8 @@
         "required": [
           "church",
           "key",
-          "value"
+          "value",
+          "keyVersion"
         ]
       },
       "Subscription": {

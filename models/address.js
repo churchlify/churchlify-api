@@ -8,10 +8,10 @@ const addressSchema = new Schema({
     street: { type: String, required: [true, 'Street address is required'],},
     city: { type: String, required: [true, 'City is required'],},
     country: { type: String, required: [true, 'Country is required'],},
-    location: { 
+    location: {
         type: { type: String, enum: ['Point'], required: true, default: 'Point' },
-        coordinates: { 
-        type: [Number], required: true, 
+        coordinates: {
+        type: [Number], required: true,
         validate: { validator: (val) => val.length === 2,  message: 'Coordinates must be an array of [lng, lat]'},
         },
   },

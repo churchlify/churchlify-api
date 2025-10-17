@@ -1,13 +1,13 @@
 const Church = require('../models/church');
 const user = require('../models/user');
-const Event = require('../models/event'); 
-const EventInstance = require('../models/eventinstance'); 
+const Event = require('../models/event');
+const EventInstance = require('../models/eventinstance');
 const { addDays, addMonths, addYears } = require('date-fns');
 
 class EventService {
 
 async expandRecurringEvents() {
-  
+
   const now = new Date();
   const futureLimit = addDays(now, 60);
   const events = await Event.find({ isRecurring: true });
@@ -80,7 +80,7 @@ async expandRecurringEvents() {
   // PRE-CREATED METHODS
   async checkChurchById (id){ return await Church.findById(id);}
   async checkUserById (id){ return await user.findById(id);}
-  
+
  parseDateTime (dateString, timeString) {
   const date = new Date(dateString); // Parse the date string into a Date object
   const [hours, minutes] = timeString.split(':').map(Number); // Split the time string into hours and minutes

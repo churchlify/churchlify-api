@@ -82,19 +82,10 @@ router.patch('/update/:id', async (req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const users = await User.find().populate('church');
-        res.status(200).json({ users });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['User']
-*/
-router.get('/list/:church', async(req, res) => {
-    try {
-        const { church } = req.params;
-        const users = await User.find({church: church});
+        const church = req.church;
+        let filter = {};
+        if(church) { filter.church = church._id; }
+        const users = await User.find(filter).populate('church');
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ message: error.message });

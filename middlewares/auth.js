@@ -1,7 +1,7 @@
 // middlewares/auth.js
-const jwt = require("jsonwebtoken");
-const admin = require("firebase-admin");
-const dotenv = require("dotenv");
+const jwt = require('jsonwebtoken');
+const admin = require('firebase-admin');
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -9,17 +9,16 @@ dotenv.config();
 // const GOOGLE_CLOUD_CREDENTIALS = JSON.parse(
 //     Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString('utf-8')
 // );
-const serviceAccount = require("../service_account.json");
+const serviceAccount = require('../service_account.json');
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)// Set up your Firebase credentials
 });
 
 // Middleware to verify Firebase ID token
  const authenticateFirebaseToken = async (req, res, next) => {
-    const idToken = req.headers.authorization?.split("Bearer ")[1];
-
+    const idToken = req.headers.authorization?.split('Bearer ')[1];
     if (!idToken) {
-        return res.status(401).send("Unauthorized");
+        return res.status(401).send('Unauthorized');
     }
 
     try {
@@ -31,15 +30,15 @@ admin.initializeApp({
     }
 };
  const authenticateToken = (req, res, next) => {
-    const token = req.header("Authorization")?.split(" ")[1];
+    const token = req.header('Authorization')?.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ message: "Access denied. No token provided." });
+        return res.status(401).json({ message: 'Access denied. No token provided.' });
     }
     try {
         req.user = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
-        res.status(400).json({ message: "Invalid token." });
+        res.status(400).json({ message: 'Invalid token.' });
     }
 };
 

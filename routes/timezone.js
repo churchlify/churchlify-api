@@ -10,7 +10,7 @@ const router = express.Router();
 */
 router.post('/create', async(req, res) => {
     const { key, value, continent} = req.body;
-    const newItem = new Timezone({ key, value, continent }); 
+    const newItem = new Timezone({ key, value, continent });
     try {
       await newItem.save();
       res.status(201).json({ message: 'Timezone registered successfully', timezone: newItem });

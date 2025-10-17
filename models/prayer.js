@@ -8,7 +8,7 @@ const prayerSchema = new mongoose.Schema({
   isPublic: { type: Boolean, default: true },
   title: { type: String, required: true, trim: true},
   prayerRequest: { type: String, required: true },
-  urgency: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },  
+  urgency: { type: String, enum: ['low', 'medium', 'high'], default: 'medium' },
 }, { timestamps: true });
 
 prayerSchema.plugin(validateRefs, {

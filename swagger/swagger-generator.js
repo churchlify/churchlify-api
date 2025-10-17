@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 // --- Configuration & Global State ---
 const excludedRoutes = ['audit.js', 'upload.js'];
-const subDefinitions = {}; 
+const subDefinitions = {};
 
 // --- Utility Functions ---
 
@@ -93,7 +93,7 @@ schemaToSwagger = (schema, parentName = '') => {
 
     // This call is now safe because processSchemaType is defined below
     const schemaFragment = processSchemaType(pathKey, opts, parentName);
-    
+
     if (opts.required) {
         if (!swaggerSchema.required) {
           swaggerSchema.required = [];
@@ -127,7 +127,7 @@ expandInlineObject = (obj, name = 'InlineObject') => {
     const opts = typeof v === 'object' && v.type ? v : { type: v };
 
     // This call is now safe because processSchemaType is defined below
-    const schemaFragment = processSchemaType(k, opts, name); 
+    const schemaFragment = processSchemaType(k, opts, name);
 
     if (v.required) {
         if (!swaggerObj.required) {
@@ -170,7 +170,7 @@ processSchemaType = (pathKey, opts, parentName) => {
       const defName = getDefinitionName(parentName, pathKey, 'Item');
       subDefinitions[defName] = schemaToSwagger(item, defName);
       return { type: 'array', items: { $ref: `#/components/schemas/${defName}` } };
-    } 
+    }
     if (typeof item === 'object' && item !== null) {
         const defName = getDefinitionName(parentName, pathKey, 'Item');
         subDefinitions[defName] = expandInlineObject(item, defName);
@@ -240,12 +240,12 @@ function scanRoutes(dir) {
 }
 
 const routeDefinitionMap = {
-  'checkin.js': 'CheckIn', 'auth.js': 'Auth', 'user.js': 'User', 'church.js': 'Church',
-  'event.js': 'Event', 'eventInstance.js': 'EventInstance', 'devotion.js': 'Devotion',
-  'fellowship.js': 'Fellowship', 'kid.js': 'Kid', 'ministry.js': 'Ministry',
-  'prayer.js': 'Prayer', 'testimony.js': 'Testimony', 'assignment.js': 'Assignment',
-  'events.js': 'Events', 'subscription.js': 'Subscription', 'payment.js': 'Payment',
-  'module.js': 'Module', 'settings.js': 'Settings', 'chat.js': 'Chat','timezone.js': 'Timezone',
+  'checkin.js': 'checkIn', 'auth.js': 'auth', 'user.js': 'user', 'church.js': 'church','webhook.js':'webhook',
+  'event.js': 'event', 'eventInstance.js': 'eventInstance', 'devotion.js': 'devotion',
+  'fellowship.js': 'fellowship', 'kid.js': 'kid', 'ministry.js': 'ministry','donations.js': 'donations',
+  'prayer.js': 'prayer', 'testimony.js': 'testimony', 'assignment.js': 'assignment',
+  'events.js': 'events', 'subscription.js': 'subscription', 'payment.js': 'payment',
+  'module.js': 'module', 'settings.js': 'settings', 'chat.js': 'chat','timezone.js': 'timezone',
 };
 
 function guessDefinitionFromRoute(routeFile, url, definitions) {
@@ -268,15 +268,15 @@ function extractSwaggerPaths(routeFile, definitions) {
   let match;
   while ((match = routeRegex.exec(content)) !== null) {
     const method = match[1];
-    const rawUrl = match[2]; 
+    const rawUrl = match[2];
 
     if (rawUrl.length === 0 && rawUrl !== '/') {
       continue;
     }
 
     const defName = guessDefinitionFromRoute(routeFile, rawUrl, definitions);
-    
-    let swaggerUrl = rawUrl.replace(/:([a-zA-Z0-9_]+)/g, '{$1}'); 
+
+    let swaggerUrl = rawUrl.replace(/:([a-zA-Z0-9_]+)/g, '{$1}');
     swaggerUrl = `/${defName}${swaggerUrl}`;
     swaggerUrl = swaggerUrl.replace(/\/\//g, '/');
 
@@ -287,12 +287,12 @@ function extractSwaggerPaths(routeFile, definitions) {
     const parameters = [];
     const paramRegex = /:([a-zA-Z0-9_]+)/g;
     let matchParam;
-    
+
     while ((matchParam = paramRegex.exec(rawUrl)) !== null) {
-      parameters.push({ 
-        name: matchParam[1], 
-        in: 'path', 
-        required: true, 
+      parameters.push({
+        name: matchParam[1],
+        in: 'path',
+        required: true,
         schema: { type: 'string' },
         description: `ID of the referenced ${defName}`
       });
@@ -303,8 +303,8 @@ function extractSwaggerPaths(routeFile, definitions) {
       requestBody = {
         required: true,
         content: {
-          'application/json': { 
-            schema: { $ref: `#/components/schemas/${defName}` } 
+          'application/json': {
+            schema: { $ref: `#/components/schemas/${defName}` }
           },
         },
       };
@@ -313,10 +313,10 @@ function extractSwaggerPaths(routeFile, definitions) {
     const responses = {
       200: {
         description: 'Success',
-        content: { 
-          'application/json': { 
-            schema: { $ref: `#/components/schemas/${defName}` } 
-          } 
+        content: {
+          'application/json': {
+            schema: { $ref: `#/components/schemas/${defName}` }
+          }
         },
       },
       400: { description: 'Bad Request' },
@@ -347,7 +347,7 @@ function generateDefinitions(modelsDir) {
           const filePath = path.join(modelsDir, file);
           const exported = require(filePath);
           const baseName = path.basename(file, '.js');
-          
+
           let schema = null;
           let modelName = null;
 
@@ -390,7 +390,7 @@ function generateSwagger(modelsDir, routesDir, outputFile = 'swagger.json') {
       description: 'Comprehensive Churchlify API documentation',
     },
     paths,
-    components: { 
+    components: {
         schemas: definitions,
         securitySchemes: {
             bearerAuth: {
