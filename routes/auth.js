@@ -40,4 +40,28 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.json({ token });
 });
+
+router.post('/sign-url/:url', async (req, res) => {
+    const { churchId, userId } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'Missing Authorization header' });
+     }
+    const payload = { churchId, userId, token: authHeader.replace('Bearer ', '')};
+    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5m' });
+    const signedUrl = `${process.env.FRONTEND_URL}?access=${jwtToken}`;
+    res.json({ signedUrl });
+});
+
+router.post('/verify-url/', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {return res.status(401).json({ error: 'No token provided' });}
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        res.json({ valid: true, data: decoded });
+    } catch (err) {
+        res.status(401).json({ valid: false, error: 'Invalid or expired token' });
+    }
+});
+
 module.exports = router;
