@@ -42,13 +42,14 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/sign-url/:url', async (req, res) => {
-    const { churchId, userId } = req.body;
+    const { 'x-church':churchId, 'x-user':userId } = req.body;
     const {url} = req.params;
     const authHeader = req.headers.authorization;
     if (!authHeader) {
         return res.status(401).json({ error: 'Missing Authorization header' });
      }
     const payload = { churchId, userId, token: authHeader.replace('Bearer ', '')};
+    console.log(payload);
     const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5m' });
     const signedUrl = `${url}?access=${jwtToken}`;
     res.json({ signedUrl });
