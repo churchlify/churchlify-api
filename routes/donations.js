@@ -10,6 +10,7 @@ const router = express.Router();
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
 const PAYSTACK_API = 'https://api.paystack.co';
 const braintree = require('braintree');
+const donationItems = require('../models/donationItems');
 
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
@@ -93,7 +94,8 @@ router.post('/stripe/pay', async (req, res) => {
     lineItems: items,
     platform: 'stripe',
     status: 'processing',
-    recurring: recurring?.interval ? true: false
+    recurring: recurring?.interval ? true: false,
+    amount: total
   };
 
   try {
@@ -144,7 +146,7 @@ router.post('/stripe/pay', async (req, res) => {
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
       const donate = await createDonation(donation);
-      console.log({donate});
+      console.log({donate}, {items});
       return res.json({
         success: true,
         showReceipt: true,
@@ -844,7 +846,8 @@ router.post('/paystack/pay', async (req, res) => {
     lineItems: items,
     platform: 'paystack',
     status: 'processing',
-    recurring: isRecurring
+    recurring: isRecurring,
+    amount: total
   };
 
   let resultData;
@@ -896,7 +899,7 @@ router.post('/paystack/pay', async (req, res) => {
       });
     }
     const donate = await createDonation(donation);
-    console.log({donate});  
+    console.log({donate},{items});  
     return res.json(resultData);
   } catch (error) {
     console.error('❌ Paystack payment error:', error.response?.data || error.message);
