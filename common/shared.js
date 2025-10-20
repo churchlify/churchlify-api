@@ -1,5 +1,7 @@
 const Church = require('../models/church');
 const user = require('../models/user');
+const DonationPlan = require('../models/donationPlans');
+const Setting = require('../models/settings');
 const Event = require('../models/event'); // Adjust the path as needed
 const Timezone = require('../models/timezone');
 const moment = require('moment-timezone');
@@ -128,6 +130,79 @@ const timezones =[
     'continent': 'South America'
   }
 ];
+
+
+ const generateUniqueReference = (timestamp = Date.now()) => {
+  const randomPart = randomBytes(4).toString('hex').toUpperCase();
+  return `churchlify_${timestamp}_${randomPart}`;
+};
+
+const getPaymentSettings = async (churchId) => {
+  const regex = arrSecrets.join('|');
+  const settings = await Setting.findOne({ church: churchId, key: { $regex: regex, $options: 'i' }}).populate('church');
+  if (!settings) {throw new Error('Church payment settings not found');}
+  return decrypt(settings.value, settings.keyVersion); // returns { key, provider }
+};
+
+const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
+
+  try {
+    const { secretKey, provider } = await getPaymentSettings(churchId);
+    if (!secretKey) {throw new Error('Missing payment API key for this church');}
+    let plan = await DonationPlan.findOne({churchId, amount, interval,provider});
+
+    if (plan) {
+      return plan;
+    }
+    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: amount * 100, interval, currency},
+      {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const { plan_code: planCode, id: providerId } = res.data.data;
+    plan = await DonationPlan.create({
+      churchId, planCode, name, amount,interval, provider: 'paystack',providerId,
+    });
+
+    return plan;
+  } catch (error) {
+    console.error('❌ Error in getOrCreatePlan:', error.response?.data || error);
+    throw new Error('Failed to get or create Paystack plan');
+  }
+};
+
+const getUser = async (userId) => {
+      const user = await User.findById(userId);
+      return user;
+  };
+
+const getPaypalClient = (data) => {
+  const mode = (data && (data.provider==='paypal') && data.mode) || process.env.PAYPAL_MODE || 'sandbox';
+  if (mode === 'live') {
+    return new paypal.core.PayPalHttpClient(new paypal.core.LiveEnvironment(data.clientId, data.clientSecret));
+  }
+  return new paypal.core.PayPalHttpClient(new paypal.core.SandboxEnvironment(data.clientId, data.clientSecret));
+};
+
+const getPayPalAccessToken = async(clientId, secret) => {
+  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64');
+  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: 'grant_type=client_credentials',
+  });
+  const data = await response.json();
+  if (!response.ok) {throw new Error(data.error_description || 'Failed to get PayPal token');}
+  return data.access_token;
+};
+
 
 const encrypt = (input, version = 'v1') => {
   const key = Buffer.from(KEY_REGISTRY[version], 'utf8');
@@ -353,4 +428,5 @@ const sanitizeString = (name) => {
 };
 
 module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents,
-   resetIndexesForAllModels, sanitizeString, seedTimezones, encrypt, decrypt, normalizeValue, isSecret, getPaymentKey, arrSecrets};
+   resetIndexesForAllModels, sanitizeString, seedTimezones, encrypt, decrypt, normalizeValue, isSecret, getPaymentKey, arrSecrets,
+  getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient};

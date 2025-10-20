@@ -3,12 +3,9 @@ const axios = require('axios');
 const fetch = require('node-fetch');
 const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
-const User = require('../models/user');
 const {validateDonationItem} = require('../middlewares/validators');
-const {arrSecrets, decrypt} = require('../common/shared');
+const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient } = require('../common/shared');
 const DonationItem = require('../models/donationItems');
-const DonationPlan = require('../models/donationPlans');
-const Setting = require('../models/settings');
 const router = express.Router();
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
 const PAYSTACK_API = 'https://api.paystack.co';
@@ -23,78 +20,6 @@ const gateway = new braintree.BraintreeGateway({
 });
 
 
-
- const generateUniqueReference = (timestamp = Date.now()) => {
-  const randomPart = randomBytes(4).toString('hex').toUpperCase();
-  return `churchlify_${timestamp}_${randomPart}`;
-};
-
-const getPaymentSettings = async (churchId) => {
-  const regex = arrSecrets.join('|');
-  const settings = await Setting.findOne({ church: churchId, key: { $regex: regex, $options: 'i' }}).populate('church');
-  if (!settings) {throw new Error('Church payment settings not found');}
-  return decrypt(settings.value, settings.keyVersion); // returns { key, provider }
-};
-const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
-
-  try {
-    //  const {key, provider} = await getPaymentSettings(churchId);
-    const { secretKey, provider } = await getPaymentSettings(churchId);
-    if (!secretKey) {throw new Error('Missing payment API key for this church');}
-    let plan = await DonationPlan.findOne({churchId, amount, interval,provider});
-
-    if (plan) {
-      return plan;
-    }
-    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: amount * 100, interval, currency},
-      {
-        headers: {
-          Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const { plan_code: planCode, id: providerId } = res.data.data;
-    plan = await DonationPlan.create({
-      churchId, planCode, name, amount,interval, provider: 'paystack',providerId,
-    });
-
-    return plan;
-  } catch (error) {
-    console.error('❌ Error in getOrCreatePlan:', error.response?.data || error);
-    throw new Error('Failed to get or create Paystack plan');
-  }
-};
-
-const getPaypalClient = (data) => {
-  const mode = (data && (data.provider==='paypal') && data.mode) || process.env.PAYPAL_MODE || 'sandbox';
-  if (mode === 'live') {
-    return new paypal.core.PayPalHttpClient(new paypal.core.LiveEnvironment(data.clientId, data.clientSecret));
-  }
-  return new paypal.core.PayPalHttpClient(new paypal.core.SandboxEnvironment(data.clientId, data.clientSecret));
-};
-
-// Utility to get PayPal access token
-const getPayPalAccessToken = async(clientId, secret) => {
-  const auth = Buffer.from(`${clientId}:${secret}`).toString('base64');
-  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials',
-  });
-  const data = await response.json();
-  if (!response.ok) {throw new Error(data.error_description || 'Failed to get PayPal token');}
-  return data.access_token;
-};
-
-const getUser = async (userId) => {
-      const user = await User.findById(userId);
-      return user;
-  };
 
 const formatResponse= ({ success, status, message, data = {} }) => {
   return {
@@ -115,6 +40,13 @@ router.get('/items', async (req, res) => {
   res.json(items);
 });
 
+router.get('/donor', async (req, res) => {
+  const userId = req.headers['x-user'];
+  if (!userId) {return res.status(400).json({ error: 'User header missing' });}
+  const donor = await getUser(userId);
+  res.json(donor);
+});
+
 
 // Create donation item (admin)
 router.post('/items', validateDonationItem(), async (req, res) => {
@@ -129,6 +61,7 @@ res.status(201).json(item);
 router.post('/stripe/pay', async (req, res) => {
   const { items, recurring, paymentMethod, total } = req.body;
   const userId = req.headers['x-user'];
+  const church = req.church;
    if (!userId) {
     return res.status(400).json({
       success: false,
@@ -155,9 +88,16 @@ router.post('/stripe/pay', async (req, res) => {
   }
 
   const amount = Math.round(total * 100); // convert to cents
+  const donation = {
+    churchId: church._id,
+    userId,
+    lineItems: items,
+    platform: 'stripe',
+    status: 'processing',
+    recurring: recurring?.interval ? true: false
+  }
 
   try {
-    const church = req.church;
     const decryptedData = await getPaymentSettings(church._id);
     const stripe = new Stripe(decryptedData.secretKey);
 
@@ -201,6 +141,9 @@ router.post('/stripe/pay', async (req, res) => {
 
       const intent = subscription.latest_invoice?.payment_intent;
       const receiptUrl = intent?.charges?.data?.[0]?.receipt_url ||  subscription.latest_invoice?.hosted_invoice_url || null;
+      donation.transactionReferenceId = intent.id;
+      donation.customerId = intent.customer;
+      donation.subscriptionId = subscription.id;
 
       return res.json({
         success: true,
@@ -231,7 +174,8 @@ router.post('/stripe/pay', async (req, res) => {
         },
          expand: ['latest_charge'],
       });
-
+      donation.transactionReferenceId = paymentIntent.id;
+      donation.customerId = paymentIntent.customer;
       const receiptUrl = paymentIntent.charges?.data?.[0]?.receipt_url || paymentIntent.latest_charge?.receipt_url || null;
       return res.json({
         success: true,
@@ -891,6 +835,16 @@ router.post('/paystack/pay', async (req, res) => {
 
   //const amount = Math.round(total * 100); // convert to kobo
   const isRecurring = recurring === true || recurring === 'true';
+
+    const donation = {
+    churchId: church._id,
+    userId,
+    lineItems: items,
+    platform: 'stripe',
+    status: 'processing',
+    recurring: isRecurring
+  }
+
   let resultData;
   if (isRecurring) {
       const plan = await getOrCreatePlan({ churchId, name: `${items[0].title} Plan`, amount: total, interval: `${recurring.interval}ly`});
@@ -900,6 +854,8 @@ router.post('/paystack/pay', async (req, res) => {
         }
       );
       const subData = subRes.data.data;
+      donation.subscriptionId =  subData.subscription_code;
+      donation.customerId = subData.customer;
       resultData = formatResponse({
         success: true,
         status: 'created',
@@ -924,6 +880,8 @@ router.post('/paystack/pay', async (req, res) => {
       );
 
       const trxData = trxRes.data.data;
+       donation.transactionReferenceId =  trxData.reference;
+       //donation.customerId = trxRes.data.customer.customer_code;
       resultData = formatResponse({
         success: true,
         status: 'created',

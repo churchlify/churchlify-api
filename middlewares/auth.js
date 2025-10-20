@@ -1,32 +1,28 @@
 // middlewares/auth.js
+const express = require('express');
 const jwt = require('jsonwebtoken');
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-// Initialize Firebase Admin SDK
-// const GOOGLE_CLOUD_CREDENTIALS = JSON.parse(
-//     Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString('utf-8')
-// );
 const serviceAccount = require('../service_account.json');
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)// Set up your Firebase credentials
+    credential: admin.credential.cert(serviceAccount)
 });
 
-// Middleware to verify Firebase ID token
  const authenticateFirebaseToken = async (req, res, next) => {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
     if (!idToken) {
-        return res.status(401).send('Unauthorized');
+        return res.status(401).json({ message: 'Access denied. No Firebase token provided.' });
     }
 
     try {
-        req.user = await admin.auth().verifyIdToken(idToken); // Attach the decoded token to the request object
+        req.user = await admin.auth().verifyIdToken(idToken); 
         next();
     } catch (error) {
-        console.log(error);
-        res.status(401).send(error);
+        console.error('Firebase Token Error:', error.message);
+        res.status(401).json({ message: 'Invalid or expired Firebase token.' });
     }
 };
  const authenticateToken = (req, res, next) => {
@@ -38,8 +34,17 @@ admin.initializeApp({
         req.user = jwt.verify(token, process.env.JWT_SECRET);
         next();
     } catch (err) {
-        res.status(400).json({ message: 'Invalid token.' });
+        res.status(401).json({ message: 'Invalid token.' });
     }
 };
 
-module.exports = { authenticateToken, authenticateFirebaseToken };
+const rawBodyMiddleware = express.json({
+  verify: (req, res, buf, encoding) => {
+    if (buf && buf.length) {
+      req.rawBody = buf.toString(encoding || 'utf8');
+    }
+  },
+  limit: '5mb'
+});
+
+module.exports = { authenticateToken, authenticateFirebaseToken, rawBodyMiddleware };

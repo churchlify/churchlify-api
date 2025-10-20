@@ -1,33 +1,81 @@
 const express = require('express');
 const router = express.Router();
-const rawParser = require('../middlewares/rawParser');
+const { rawBodyMiddleware} = require('../middlewares/auth')
 const Stripe = require('stripe');
+const crypto = require('crypto');
 
-router.post('/stripe', rawParser, (req, res) => {
-  const stripe = Stripe(process.env.STRIPE_SECRET);
-  const sig = req.headers['stripe-signature'];
-  try {
-    const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    console.log('Stripe webhook received:', event.type);
-        switch (event.type) {
-    case 'checkout.session.completed':
-      console.log('💰 Payment completed:', event.data.object.id);
-      break;
-    default:
-      console.log('Unhandled Stripe event:', event.type);
-        }
-   // res.sendStatus(200);
-  } catch (err) {
-    console.error('Stripe webhook error:', err.message);
-   return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+// The actual webhook endpoint
+router.post('/stripe', rawBodyMiddleware, (req, res) => {
+    const signature = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    let event;
+    try {
+        event = Stripe.webhooks.constructEvent( req.rawBody, signature, webhookSecret );
+    } catch (err) {
+        console.log(`⚠️ Webhook Error: ${err.message}`);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    const dataObject = event.data.object;
+    console.log({dataObject});
+    switch (event.type) {
+        case 'payment_intent.succeeded':
+            console.log(`PaymentIntent successful: ${dataObject.id}`);
+            break;
 
-  res.json({ received: true });
+        case 'payment_intent.payment_failed':
+            console.log(`PaymentIntent failed: ${dataObject.id}`);
+            break;
+        case 'customer.subscription.created':
+            console.log(`Subscription created: ${dataObject.id}`);
+            break;
+        case 'invoice.paid':
+            console.log(`Invoice paid: ${dataObject.id}`);
+            break;
+        case 'invoice.payment_failed':
+            console.log(`Invoice payment failed: ${dataObject.id}`);
+            break;
+        case 'customer.subscription.deleted':
+            console.log(`Subscription deleted: ${dataObject.id}`);
+            break;
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
+    res.json({ received: true });
 });
 
-router.post('/paypal', async (req, res) => {
-  console.log('PayPal webhook event:', req.body.event_type);
-  res.sendStatus(200);
+router.post('/paystack', rawBodyMiddleware, (req, res) => {
+    const hash = req.headers['x-paystack-signature'];
+    const paystackSecret = process.env.PAYSTACK_WEBHOOK_SECRET;
+
+    if (!hash) {
+        console.error('Paystack Webhook Error: Missing signature header.');
+        return res.status(400).send('Signature missing');
+    }
+    const calculatedHash = crypto.createHmac('sha512', paystackSecret).update(req.rawBody).digest('hex');
+    if (calculatedHash !== hash) {
+        console.error('⚠️ Paystack Webhook Error: Signature mismatch!');
+        return res.status(400).send('Signature verification failed');
+    }   
+    const event = JSON.parse(req.rawBody); 
+    console.log('✅ Paystack Webhook Verified. Event:', event.event);
+    switch (event.event) {
+        case 'charge.success':
+            console.log(`Paystack Charge Success: ${event.data.reference}`);
+            break;
+        case 'subscription.create':
+            console.log(`Paystack Subscription Created: ${event.data.subscription_code}`);
+            break;
+        case 'subscription.not_renewed':
+            console.log(`Paystack Subscription Not Renewed: ${event.data.subscription_code}`);
+            break;
+        case 'subscription.disable':
+            console.log(`Paystack Subscription Disabled: ${event.data.subscription_code}`);
+            break;
+        default:
+            console.log(`Unhandled Paystack event type: ${event.event}`);
+    }
+
+    res.sendStatus(200); 
 });
 
 module.exports = router;

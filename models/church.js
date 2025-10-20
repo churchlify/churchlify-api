@@ -12,6 +12,8 @@ const churchSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true },
     address: { type: AddressSchema, required: [true, 'Please provide a valid address object'],},
     timeZone: { type: String, required: true },
+    isApproved: {type:Boolean, default: false},
+    isPublished: {type:Boolean, default: false},
     logo: String
 }, { timestamps: true });
 

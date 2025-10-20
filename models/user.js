@@ -18,8 +18,9 @@ const userSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true},
     photoUrl: {type: String},
     pushToken: {type: String},
+    adminAt: {type: Schema.Types.ObjectId, ref: 'Church'},
     firebaseId: { type: String, required: [true, 'firebaseId is required'], unique: true, trim: true },
-    role: { type: String, enum: ['admin', 'member', 'churchAdmin'], default: 'member' }
+    role: { type: String, enum: ['super', 'member', 'admin'], default: 'member' }
 }, { timestamps: true });
 
 userSchema.pre('save', async function (next) {
@@ -55,7 +56,8 @@ userSchema.pre('findOneAndUpdate', async function (next) {
 
 userSchema.plugin(validateRefs, {
   refs: [
-    { field: 'church', model: 'Church' }
+    { field: 'church', model: 'Church' },
+    { field: 'adminAt', model: 'Church' }
   ]
 });
 module.exports = mongoose.model('User', userSchema);

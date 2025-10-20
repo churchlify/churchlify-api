@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 // const User = require('../models/user');
 const validateUser = () => [
     body('church').optional().notEmpty().withMessage('Please provide affiliated church'),
+    body('adminAt').optional().notEmpty().withMessage('Please provide Admin\'s church'),
     body('firstName').notEmpty().withMessage('First Name is required'),
     body('lastName').notEmpty().withMessage('Last Name is required'),
     body('emailAddress').isEmail().withMessage('Email is invalid'),
@@ -40,6 +41,8 @@ const validateChurch = () => [
     body('address.postalCode').notEmpty().withMessage('Postal code is required'),
     body('address.country').notEmpty().withMessage('Country is required'),
     body('address.state').notEmpty().withMessage('Province/State is required'),
+    body('isApproved').optional().custom(value => typeof value === 'boolean').withMessage('Approval status can only be true or false'),
+    body('isPublished').optional().custom(value => typeof value === 'boolean').withMessage('Publish status can only be true or false'),
 
     (req, res, next) => {
         const errors = validationResult(req);
