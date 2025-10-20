@@ -2,6 +2,7 @@ const Church = require('../models/church');
 const user = require('../models/user');
 const DonationPlan = require('../models/donationPlans');
 const Setting = require('../models/settings');
+const Donation = require('../models/donations');
 const Event = require('../models/event'); // Adjust the path as needed
 const Timezone = require('../models/timezone');
 const moment = require('moment-timezone');
@@ -139,6 +140,11 @@ const timezones =[
  const generateUniqueReference = (timestamp = Date.now()) => {
   const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
   return `churchlify_${timestamp}_${randomPart}`;
+};
+
+const createDonation = async(donation) =>{
+  const newDonation = new Donation(donation);
+  return await newDonation.save();
 };
 
 
@@ -432,4 +438,4 @@ const sanitizeString = (name) => {
 
 module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents,
    resetIndexesForAllModels, sanitizeString, seedTimezones, encrypt, decrypt, normalizeValue, isSecret, getPaymentKey, arrSecrets,
-  getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient};
+  getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation};

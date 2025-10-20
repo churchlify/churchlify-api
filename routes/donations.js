@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
 const {validateDonationItem} = require('../middlewares/validators');
-const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser } = require('../common/shared');
+const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/shared');
 const DonationItem = require('../models/donationItems');
 const router = express.Router();
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
@@ -143,7 +143,8 @@ router.post('/stripe/pay', async (req, res) => {
       donation.transactionReferenceId = intent.id;
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
-      console.log({donation});
+      const donate = await createDonation(donation);
+      console.log({donate});
       return res.json({
         success: true,
         showReceipt: true,
@@ -175,7 +176,8 @@ router.post('/stripe/pay', async (req, res) => {
       });
       donation.transactionReferenceId = paymentIntent.id;
       donation.customerId = paymentIntent.customer;
-      console.log({donation});
+      const donate = await createDonation(donation);
+      console.log({donate});
       const receiptUrl = paymentIntent.charges?.data?.[0]?.receipt_url || paymentIntent.latest_charge?.receipt_url || null;
       return res.json({
         success: true,
@@ -834,7 +836,7 @@ router.post('/paystack/pay', async (req, res) => {
   }
 
   //const amount = Math.round(total * 100); // convert to kobo
-  const isRecurring = recurring?.interval;
+  const isRecurring = recurring?.interval? true : false;
 
     const donation = {
     churchId: church._id,
@@ -893,7 +895,8 @@ router.post('/paystack/pay', async (req, res) => {
         },
       });
     }
-    console.log({donation});  
+    const donate = await createDonation(donation);
+    console.log({donate});  
     return res.json(resultData);
   } catch (error) {
     console.error('❌ Paystack payment error:', error.response?.data || error.message);
