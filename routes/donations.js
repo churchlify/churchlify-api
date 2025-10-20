@@ -851,7 +851,7 @@ router.post('/paystack/pay', async (req, res) => {
  
   let resultData;
   if (isRecurring) {
-      const plan = await getOrCreatePlan({ churchId, name: `${items[0].title} Plan`, amount: total, interval: `${recurring.interval}ly`});
+      const plan = await getOrCreatePlan({ churchId, name: `${items[0].title} Plan`, amount: total, interval: `${recurring.interval.replace('year','annual')}ly`});
       const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, plan: plan.planCode,},
         {
           headers: {Authorization: `Bearer ${secretKey}`,'Content-Type': 'application/json',},
