@@ -848,7 +848,7 @@ router.post('/paystack/pay', async (req, res) => {
     isRecurring,
     amount: total
   };
-
+ 
   let resultData;
   if (isRecurring) {
       const plan = await getOrCreatePlan({ churchId, name: `${items[0].title} Plan`, amount: total, interval: `${recurring.interval}ly`});

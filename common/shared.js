@@ -210,6 +210,7 @@ const getPaymentSettings = async (churchId) => {
 };
 
 const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
+  console.log({churchId, name, amount,interval,currency});
 
   try {
     const { secretKey, provider } = await getPaymentSettings(churchId);
