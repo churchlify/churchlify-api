@@ -10,7 +10,6 @@ const router = express.Router();
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
 const PAYSTACK_API = 'https://api.paystack.co';
 const braintree = require('braintree');
-const donationItems = require('../models/donationItems');
 
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
@@ -94,7 +93,7 @@ router.post('/stripe/pay', async (req, res) => {
     lineItems: items,
     platform: 'stripe',
     status: 'processing',
-    recurring: recurring?.interval ? true: false,
+    isRecurring: recurring?.interval ? true: false,
     amount: total
   };
 
@@ -146,7 +145,7 @@ router.post('/stripe/pay', async (req, res) => {
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
       const donate = await createDonation(donation);
-      console.log({donate}, {items});
+      console.log({donate});
       return res.json({
         success: true,
         showReceipt: true,
@@ -838,7 +837,7 @@ router.post('/paystack/pay', async (req, res) => {
   }
 
   //const amount = Math.round(total * 100); // convert to kobo
-  const isRecurring = recurring?.interval? true : false;
+  const isRecurring = recurring?.interval ? true : false;
 
     const donation = {
     churchId: church._id,
@@ -846,7 +845,7 @@ router.post('/paystack/pay', async (req, res) => {
     lineItems: items,
     platform: 'paystack',
     status: 'processing',
-    recurring: isRecurring,
+    isRecurring,
     amount: total
   };
 
@@ -899,7 +898,7 @@ router.post('/paystack/pay', async (req, res) => {
       });
     }
     const donate = await createDonation(donation);
-    console.log({donate},{items});  
+    console.log({donate}, isRecurring, {isRecurring});
     return res.json(resultData);
   } catch (error) {
     console.error('❌ Paystack payment error:', error.response?.data || error.message);
