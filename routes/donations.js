@@ -834,13 +834,13 @@ router.post('/paystack/pay', async (req, res) => {
   }
 
   //const amount = Math.round(total * 100); // convert to kobo
-  const isRecurring = recurring === true || recurring === 'true';
+  const isRecurring = recurring?.interval;
 
     const donation = {
     churchId: church._id,
     userId,
     lineItems: items,
-    platform: 'stripe',
+    platform: 'paystack',
     status: 'processing',
     recurring: isRecurring
   };
