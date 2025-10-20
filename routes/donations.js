@@ -143,7 +143,7 @@ router.post('/stripe/pay', async (req, res) => {
       donation.transactionReferenceId = intent.id;
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
-
+      console.log({donation});
       return res.json({
         success: true,
         showReceipt: true,
@@ -175,6 +175,7 @@ router.post('/stripe/pay', async (req, res) => {
       });
       donation.transactionReferenceId = paymentIntent.id;
       donation.customerId = paymentIntent.customer;
+      console.log({donation});
       const receiptUrl = paymentIntent.charges?.data?.[0]?.receipt_url || paymentIntent.latest_charge?.receipt_url || null;
       return res.json({
         success: true,
@@ -892,7 +893,7 @@ router.post('/paystack/pay', async (req, res) => {
         },
       });
     }
-
+    console.log({donation});  
     return res.json(resultData);
   } catch (error) {
     console.error('❌ Paystack payment error:', error.response?.data || error.message);
