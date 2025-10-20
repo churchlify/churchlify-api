@@ -8,10 +8,14 @@ const moment = require('moment-timezone');
 const crypto = require('crypto');
 const {KEY_REGISTRY} = require('./key.registry');
 const IV_LENGTH = 16;
-
+const paypal = require('@paypal/checkout-server-sdk');
+const fetch = require('node-fetch');
+const axios = require('axios');
 const sysTimezone = moment.tz.guess();
 const checkChurchById = async (id)=> { return Church.findById(id);};
 const checkUserById = async (id)=> { return user.findById(id);};
+const PAYSTACK_API = 'https://api.paystack.co';
+const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
 const arrSecrets = ['stripe','paypal','paystack','payment'];
 const timezones =[
   {
@@ -133,51 +137,13 @@ const timezones =[
 
 
  const generateUniqueReference = (timestamp = Date.now()) => {
-  const randomPart = randomBytes(4).toString('hex').toUpperCase();
+  const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
   return `churchlify_${timestamp}_${randomPart}`;
 };
 
-const getPaymentSettings = async (churchId) => {
-  const regex = arrSecrets.join('|');
-  const settings = await Setting.findOne({ church: churchId, key: { $regex: regex, $options: 'i' }}).populate('church');
-  if (!settings) {throw new Error('Church payment settings not found');}
-  return decrypt(settings.value, settings.keyVersion); // returns { key, provider }
-};
-
-const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
-
-  try {
-    const { secretKey, provider } = await getPaymentSettings(churchId);
-    if (!secretKey) {throw new Error('Missing payment API key for this church');}
-    let plan = await DonationPlan.findOne({churchId, amount, interval,provider});
-
-    if (plan) {
-      return plan;
-    }
-    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: amount * 100, interval, currency},
-      {
-        headers: {
-          Authorization: `Bearer ${secretKey}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    const { plan_code: planCode, id: providerId } = res.data.data;
-    plan = await DonationPlan.create({
-      churchId, planCode, name, amount,interval, provider: 'paystack',providerId,
-    });
-
-    return plan;
-  } catch (error) {
-    console.error('❌ Error in getOrCreatePlan:', error.response?.data || error);
-    throw new Error('Failed to get or create Paystack plan');
-  }
-};
 
 const getUser = async (userId) => {
-      const user = await User.findById(userId);
-      return user;
+      return await user.findById(userId);
   };
 
 const getPaypalClient = (data) => {
@@ -227,6 +193,43 @@ const decrypt = (encryptedText, version) => {
     return JSON.parse(decryptedString);
   } catch {
     return decryptedString;
+  }
+};
+
+const getPaymentSettings = async (churchId) => {
+  const regex = arrSecrets.join('|');
+  const settings = await Setting.findOne({ church: churchId, key: { $regex: regex, $options: 'i' }}).populate('church');
+  if (!settings) {throw new Error('Church payment settings not found');}
+  return decrypt(settings.value, settings.keyVersion); // returns { key, provider }
+};
+
+const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
+
+  try {
+    const { secretKey, provider } = await getPaymentSettings(churchId);
+    if (!secretKey) {throw new Error('Missing payment API key for this church');}
+    let plan = await DonationPlan.findOne({churchId, amount, interval,provider});
+
+    if (plan) {
+      return plan;
+    }
+    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: amount * 100, interval, currency},
+      {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const { plan_code: planCode, id: providerId } = res.data.data;
+    plan = await DonationPlan.create({
+      churchId, planCode, name, amount,interval, provider: 'paystack',providerId,
+    });
+    return plan;
+  } catch (error) {
+    console.error('❌ Error in getOrCreatePlan:', error.response?.data || error);
+    throw new Error('Failed to get or create Paystack plan');
   }
 };
 

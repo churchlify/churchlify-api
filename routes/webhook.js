@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { rawBodyMiddleware} = require('../middlewares/auth')
+const { rawBodyMiddleware} = require('../middlewares/auth');
 const Stripe = require('stripe');
 const crypto = require('crypto');
 

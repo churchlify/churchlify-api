@@ -4,13 +4,12 @@ const fetch = require('node-fetch');
 const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
 const {validateDonationItem} = require('../middlewares/validators');
-const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient } = require('../common/shared');
+const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser } = require('../common/shared');
 const DonationItem = require('../models/donationItems');
 const router = express.Router();
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
 const PAYSTACK_API = 'https://api.paystack.co';
 const braintree = require('braintree');
-const { randomBytes } = require('crypto');
 
 const gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
@@ -95,7 +94,7 @@ router.post('/stripe/pay', async (req, res) => {
     platform: 'stripe',
     status: 'processing',
     recurring: recurring?.interval ? true: false
-  }
+  };
 
   try {
     const decryptedData = await getPaymentSettings(church._id);
@@ -843,7 +842,7 @@ router.post('/paystack/pay', async (req, res) => {
     platform: 'stripe',
     status: 'processing',
     recurring: isRecurring
-  }
+  };
 
   let resultData;
   if (isRecurring) {
