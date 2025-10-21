@@ -851,8 +851,9 @@ router.post('/paystack/pay', async (req, res) => {
  
   let resultData;
   if (isRecurring) {
-      const plan = await getOrCreatePlan({ churchId, name: `${items[0].title} Plan`, amount: total, interval: `${recurring.interval.replace('year','annual')}ly`});
-      const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, plan: plan.planCode,},
+      const plan = await getOrCreatePlan({ churchId, name: `churchlify_${Date.now()} Plan`, amount: total, interval: `${recurring.interval.replace('year','annual')}ly`});
+      const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, 
+        plan: plan.planCode,metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
         {
           headers: {Authorization: `Bearer ${secretKey}`,'Content-Type': 'application/json',},
         }
@@ -876,7 +877,7 @@ router.post('/paystack/pay', async (req, res) => {
       const reference = generateUniqueReference(paymentMethod?.reference);
       const trxRes = await axios.post(`${PAYSTACK_API}/transaction/initialize`,
         { email: donor.emailAddress, amount: total * 100,reference: reference,
-          metadata: { donor, items, source: 'Churchlify Platform',},
+          metadata: { donor, items, source: 'Churchlify Platform',churchId,},
         },
         {
           headers: { Authorization: `Bearer ${secretKey}`,  'Content-Type': 'application/json' },

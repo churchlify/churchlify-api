@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { rawBodyMiddleware} = require('../middlewares/auth');
+import { getPaymentSettings } from '../common/shared';
 const Stripe = require('stripe');
 const crypto = require('crypto');
 
@@ -43,9 +44,11 @@ router.post('/stripe', rawBodyMiddleware, (req, res) => {
     res.json({ received: true });
 });
 
-router.post('/paystack', rawBodyMiddleware, (req, res) => {
+router.post('/paystack', rawBodyMiddleware, async (req, res) => {
     const hash = req.headers['x-paystack-signature'];
-    const paystackSecret = process.env.PAYSTACK_WEBHOOK_SECRET;
+    const event = JSON.parse(req.rawBody); 
+    const decryptedData = await getPaymentSettings(event.data.metadata.churchId);
+    const paystackSecret = decryptedData.secretKey;
 
     if (!hash) {
         console.error('Paystack Webhook Error: Missing signature header.');
@@ -56,8 +59,7 @@ router.post('/paystack', rawBodyMiddleware, (req, res) => {
         console.error('⚠️ Paystack Webhook Error: Signature mismatch!');
         return res.status(400).send('Signature verification failed');
     }   
-    const event = JSON.parse(req.rawBody); 
-    console.log('✅ Paystack Webhook Verified. Event:', event.event);
+    console.log('✅ Paystack Webhook Verified. Event:', {event});
     switch (event.event) {
         case 'charge.success':
             console.log(`Paystack Charge Success: ${event.data.reference}`);
