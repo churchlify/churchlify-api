@@ -6,7 +6,7 @@ const Stripe = require('stripe');
 const crypto = require('crypto');
 
 // The actual webhook endpoint
-router.post('/stripe', rawBodyMiddleware, (req, res) => {
+router.post('/stripe', rawBodyMiddleware(), (req, res) => {
     const signature = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     let event;
@@ -44,7 +44,7 @@ router.post('/stripe', rawBodyMiddleware, (req, res) => {
     res.json({ received: true });
 });
 
-router.post('/paystack', rawBodyMiddleware, async (req, res) => {
+router.post('/paystack', rawBodyMiddleware(), async (req, res) => {
     console.log({req});
     const hash = req.headers['x-paystack-signature'];
     const event = JSON.parse(req.rawBody); 
