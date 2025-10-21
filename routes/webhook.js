@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { rawBodyMiddleware} = require('../middlewares/auth');
-import { getPaymentSettings } from '../common/shared';
+const { getPaymentSettings } = require('../common/shared');
 const Stripe = require('stripe');
 const crypto = require('crypto');
 
