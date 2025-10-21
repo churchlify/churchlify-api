@@ -853,12 +853,13 @@ router.post('/paystack/pay', async (req, res) => {
   if (isRecurring) {
       const plan = await getOrCreatePlan({ churchId, name: `churchlify_${Date.now()} Plan`, amount: total, interval: `${recurring.interval.replace('year','annual')}ly`});
       const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, 
-        plan: plan.planCode,metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
+        plan: plan.planCode, metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
         {
           headers: {Authorization: `Bearer ${secretKey}`,'Content-Type': 'application/json',},
         }
       );
       const subData = subRes.data.data;
+      console.log(JSON.stringify(subRes));
       donation.subscriptionId =  subData.subscription_code;
       donation.customerId = subData.customer;
       resultData = formatResponse({
@@ -883,6 +884,7 @@ router.post('/paystack/pay', async (req, res) => {
           headers: { Authorization: `Bearer ${secretKey}`,  'Content-Type': 'application/json' },
         }
       );
+      console.log(JSON.stringify(trxRes));
 
       const trxData = trxRes.data.data;
        donation.transactionReferenceId =  trxData.reference;
