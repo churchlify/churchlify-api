@@ -144,8 +144,7 @@ router.post('/stripe/pay', async (req, res) => {
       donation.transactionReferenceId = intent.id;
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
-      const donate = await createDonation(donation);
-      console.log({donate});
+      await createDonation(donation);
       return res.json({
         success: true,
         showReceipt: true,
@@ -177,8 +176,7 @@ router.post('/stripe/pay', async (req, res) => {
       });
       donation.transactionReferenceId = paymentIntent.id;
       donation.customerId = paymentIntent.customer;
-      const donate = await createDonation(donation);
-      console.log({donate});
+      await createDonation(donation);
       const receiptUrl = paymentIntent.charges?.data?.[0]?.receipt_url || paymentIntent.latest_charge?.receipt_url || null;
       return res.json({
         success: true,
@@ -573,7 +571,6 @@ router.get('/paypal/client-token', async (req, res) => {
       decryptedData.clientId,
       decryptedData.secret
     );
-    console.log(accessToken);
 
   //    // 2. Use the Access Token to generate the Client Token with required scopes
   // const response = await fetch(`${PAYPAL_API}/v1/identity/generate-token`, {
@@ -591,7 +588,6 @@ router.get('/paypal/client-token', async (req, res) => {
   //   })
   // });
   // const data = await response.json();
-  // console.log(data)
   // if (!response.ok) throw new Error(data.error_description || "Failed to get PayPal Client Token");
 
     res.json({ token: accessToken});
@@ -859,7 +855,6 @@ router.post('/paystack/pay', async (req, res) => {
         }
       );
       const subData = subRes.data.data;
-      console.log(JSON.stringify(subRes));
       donation.subscriptionId =  subData.subscription_code;
       donation.customerId = subData.customer;
       resultData = formatResponse({
@@ -884,7 +879,6 @@ router.post('/paystack/pay', async (req, res) => {
           headers: { Authorization: `Bearer ${secretKey}`,  'Content-Type': 'application/json' },
         }
       );
-      console.log(JSON.stringify(trxRes));
 
       const trxData = trxRes.data.data;
        donation.transactionReferenceId =  trxData.reference;
@@ -900,8 +894,7 @@ router.post('/paystack/pay', async (req, res) => {
         },
       });
     }
-    const donate = await createDonation(donation);
-    console.log({donate}, isRecurring, {isRecurring});
+    await createDonation(donation);
     return res.json(resultData);
   } catch (error) {
     console.error('❌ Paystack payment error:', error.response?.data || error.message);

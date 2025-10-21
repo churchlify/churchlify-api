@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPaymentSettings } = require('../common/shared');
+const { getPaymentSettings, getPaymentKey } = require('../common/shared');
 const Stripe = require('stripe');
 const crypto = require('crypto');
 
@@ -51,10 +51,10 @@ router.post('/paystack', express.raw({ type: '*/*' }), async (req, res) => {
     }
     const hash = req.headers['x-paystack-signature'];
     const rawBody = req.body.toString('utf8');
-    console.log({rawBody});
     const event = JSON.parse(rawBody); 
     const decryptedData = await getPaymentSettings(event.data.metadata.churchId);
-    const paystackSecret = decryptedData.secretKey;
+    const paystackSecret = getPaymentKey(decryptedData);
+    console.log(paystackSecret);
 
     if (!hash) {
         console.error('Paystack Webhook Error: Missing signature header.');
