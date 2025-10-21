@@ -1,5 +1,4 @@
 // middlewares/auth.js
-const express = require('express');
 const jwt = require('jsonwebtoken');
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
@@ -38,13 +37,4 @@ admin.initializeApp({
     }
 };
 
-const rawBodyMiddleware = express.json({
-  verify: (req, res, buf, encoding) => {
-    if (buf && buf.length) {
-      req.rawBody = buf.toString(encoding || 'utf8');
-    }
-  },
-  limit: '5mb'
-});
-
-module.exports = { authenticateToken, authenticateFirebaseToken, rawBodyMiddleware };
+module.exports = { authenticateToken, authenticateFirebaseToken };

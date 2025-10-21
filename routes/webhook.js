@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { rawBodyMiddleware} = require('../middlewares/auth');
 const { getPaymentSettings } = require('../common/shared');
 const Stripe = require('stripe');
 const crypto = require('crypto');
 
 // The actual webhook endpoint
-router.post('/stripe', rawBodyMiddleware(), (req, res) => {
+router.post('/stripe', (req, res) => {
     const signature = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     let event;
@@ -44,10 +43,11 @@ router.post('/stripe', rawBodyMiddleware(), (req, res) => {
     res.json({ received: true });
 });
 
-router.post('/paystack', rawBodyMiddleware(), async (req, res) => {
+router.post('/paystack', express.raw({ type: '*/*' }), async (req, res) => {
     console.log({req});
     const hash = req.headers['x-paystack-signature'];
-    const event = JSON.parse(req.rawBody); 
+    const rawBody = req.body.toString('utf8');
+    const event = JSON.parse(rawBody); 
     const decryptedData = await getPaymentSettings(event.data.metadata.churchId);
     const paystackSecret = decryptedData.secretKey;
 
