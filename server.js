@@ -41,13 +41,14 @@ const { churchResolver } = require('./middlewares/churchResolver');
 const { authenticateFirebaseToken } = require('./middlewares/auth');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use(cors());
-app.use(express.json());
 app.use(logAuditTrails);
+app.use('/webhook', webhookRoutes);
+app.use(express.json());
+
 // server.js
 
 // Routes that DO NOT require a church
 app.use('/timezone', timezoneRoutes);
-app.use('/webhook', webhookRoutes);
 app.use('/church', churchRoutes);
 app.use('/audit', auditRoutes);
 app.use('/upload', uploadRoutes);

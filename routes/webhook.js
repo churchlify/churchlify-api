@@ -44,9 +44,14 @@ router.post('/stripe', (req, res) => {
 });
 
 router.post('/paystack', express.raw({ type: '*/*' }), async (req, res) => {
-    console.log({req});
+    try {
+    if (!(req.body instanceof Buffer)) {
+      console.error('Expected Buffer in req.body, got:', typeof req.body);
+      return res.status(400).send('Invalid body format');
+    }
     const hash = req.headers['x-paystack-signature'];
     const rawBody = req.body.toString('utf8');
+    console.log({rawBody});
     const event = JSON.parse(rawBody); 
     const decryptedData = await getPaymentSettings(event.data.metadata.churchId);
     const paystackSecret = decryptedData.secretKey;
@@ -79,6 +84,10 @@ router.post('/paystack', express.raw({ type: '*/*' }), async (req, res) => {
     }
 
     res.sendStatus(200); 
+      } catch (err) {
+    console.error('Webhook processing error:', err);
+    res.status(500).send('Internal error');
+  }
 });
 
 module.exports = router;
