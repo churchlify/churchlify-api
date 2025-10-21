@@ -45,6 +45,7 @@ router.post('/stripe', rawBodyMiddleware, (req, res) => {
 });
 
 router.post('/paystack', rawBodyMiddleware, async (req, res) => {
+    console.log({req});
     const hash = req.headers['x-paystack-signature'];
     const event = JSON.parse(req.rawBody); 
     const decryptedData = await getPaymentSettings(event.data.metadata.churchId);
