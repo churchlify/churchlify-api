@@ -9,7 +9,6 @@ const Church = require('../models/church');
 const User = require('../models/user');
 const {uploadImage} = require('../common/shared');
 const router = express.Router();
-router.use(express.json());
 /*
 #swagger.tags = ['Church']
 */
