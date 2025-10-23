@@ -9,6 +9,7 @@ const express = require('express');
 const Event = require('../models/event');
 //const event = require('../models/event');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Event']
 */

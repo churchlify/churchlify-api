@@ -5,6 +5,7 @@
 const {uploadImage} = require('../common/shared');
 const express = require('express');
 const router = express.Router();
+router.use(express.json());
 
 router.post('/create', (req, res) => {
     uploadImage(req, res, (err) => {

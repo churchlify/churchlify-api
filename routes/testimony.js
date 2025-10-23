@@ -6,6 +6,7 @@ const express = require('express');
 const Testimony = require('../models/testimony');
 const {validateTestimony} = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Testimony']
 */

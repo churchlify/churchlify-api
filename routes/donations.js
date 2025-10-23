@@ -7,6 +7,7 @@ const {validateDonationItem} = require('../middlewares/validators');
 const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/shared');
 const DonationItem = require('../models/donationItems');
 const router = express.Router();
+router.use(express.json());
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
 const PAYSTACK_API = 'https://api.paystack.co';
 const braintree = require('braintree');

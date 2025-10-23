@@ -11,6 +11,7 @@ const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
 const Church = require('../models/church');
 const router = express.Router();
+router.use(express.json());
 //initiate drop-off
 /*
 #swagger.tags = ['Checkin']

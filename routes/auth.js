@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Auth']
 */

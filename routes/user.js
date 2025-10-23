@@ -9,6 +9,7 @@ const User = require('../models/user');
 const {validateUser} = require('../middlewares/validators');
 //const user = require('../models/user');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['User']
 */

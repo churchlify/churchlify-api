@@ -2,6 +2,7 @@ const express = require('express');
 const Module = require('../models/module');
 const { validateModule } = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 router.post('/create', validateModule(), async (req, res) => {
   const { church, modules, startDate, expiryDate, status, payments } = req.body;
   const newItem = new Module({ church, modules, startDate, expiryDate, status, payments });

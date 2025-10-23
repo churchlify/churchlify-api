@@ -6,6 +6,7 @@ const express = require('express');
 const Fellowship = require('../models/fellowship');
 const {validateFellowship} = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 const {createFcmTopic} = require('../common/push.service');
 /*
 #swagger.tags = ['Fellowship']

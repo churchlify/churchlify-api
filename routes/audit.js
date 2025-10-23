@@ -6,6 +6,7 @@
 const express = require('express');
 const Audit = require('../models/audits');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Audit']
 */

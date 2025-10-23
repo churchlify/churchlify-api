@@ -5,6 +5,7 @@
 const express = require('express');
 const Timezone = require('../models/timezone');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Timezone']
 */

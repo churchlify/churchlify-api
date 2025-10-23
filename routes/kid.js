@@ -7,6 +7,7 @@ const express = require('express');
 const Kid = require('../models/kid');
 const {validateKid} = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Kid']
 */

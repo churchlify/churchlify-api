@@ -3,6 +3,7 @@ const Setting = require('../models/settings');
 const { validateSettings } = require('../middlewares/validators');
 const { arrSecrets, encrypt, decrypt, isSecret, getPaymentKey } = require('../common/shared');
 const router = express.Router();
+router.use(express.json());
 
 router.post('/create', validateSettings(), async (req, res) => {
   const { church, key, value } = req.body;

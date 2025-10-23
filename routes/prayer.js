@@ -5,6 +5,7 @@ const express = require('express');
 const Prayer = require('../models/prayer');
 const { validatePrayer } = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Prayer']
 #swagger.summary = 'Create a new prayer request'

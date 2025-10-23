@@ -2,6 +2,7 @@ const express = require('express');
 const Subscription = require('../models/subscription');
 const { validateSubscription } = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 router.post('/create', validateSubscription(), async (req, res) => {
   const { church, modules, startDate, expiryDate, status, payments } = req.body;
   const newItem = new Subscription({ church, modules, startDate, expiryDate, status, payments });

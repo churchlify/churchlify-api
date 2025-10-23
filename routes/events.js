@@ -12,6 +12,7 @@ const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 //const event = require('../models/event');
 const router = express.Router();
+router.use(express.json());
 /*
 #swagger.tags = ['Events']
 */

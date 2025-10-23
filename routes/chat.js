@@ -2,6 +2,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
+router.use(express.json());
 const { rooms, redisClient } = require('../media-client');
 
 router.get('/turn-credentials', (req, res) => {

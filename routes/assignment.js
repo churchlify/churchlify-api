@@ -5,6 +5,7 @@ const Fellowship = require('../models/fellowship');
 
 const { validateAssignment } = require('../middlewares/validators');
 const router = express.Router();
+router.use(express.json());
 
 router.post('/create', validateAssignment(), async (req, res) => {
   const { userId, ministryId, fellowshipId, role,availability,skills,status,dateAssigned } = req.body;
