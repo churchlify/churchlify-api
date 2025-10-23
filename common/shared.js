@@ -466,6 +466,15 @@ const uploadImage = multer({
   fileFilter: (req, file, cb) => checkFileType(file, cb)
 }).single('image');
 
+const skipJsonForUploads = (req, res, next) => {
+    const isUploadRoute = req.path.startsWith('/church/create') || req.path.startsWith('/church/update'); 
+    const isMultipart = req.headers['content-type'] && req.headers['content-type'].startsWith('multipart/form-data');
+    if (isUploadRoute && isMultipart) {
+        return next('route'); 
+    }
+    next();
+};
+
 module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, uploadImage,
    resetIndexesForAllModels, sanitizeString, seedTimezones, encrypt, decrypt, normalizeValue, isSecret, getPaymentKey, arrSecrets,
-  getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation};
+  getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation, skipJsonForUploads};

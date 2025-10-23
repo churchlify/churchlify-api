@@ -35,13 +35,16 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const cors = require('cors');
-const { resetIndexesForAllModels, seedTimezones } = require('./common/shared');
+const { resetIndexesForAllModels, seedTimezones, skipJsonForUploads } = require('./common/shared');
 const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('./swagger/swagger.json');
 const { churchResolver } = require('./middlewares/churchResolver');
 const { authenticateFirebaseToken } = require('./middlewares/auth');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use(cors());
+app.use(skipJsonForUploads); 
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 app.use(logAuditTrails);
 app.use('/webhook', webhookRoutes);
 
