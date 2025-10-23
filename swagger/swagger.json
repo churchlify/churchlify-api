@@ -810,6 +810,53 @@
         }
       }
     },
+    "/church/update-logo/{id}": {
+      "patch": {
+        "tags": [
+          "church"
+        ],
+        "summary": "Patch /church/update-logo/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced church"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/church"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/church"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/church/find/{id}": {
       "get": {
         "tags": [
@@ -1185,6 +1232,33 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/donations"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/donations/donor": {
+      "get": {
+        "tags": [
+          "donations"
+        ],
+        "summary": "Get /donations/donor",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -4410,12 +4484,12 @@
         }
       }
     },
-    "/webhook/paypal": {
+    "/webhook/paystack": {
       "post": {
         "tags": [
           "webhook"
         ],
-        "summary": "Post /webhook/paypal",
+        "summary": "Post /webhook/paystack",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -4675,6 +4749,14 @@
           "timeZone": {
             "type": "string"
           },
+          "isApproved": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false
+          },
           "logo": {
             "type": "string"
           },
@@ -4870,8 +4952,11 @@
             "pattern": "^[a-fA-F0-9]{24}$",
             "example": "507f1f77bcf86cd799439011"
           },
-          "donationId": {
-            "type": "string"
+          "lineItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DonationLineItemsItem"
+            }
           },
           "amount": {
             "type": "number"
@@ -4880,56 +4965,48 @@
             "type": "string",
             "default": "USD"
           },
-          "fund": {
-            "type": "string"
+          "isRecurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "isTestMode": {
+            "type": "boolean",
+            "default": false
           },
           "platform": {
             "type": "string",
             "enum": [
               "stripe",
-              "paypal"
+              "paystack"
             ]
+          },
+          "transactionReferenceId": {
+            "type": "string"
+          },
+          "subscriptionId": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": "string"
           },
           "status": {
             "type": "string",
             "default": "initiated",
             "enum": [
               "initiated",
-              "pending",
-              "completed",
-              "failed"
+              "processing",
+              "succeeded",
+              "failed",
+              "refunded",
+              "requires_action"
             ]
           },
-          "stripeSessionId": {
-            "type": "string"
-          },
-          "stripeEventId": {
-            "type": "string"
-          },
-          "stripeMetadata": {
+          "platformDetails": {
             "type": "object",
             "properties": {}
           },
-          "paypalOrderId": {
+          "webhookEventId": {
             "type": "string"
-          },
-          "paypalCaptureId": {
-            "type": "string"
-          },
-          "paypalWebhookId": {
-            "type": "string"
-          },
-          "paypalPayload": {
-            "type": "object",
-            "properties": {}
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
           },
           "completedAt": {
             "type": "string",
@@ -4939,19 +5016,19 @@
             "type": "string",
             "format": "date-time"
           },
-          "isRecurring": {
-            "type": "boolean",
-            "default": false
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           },
-          "isTestMode": {
-            "type": "boolean",
-            "default": false
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
           "churchId",
           "userId",
-          "donationId",
+          "lineItems",
           "amount",
           "platform"
         ]
@@ -5698,6 +5775,11 @@
           "pushToken": {
             "type": "string"
           },
+          "adminAt": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
           "firebaseId": {
             "type": "string"
           },
@@ -5705,9 +5787,9 @@
             "type": "string",
             "default": "member",
             "enum": [
-              "admin",
+              "super",
               "member",
-              "churchAdmin"
+              "admin"
             ]
           },
           "createdAt": {
@@ -5752,6 +5834,21 @@
             "type": "string"
           }
         }
+      },
+      "DonationLineItemsItem": {
+        "type": "object",
+        "properties": {
+          "fund": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "fund",
+          "amount"
+        ]
       },
       "RecurrenceByWeekDayItem": {
         "type": "object",

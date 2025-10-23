@@ -18,6 +18,10 @@ const checkUserById = async (id)=> { return user.findById(id);};
 const PAYSTACK_API = 'https://api.paystack.co';
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
 const arrSecrets = ['stripe','paypal','paystack','payment'];
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 const timezones =[
   {
     'key': 'America/New_York',
@@ -436,7 +440,32 @@ const sanitizeString = (name) => {
     .replace(/\s+/g, '-')               // replace spaces with hyphens
     .substring(0, 100);                 // FCM topic name limit
 };
+const uploadDir = path.join(__dirname, '..', 'files_upload');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents,
+function checkFileType(file, cb) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+  return mimetype && extname ? cb(null, true) : cb('Error: Images Only!');
+}
+
+const storage = multer.diskStorage({
+  destination: uploadDir,
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${uuidv4()}${ext}`);
+  }
+});
+
+const uploadImage = multer({
+  storage,
+  limits: { fileSize: 500000 },
+  fileFilter: (req, file, cb) => checkFileType(file, cb)
+}).single('image');
+
+module.exports = {checkChurchById, checkUserById, parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, uploadImage,
    resetIndexesForAllModels, sanitizeString, seedTimezones, encrypt, decrypt, normalizeValue, isSecret, getPaymentKey, arrSecrets,
   getUser, getPaymentSettings, generateUniqueReference, getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation};

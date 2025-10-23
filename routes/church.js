@@ -7,29 +7,83 @@ const {validateChurch} = require('../middlewares/validators');
 const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
+const {uploadImage} = require('../common/shared');
 const router = express.Router();
 /*
 #swagger.tags = ['Church']
 */
-router.post('/create', validateChurch(), async(req, res) => {
-    const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone } = req.body;
-    const newItem = new Church({ name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone  });
-    try {
-        const existingEmail = await Church.findOne({ emailAddress });
-        const existingPhone = await Church.findOne({ phoneNumber });
-        const existingUser = await Church.findOne({ createdBy });
-        if (existingEmail){ return res.status(422).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
-        if (existingPhone){ return res.status(422).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
-        if (existingUser){ return res.status(422).json({errors: [{type: 'auth_existing_user', msg: 'Current User is currently affiliated to a church' }]});}
-        await newItem.save();
-            // Update the user with the church ID
-        const userId = req.body.createdBy; // Assuming userId is sent in the request body
-        await User.findByIdAndUpdate(userId, { church: newItem._id });
-        res.status(201).json({ message: 'Church registered successfully' , church: newItem});
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+// Helper function to create church and update user
+async function createChurchRecord(data, res) {
+  try {
+    const newItem = new Church(data);
+    await newItem.save();
+    await User.findByIdAndUpdate(data.createdBy, { church: newItem._id });
+    res.status(201).json({ message: 'Church registered successfully', church: newItem });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create church record' });
+  }
+}
+
+router.post('/create', validateChurch(), async (req, res) => {
+  const { name, shortName, createdBy, emailAddress, phoneNumber, address, timeZone } = req.body;
+  try {
+    const [existingEmail, existingPhone, existingUser] = await Promise.all([
+      Church.findOne({ emailAddress }),
+      Church.findOne({ phoneNumber }),
+      Church.findOne({ createdBy }),
+    ]);
+
+    if (existingEmail) {
+      return res.status(422).json({
+        errors: [{ type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }],
+      });
     }
+
+    if (existingPhone) {
+      return res.status(422).json({
+        errors: [{ type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }],
+      });
+    }
+
+    if (existingUser) {
+      return res.status(422).json({
+        errors: [{ type: 'auth_existing_user', msg: 'Current User is currently affiliated to a church' }],
+      });
+    }
+
+    // Handle logo upload only if logo is provided
+    if (req.file) {
+      uploadImage(req, res, async (err) => {
+        if (err) { return res.status(400).json({ message: err }); }
+        if (!req.file) { return res.status(400).json({ message: 'No file selected!' }); }
+        await createChurchRecord({ name, shortName,createdBy,emailAddress,phoneNumber,address,
+          logo: `${process.env.API_BASE_URL}/uploads/${req.file.filename}`, timeZone, }, res);
+      });
+    } else {
+      await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address,timeZone,}, res);
+    }
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 });
+
+router.patch('/update-logo/:id', (req, res) => {
+  uploadImage(req, res, async (err) => {
+    if (err) {return res.status(400).json({ message: err });}
+    if (!req.file) {return res.status(400).json({ message: 'No image uploaded!' });}
+    try {
+      const churchId = req.params.id;
+      const logoUrl = `${process.env.API_BASE_URL}/uploads/${req.file.filename}`;
+      const updated = await Church.findByIdAndUpdate( churchId, { logo: logoUrl }, { new: true });
+      if (!updated) { return res.status(404).json({ message: 'Church not found' }); }
+      res.status(200).json({ message: 'Logo updated successfully', logo: updated.logo });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+});
+
+
 /*
 #swagger.tags = ['Church']
 */
