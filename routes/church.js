@@ -24,7 +24,7 @@ async function createChurchRecord(data, res) {
   }
 }
 
-router.post('/create', validateChurch(), async (req, res) => {
+router.post('/create', uploadImage, validateChurch(), async (req, res) => {
   const { name, shortName, createdBy, emailAddress, phoneNumber, address, timeZone } = req.body;
   try {
     const [existingEmail, existingPhone, existingUser] = await Promise.all([
@@ -50,26 +50,19 @@ router.post('/create', validateChurch(), async (req, res) => {
         errors: [{ type: 'auth_existing_user', msg: 'Current User is currently affiliated to a church' }],
       });
     }
-
-    // Handle logo upload only if logo is provided
     if (req.file) {
-      uploadImage(req, res, async (err) => {
-        if (err) { return res.status(400).json({ message: err }); }
         if (!req.file) { return res.status(400).json({ message: 'No file selected!' }); }
         await createChurchRecord({ name, shortName,createdBy,emailAddress,phoneNumber,address,
-          logo: `${process.env.API_BASE_URL}/uploads/${req.file.filename}`, timeZone, }, res);
-      });
+            logo: `${process.env.API_BASE_URL}/uploads/${req.file.filename}`, timeZone, }, res);
     } else {
-      await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address,timeZone,}, res);
+        await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address,timeZone,}, res);
     }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
-router.patch('/update-logo/:id', (req, res) => {
-  uploadImage(req, res, async (err) => {
-    if (err) {return res.status(400).json({ message: err });}
+router.patch('/update-logo/:id',uploadImage, async (req, res) => {
     if (!req.file) {return res.status(400).json({ message: 'No image uploaded!' });}
     try {
       const churchId = req.params.id;
@@ -80,7 +73,6 @@ router.patch('/update-logo/:id', (req, res) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  });
 });
 
 

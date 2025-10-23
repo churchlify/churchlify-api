@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const {logAuditTrails} = require('./middlewares/audits');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const multer = require('multer');
 const authRoutes = require('./routes/auth');
 const assignmentRoutes = require('./routes/assignment');
 const userRoutes = require('./routes/user');
@@ -75,6 +76,20 @@ app.use('/payment', paymentRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/chat', chatRoutes);
 app.use('/donations', donationRoutes);
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({ 
+                type: 'upload_file_too_large', 
+                message: `File is too large. Max size is ${req.app.get('multerLimit') || '500KB'}.` 
+            });
+        }
+        // Handle other Multer errors (e.g., LIMIT_FIELD_COUNT)
+        return res.status(400).json({ message: err.message });
+    }
+    // Handle other non-Multer errors
+    next(err);
+});
 
 const PORT = process.env.PORT || 5500;
 
