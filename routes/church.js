@@ -4,77 +4,72 @@
 // routes/churches.js
 // const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
 const {validateChurch} = require('../middlewares/validators');
+const mongoose = require('mongoose');
 const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
-const {uploadImage} = require('../common/shared');
+const {uploadImage, deleteFile} = require('../common/upload');
 const router = express.Router();
 /*
 #swagger.tags = ['Church']
 */
-// Helper function to create church and update user
-async function createChurchRecord(data, res) {
-  try {
-    const newItem = new Church(data);
-    await newItem.save();
-    await User.findByIdAndUpdate(data.createdBy, { church: newItem._id });
-    res.status(201).json({ message: 'Church registered successfully', church: newItem });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create church record' });
-  }
+
+async function createChurchRecord(churchData, res) {
+    let session;
+    try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+        const newChurch = new Church(churchData);
+        await newChurch.save({ session });
+        const updatedUser = await User.findByIdAndUpdate(
+            churchData.createdBy,
+            { church: newChurch._id, adminAt: newChurch._id }, // Link the new Church ID to the User
+            { new: true, session }
+        );
+        if (!updatedUser) {
+            throw new Error('User update failed: Affiliated user not found.');
+        }
+        await session.commitTransaction();
+        session.endSession();
+        return res.status(201).json({ 
+            message: 'Church created and user updated successfully', 
+            church: newChurch,
+            user: updatedUser
+        });
+
+    } catch (error) {
+        if (session) {
+            await session.abortTransaction();
+            session.endSession();
+        }     
+        console.error('Transaction aborted:', error);
+        if (error.code === 11000) { 
+            return res.status(409).json({ message: 'A record with this email or phone already exists.' });
+        }
+        return res.status(500).json({ error: error.message || 'Database transaction failed.' });
+    }
 }
 
-router.post('/create', uploadImage, validateChurch(), async (req, res) => {
-  const { name, shortName, createdBy, emailAddress, phoneNumber, address, timeZone } = req.body;
+router.post('/create',uploadImage, validateChurch(), async (req, res) => {
   try {
+    const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
+    const address = req.body.address || null;
     const [existingEmail, existingPhone, existingUser] = await Promise.all([
       Church.findOne({ emailAddress }),
       Church.findOne({ phoneNumber }),
       Church.findOne({ createdBy }),
     ]);
+    console.log(req.body);
+    if (existingEmail) {return res.status(422).json({ errors: [{ msg: `Email ${emailAddress} exists` }] });}
+    if (existingPhone) {return res.status(422).json({ errors: [{ msg: `Phone ${phoneNumber} exists` }] });}
+    if (existingUser) {return res.status(422).json({ errors: [{ msg: 'User already affiliated' }] });}
 
-    if (existingEmail) {
-      return res.status(422).json({
-        errors: [{ type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }],
-      });
-    }
-
-    if (existingPhone) {
-      return res.status(422).json({
-        errors: [{ type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }],
-      });
-    }
-
-    if (existingUser) {
-      return res.status(422).json({
-        errors: [{ type: 'auth_existing_user', msg: 'Current User is currently affiliated to a church' }],
-      });
-    }
-    if (req.file) {
-        if (!req.file) { return res.status(400).json({ message: 'No file selected!' }); }
-        await createChurchRecord({ name, shortName,createdBy,emailAddress,phoneNumber,address,
-            logo: `${process.env.API_BASE_URL}/uploads/${req.file.filename}`, timeZone, }, res);
-    } else {
-        await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address,timeZone,}, res);
-    }
+    const logoUrl = req.file ? `${process.env.API_BASE_URL}/uploads/${req.file.filename}` : null;
+    await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone }, res);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
-
-router.patch('/update-logo/:id',uploadImage, async (req, res) => {
-    if (!req.file) {return res.status(400).json({ message: 'No image uploaded!' });}
-    try {
-      const churchId = req.params.id;
-      const logoUrl = `${process.env.API_BASE_URL}/uploads/${req.file.filename}`;
-      const updated = await Church.findByIdAndUpdate( churchId, { logo: logoUrl }, { new: true });
-      if (!updated) { return res.status(404).json({ message: 'Church not found' }); }
-      res.status(200).json({ message: 'Logo updated successfully', logo: updated.logo });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-});
-
 
 /*
 #swagger.tags = ['Church']
@@ -88,17 +83,65 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Church']
 */
-router.put('/update/:id',validateChurch(),  async(req, res) => {
-    const { id } = req.params;
-    const { name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone  } = req.body;
+router.patch('/update/:churchId', uploadImage, async (req, res) => {
     try {
-        const updatedChurch = await Church.findByIdAndUpdate(id, {$set: { name, shortName, createdBy, emailAddress, phoneNumber, address,logo, timeZone  }}, { new: true, runValidators: true });
-        if (!updatedChurch) {
-            return res.status(404).json({ message: `Church with id ${id} not found` });
+        const { churchId } = req.params;
+        const updates = req.body;
+        const updateObject = {};
+        const existingChurch = await Church.findById(churchId);
+        if (!existingChurch) {
+            return res.status(404).json({ errors: [{ msg: 'Church not found.' }] });
         }
-        res.status(200).json({ message: 'Record updated successfully', church: updatedChurch });
+        for (const key in updates) {
+            if (updates[key] !== undefined && key !== '_id' && key !== 'createdBy') {
+                updateObject[key] = updates[key];
+            }
+        }
+        if (req.file) {
+            updateObject.logo = `${process.env.API_BASE_URL}/uploads/${req.file.filename}`;
+            if (existingChurch.logo) {
+                await deleteFile(existingChurch.logo); // Deletes old file
+            }
+        }
+        if (Object.keys(updateObject).length === 0) {
+            return res.status(400).json({ errors: [{ msg: 'No valid update fields provided.' }] });
+        }
+        if (updateObject.emailAddress || updateObject.phoneNumber) {
+            const existingChurch = await Church.findOne({
+                $or: [
+                    updateObject.emailAddress ? { emailAddress: updateObject.emailAddress } : {},
+                    updateObject.phoneNumber ? { phoneNumber: updateObject.phoneNumber } : {}
+                ],
+                _id: { $ne: churchId } 
+            });
+            if (existingChurch) {
+                if (existingChurch.emailAddress === updateObject.emailAddress) {
+                    return res.status(422).json({ errors: [{ msg: `Email ${updateObject.emailAddress} already exists with another church.` }] });
+                }
+                if (existingChurch.phoneNumber === updateObject.phoneNumber) {
+                    return res.status(422).json({ errors: [{ msg: `Phone ${updateObject.phoneNumber} already exists with another church.` }] });
+                }
+            }
+        }
+        const updatedChurch = await Church.findByIdAndUpdate(churchId, { $set: updateObject }, { new: true, runValidators: true } );
+        if (!updatedChurch) {
+            return res.status(404).json({ errors: [{ msg: 'Church not found.' }] });
+        }
+
+        return res.status(200).json({
+            message: 'Church updated successfully',
+            church: updatedChurch
+        });
+
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        if (err.name === 'ValidationError') {
+            return res.status(422).json({ errors: [{ msg: err.message }] });
+        }
+        if (err.kind === 'ObjectId') {
+             return res.status(404).json({ errors: [{ msg: 'Invalid Church ID format.' }] });
+        }
+        console.error(err);
+        res.status(500).json({ error: 'Server error during church update.' });
     }
 });
 /*

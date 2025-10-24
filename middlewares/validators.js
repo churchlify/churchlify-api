@@ -8,7 +8,7 @@ const validateUser = () => [
     body('firstName').notEmpty().withMessage('First Name is required'),
     body('lastName').notEmpty().withMessage('Last Name is required'),
     body('emailAddress').isEmail().withMessage('Email is invalid'),
-    body('phoneNumber').isMobilePhone().withMessage('Phone number is invalid'),
+    body('phoneNumber').matches(/^\+\d{10,15}$/).withMessage('Phone number is invalid'),
     body('address').notEmpty().withMessage('Address is required'),
     body('dateOfBirth').notEmpty().withMessage('Date of birth is Invalid'),
     body('gender').notEmpty().withMessage('Gender is required'),
@@ -41,8 +41,8 @@ const validateChurch = () => [
     body('address.postalCode').notEmpty().withMessage('Postal code is required'),
     body('address.country').notEmpty().withMessage('Country is required'),
     body('address.state').notEmpty().withMessage('Province/State is required'),
-    body('isApproved').optional().custom(value => typeof value === 'boolean').withMessage('Approval status can only be true or false'),
-    body('isPublished').optional().custom(value => typeof value === 'boolean').withMessage('Publish status can only be true or false'),
+    body('isApproved').optional().toBoolean().custom(value => typeof value === 'boolean').withMessage('Approval status can only be true or false'),
+    body('isPublished').optional().toBoolean().custom(value => typeof value === 'boolean').withMessage('Publish status can only be true or false'),
 
     (req, res, next) => {
         const errors = validationResult(req);

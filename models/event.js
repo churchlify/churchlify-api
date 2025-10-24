@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 const church = require ('./church');
 const user = require('./user');
 const validateRefs = require('../common/validateRefs');
-// const {checkUserById, checkChurchById} = require('../common/shared')
+// const {checkUserById, checkChurchById} = require('../common/db')
 // const recurrenceSchema = new Schema({
 //     frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'], default: null },
 //     interval: { type: Number, default: 1 }, // e.g., every 2 days, every 3 weeks

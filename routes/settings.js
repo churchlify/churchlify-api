@@ -1,7 +1,7 @@
 const express = require('express');
 const Setting = require('../models/settings');
 const { validateSettings } = require('../middlewares/validators');
-const { arrSecrets, encrypt, decrypt, isSecret, getPaymentKey } = require('../common/shared');
+const { arrSecrets, encrypt, decrypt, isSecret, getPaymentKey } = require('../common/payment');
 const router = express.Router();
 router.use(express.json());
 

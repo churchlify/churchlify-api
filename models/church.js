@@ -22,11 +22,10 @@ churchSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('createdBy')) {
         try {
             const existError = new Error('Invalid User reference.');
-            const isMemberError = new Error('User is already affiliated to a church');
             if (!user) { user = require('./user');}
             const userExist = await user.findById(this.createdBy);
             if(!userExist){ return next(existError);}
-            return await userExist.church ? next(isMemberError) : next();
+            next();
         } catch (err) {
             return next(err);
         }

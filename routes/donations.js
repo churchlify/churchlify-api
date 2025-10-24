@@ -4,7 +4,7 @@ const fetch = require('node-fetch');
 const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
 const {validateDonationItem} = require('../middlewares/validators');
-const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/shared');
+const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/payment');
 const DonationItem = require('../models/donationItems');
 const router = express.Router();
 router.use(express.json());

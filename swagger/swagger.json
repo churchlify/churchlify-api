@@ -810,53 +810,6 @@
         }
       }
     },
-    "/church/update-logo/{id}": {
-      "patch": {
-        "tags": [
-          "church"
-        ],
-        "summary": "Patch /church/update-logo/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced church"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/church"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/church"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
     "/church/find/{id}": {
       "get": {
         "tags": [
@@ -894,15 +847,15 @@
         }
       }
     },
-    "/church/update/{id}": {
-      "put": {
+    "/church/update/{churchId}": {
+      "patch": {
         "tags": [
           "church"
         ],
-        "summary": "Put /church/update/{id}",
+        "summary": "Patch /church/update/{churchId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "churchId",
             "in": "path",
             "required": true,
             "schema": {

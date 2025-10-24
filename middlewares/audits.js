@@ -28,7 +28,7 @@ exports.logAuditTrails = (req, res, next) => {
             try {
                 const statusCode = res.statusCode;
                 
-                if (statusCode < 400) {
+                if (statusCode < 401) {
                     await AuditTrail.create({
                         url: req.originalUrl,
                         activity: methodMappers[req.method] + ' ' + req.originalUrl.split('/')[req.originalUrl.split('/').length - 1] || '',

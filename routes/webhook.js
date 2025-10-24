@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 router.use(express.json());
-const { getPaymentSettings } = require('../common/shared');
+const { getPaymentSettings } = require('../common/payment');
 const Stripe = require('stripe');
 const crypto = require('crypto');
 

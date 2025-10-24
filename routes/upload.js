@@ -2,7 +2,7 @@
 #swagger.tags = ['Upload']
 */
 // routes/upload.js
-const {uploadImage} = require('../common/shared');
+const {uploadImage} = require('../common/upload');
 const express = require('express');
 const router = express.Router();
 router.use(express.json());
