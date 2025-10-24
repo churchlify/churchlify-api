@@ -12,7 +12,6 @@ const fetch = require('node-fetch');
 const axios = require('axios');
 const arrSecrets = ['stripe','paypal','paystack','payment'];
  
- 
  const generateUniqueReference = (timestamp = Date.now()) => {
   const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
   return `churchlify_${timestamp}_${randomPart}`;
@@ -22,7 +21,6 @@ const createDonation = async(donation) =>{
   const newDonation = new Donation(donation);
   return await newDonation.save();
 };
-
 
 const getUser = async (userId) => {
       return await user.findById(userId);
