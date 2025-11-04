@@ -31,14 +31,15 @@ const uploadImage = multer({
 }).single('image');
 
 const deleteFile = async (fileUrl) => {
-  const oldFilename = fileUrl.split('/').pop();
-  const filePath = path.join(__dirname, '..', 'uploads', oldFilename);
+  const oldFilename = decodeURIComponent(fileUrl.split('/').pop().trim());
+  const filePath = path.join(uploadDir, oldFilename);
   try {
-        await fsp.unlink(filePath);
-        console.log(`Successfully deleted old logo: ${oldFilename}`);
-    } catch (error) {
-        console.error(`Error deleting old logo file: ${oldFilename}`, error.message);
-    }
+    // const files = await fsp.readdir(uploadDir);
+    await fsp.access(filePath, fsp.constants.F_OK);
+    await fsp.unlink(filePath);
+  } catch (error) {
+    console.error(`Error deleting old logo file: ${oldFilename}`, error.message);
+  }
 };
 
 module.exports = {uploadImage, uploadDir, checkFileType, storage, deleteFile};

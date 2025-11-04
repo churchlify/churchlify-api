@@ -34,7 +34,7 @@ services:
       - mediasoup
       - coturn
     volumes:
-      - /Users/babs/files_upload/churchlify:/files_upload
+      - /Users/babs/files_upload/churchlify:/usr/src/app/files_upload
 
   mediasoup:
     image: ghcr.io/churchlify/mediasoup:latest
