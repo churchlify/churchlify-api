@@ -3,49 +3,27 @@ const { Schema } = mongoose;
 const church = require ('./church');
 const user = require('./user');
 const validateRefs = require('../common/validateRefs');
-// const {checkUserById, checkChurchById} = require('../common/db')
-// const recurrenceSchema = new Schema({
-//     frequency: { type: String, enum: ['daily', 'weekly', 'monthly', 'yearly'], default: null },
-//     interval: { type: Number, default: 1 }, // e.g., every 2 days, every 3 weeks
-// });
-
-// const eventSchema = new mongoose.Schema({
-//     church: {type: Schema.Types.ObjectId, ref: 'Church', required: true},
-//     createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true},
-//     title: { type: String, required: true },
-//     description: { type: String, required: false },
-//     startDate: { type: Date, required: true }, // Date of the first occurrence
-//     endDate: { type: Date, required: true },   // Date of the last occurrence
-//     startTime: { type: String, required: true }, // e.g., "09:00" for 9:00 AM
-//     endTime: { type: String, required: true },   // e.g., "10:30" for 10:30 AM
-//     location: { type: String, required: false },
-//     flier: { type: String, required: false },
-//     allowKidsCheckin: { type: Boolean, required: true , default: false},
-//     rsvp: { type: Boolean, required: true , default: false},
-//     checkinStartTime: { type: String, required: true },
-//     recurrence: { type: recurrenceSchema}
-// }, { timestamps: true });
 
 const eventSchema = new mongoose.Schema({
     church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
     createdBy: {type: Schema.Types.ObjectId, ref: 'User', required: true},
     title: { type: String, required: true },
     description: String,
-    startDate: { type: Date, required: true }, // base/first occurrence
+    startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    startTime: { type: String, required: true }, // 'HH:mm' (local time)
+    startTime: { type: String, required: true }, 
     endTime: { type: String, required: true },
-    location: String,
+    location: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue', required: false },
     flier: { type: String, required: false },
     allowKidsCheckin: { type: Boolean, required: true , default: false},
     rsvp: { type: Boolean, required: true , default: false},
-    checkinStartTime: { type: String, required: true },
+    checkinStartTime: { type: String, required: false },
     isRecurring: { type: Boolean, default: false },
     recurrence: {
         frequency: { type: String, enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'], required: function() { return this.isRecurring; } },
         interval: { type: Number, default: 1 }, // e.g. every 1 week
         daysOfWeek: [Number], // For weekly recurrence (0 = Sun, 1 = Mon, etc.)
-        endDate: Date, // Until when recurrence continues
+        endDate: Date, 
     },
 }, { timestamps: true });
 

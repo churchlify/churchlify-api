@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validateRefs = require('../common/validateRefs');
+const applyAssignmentHooks = require('../hooks/assignmentHooks');
 
 const AssignmentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User', index: true },
@@ -29,4 +30,5 @@ AssignmentSchema.plugin(validateRefs, {
     { field: 'fellowshipId', model: 'Fellowship' }
   ]
 });
+applyAssignmentHooks(AssignmentSchema);
 module.exports = mongoose.model('Assignment', AssignmentSchema);

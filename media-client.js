@@ -1,20 +1,13 @@
 // mediasoup/media-worker.js
 const { createWorker } = require('mediasoup');
-const Redis = require('ioredis');
+const redisClient = require('./common/redis.connection');
 
 const rooms = new Map(); // In-memory fallback
 
-// Optional Redis client
-let redisClient;
-if (process.env.REDIS_HOST) {
-  redisClient = new Redis({
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT || 6379,
-  });
-  console.log('✅ Redis connected for room state');
-}
-
 async function startWorker(io) {
+  if (redisClient && redisClient.status === 'ready') {
+        console.log('✅ Reusing central Redis client for room state');
+    }
   const worker = await createWorker({
     logLevel: 'warn',
     rtcMinPort: 40000,

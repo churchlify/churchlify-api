@@ -35,9 +35,11 @@ const donationRoutes = require('./routes/donations');
 const paymentRoutes = require('./routes/payment');
 const settingsRoutes = require('./routes/settings');
 const chatRoutes = require('./routes/chat');
+const venueRoutes = require('./routes/venues');
 const timezoneRoutes = require('./routes/timezone');
 const webhookRoutes = require('./routes/webhook');
 const uploadRoutes = require('./routes/upload');
+const notificationsRoutes = require('./routes/notifications');
 
 // Swagger
 const swaggerFile = require('./swagger/swagger.json');
@@ -63,6 +65,7 @@ app.use(logAuditTrails);
 app.use('/webhook', webhookRoutes);
 app.use('/timezone', timezoneRoutes);
 app.use('/church', churchRoutes);
+app.use('/venues', venueRoutes);
 app.use('/audit', auditRoutes);
 app.use('/upload', uploadRoutes);
 
@@ -74,10 +77,11 @@ app.get('/health', (_, res) =>
 // Authentication
 app.use('/auth', authRoutes); // public first
 app.use(authenticateFirebaseToken);
-app.use('/user', userRoutes);
 
 // Church-based routes
 app.use(churchResolver);
+app.use('/notifications', notificationsRoutes);
+app.use('/user', userRoutes);
 app.use('/assignment', assignmentRoutes);
 app.use('/event', eventRoutes);
 app.use('/kid', kidRoutes);
@@ -95,6 +99,11 @@ app.use('/chat', chatRoutes);
 app.use('/donations', donationRoutes);
 
 // Error handling
+app.use((req, res, next) => {
+    const error = new Error(`Not Found: ${req.originalUrl}`);
+    error.status = 404;
+    next(error); 
+});
 app.use(errorHandler);
 
 // --- STARTUP ---

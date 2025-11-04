@@ -1,5 +1,4 @@
 const skipJsonForUploads = (req, res, next) => {
-    console.log(req.path);
     const isUploadRoute = req.path.startsWith('/church/create') || req.path.startsWith('/church/update'); 
     const isMultipart = req.headers['content-type'] && req.headers['content-type'].startsWith('multipart/form-data');
     if (isUploadRoute && isMultipart) {

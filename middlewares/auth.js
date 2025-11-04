@@ -1,14 +1,8 @@
 // middlewares/auth.js
 const jwt = require('jsonwebtoken');
-const admin = require('firebase-admin');
+const { auth } = require('../common/firebase');
 const dotenv = require('dotenv');
-
 dotenv.config();
-
-const serviceAccount = require('../service_account.json');
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
 
  const authenticateFirebaseToken = async (req, res, next) => {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
@@ -17,7 +11,7 @@ admin.initializeApp({
     }
 
     try {
-        req.user = await admin.auth().verifyIdToken(idToken); 
+        req.user = await auth.verifyIdToken(idToken); 
         next();
     } catch (error) {
         console.error('Firebase Token Error:', error.message);

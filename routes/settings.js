@@ -24,6 +24,23 @@ router.get('/find/:id', async (req, res) => {
   res.json({ setting });
 });
 
+router.get('/findByKey/:key', async (req, res) => {
+  try {
+    const church = req.church;
+    const { key } = req.params;
+    let filter = {key};
+    if(church) { filter.church = church._id; }
+    const settings = await Setting.findOne(filter).populate('church');
+       // const settings = await Setting.findOne(filter);
+    if (!settings){ return res.status(404).json({ message: 'Payment settings not found' });}
+    const decryptedData = (isSecret(key))? decrypt(settings.value, settings.keyVersion): settings.value;
+    res.status(200).json({ _id: settings._id, key, value: decryptedData});
+    //res.status(200).json({ settings:filteredSettings });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 router.patch('/update/:id', async (req, res) => {
   const { id } = req.params;
   const { value, ...rest } = req.body;

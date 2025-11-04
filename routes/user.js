@@ -3,77 +3,210 @@
 */
 // routes/user.js
 //const {authenticateFirebaseToken, authenticateToken} = require('../middlewares/auth');
-const express = require('express');
-const User = require('../models/user');
+const express = require("express");
+const User = require("../models/user");
 //const Church = require('../models/church');
-const {validateUser} = require('../middlewares/validators');
+const { validateUser } = require("../middlewares/validators");
 //const user = require('../models/user');
 const router = express.Router();
-router.use(express.json());
+
+function escapeRegExp(string) {
+  // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 /*
 #swagger.tags = ['User']
 */
-router.post('/create', validateUser(), async(req, res) => {
-    const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, firebaseId, photoUrl, pushToken, role } = req.body;
-    const newItem = new User({ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate,  firebaseId, photoUrl, pushToken, role });
-    try {
-        const existingEmail= await User.findOne({ emailAddress });
-        const existingPhone = await User.findOne({ phoneNumber });
-        if (existingEmail) {return res.status(404).json({errors: [{type: 'auth_existing_email', msg: `Record with email ${emailAddress} already exists` }]});}
-        if (existingPhone) {return res.status(404).json({errors: [{type: 'auth_existing_phone', msg: `Record with phone number ${phoneNumber} already exists` }]});}
-        await newItem.save();
-        res.status(201).json({ message: 'User registered successfully', user: newItem });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+router.post("/create", validateUser(), async (req, res) => {
+  const {
+    church,
+    firstName,
+    lastName,
+    emailAddress,
+    phoneNumber,
+    address,
+    gender,
+    dateOfBirth,
+    isMarried,
+    anniversaryDate,
+    firebaseId,
+    photoUrl,
+    pushToken,
+    role,
+  } = req.body;
+  const newItem = new User({
+    church,
+    firstName,
+    lastName,
+    emailAddress,
+    phoneNumber,
+    address,
+    gender,
+    dateOfBirth,
+    isMarried,
+    anniversaryDate,
+    firebaseId,
+    photoUrl,
+    pushToken,
+    role,
+  });
+  try {
+    const existingEmail = await User.findOne({ emailAddress });
+    const existingPhone = await User.findOne({ phoneNumber });
+    if (existingEmail) {
+      return res.status(404).json({
+        errors: [
+          {
+            type: "auth_existing_email",
+            msg: `Record with email ${emailAddress} already exists`,
+          },
+        ],
+      });
     }
-});
-/*
-#swagger.tags = ['User']
-*/
-router.get('/find/:id', async(req, res) => {
-    const { id } = req.params;
-    const user = await User.findById(id).populate('church');
-    if (!user) {return res.status(404).json({ message: `User with id ${id} not found` });}
-    res.json({ user });
-});
-/*
-#swagger.tags = ['User']
-*/
-router.get('/findByUid/:firebaseId', async(req, res) => {
-    const { firebaseId } = req.params;
-    const user = await User.findOne({ firebaseId });
-    if (!user) {return res.status(404).json({ message: `User with firebaseId ${firebaseId} not found` });}
-    res.json({ user });
-});
-/*
-#swagger.tags = ['User']
-*/
-router.put('/update/:id',validateUser(),  async(req, res) => {
-    const { id } = req.params;
-    const { church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role } = req.body;
-    try {
-        const updatedUser = await User.findByIdAndUpdate(id, {$set:{ church, firstName, lastName, emailAddress, phoneNumber, address, gender, dateOfBirth, isMarried, anniversaryDate, isChurchAdmin, role }}, { new: true, runValidators: true });
-        if (!updatedUser) {
-            return res.status(404).json({ message: `User with id ${id} not found` });
-        }
-        res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    if (existingPhone) {
+      return res.status(404).json({
+        errors: [
+          {
+            type: "auth_existing_phone",
+            msg: `Record with phone number ${phoneNumber} already exists`,
+          },
+        ],
+      });
     }
+    await newItem.save();
+    res
+      .status(201)
+      .json({ message: "User registered successfully", user: newItem });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+/*
+#swagger.tags = ['User']
+*/
+router.get("/find/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id).populate("church");
+  if (!user) {
+    return res.status(404).json({ message: `User with id ${id} not found` });
+  }
+  res.json({ user });
+});
+
+router.get("/search", async (req, res) => {
+  const { q } = req.query;
+  const church = req.church;
+
+  try {
+    if (!q) {
+      return res.status(400).json({ error: "Missing search query" });
+    }
+    const escapedQ = escapeRegExp(q);
+    const regex = new RegExp(escapedQ, "i");
+
+    let filter = {
+      $or: [{ firstName: regex }, { lastName: regex }],
+    };
+    if (church) {
+      filter.church = church._id;
+    }
+
+    const users = await User.find(filter);
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "No matching users found" });
+    }
+
+    res.json({ users });
+  } catch (error) {
+    // This now safely catches errors from the find operation and general issues
+    console.error("Search error (Caught by Route Handler):", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/*
+#swagger.tags = ['User']
+*/
+router.get("/findByUid/:firebaseId", async (req, res) => {
+  const { firebaseId } = req.params;
+  const user = await User.findOne({ firebaseId });
+  if (!user) {
+    return res
+      .status(404)
+      .json({ message: `User with firebaseId ${firebaseId} not found` });
+  }
+  res.json({ user });
+});
+/*
+#swagger.tags = ['User']
+*/
+router.put("/update/:id", validateUser(), async (req, res) => {
+  const { id } = req.params;
+  const {
+    church,
+    firstName,
+    lastName,
+    emailAddress,
+    phoneNumber,
+    address,
+    gender,
+    dateOfBirth,
+    isMarried,
+    anniversaryDate,
+    isChurchAdmin,
+    role,
+  } = req.body;
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          church,
+          firstName,
+          lastName,
+          emailAddress,
+          phoneNumber,
+          address,
+          gender,
+          dateOfBirth,
+          isMarried,
+          anniversaryDate,
+          isChurchAdmin,
+          role,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: `User with id ${id} not found` });
+    }
+    res
+      .status(200)
+      .json({ message: "Record updated successfully", user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 // PATCH route to update one field
 /*
 #swagger.tags = ['User']
 */
-router.patch('/update/:id', async (req, res) => {
+router.patch("/update/:id", async (req, res) => {
   const { id } = req.params;
   const updates = req.body;
   try {
-    const updatedUser = await User.findByIdAndUpdate( id, { $set: updates },{ new: true, runValidators: true } );
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
     if (!updatedUser) {
       return res.status(404).json({ message: `User with id ${id} not found` });
     }
-    res.status(200).json({ message: 'Record updated successfully', user: updatedUser });
+    res
+      .status(200)
+      .json({ message: "Record updated successfully", user: updatedUser });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -81,30 +214,34 @@ router.patch('/update/:id', async (req, res) => {
 /*
 #swagger.tags = ['User']
 */
-router.get('/list', async(req, res) => {
-    try {
-        const church = req.church;
-        let filter = {};
-        if(church) { filter.church = church._id; }
-        const users = await User.find(filter).populate('church');
-        res.status(200).json({ users });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+router.get("/list", async (req, res) => {
+  try {
+    const church = req.church;
+    let filter = {};
+    if (church) {
+      filter.church = church._id;
     }
+    const users = await User.find(filter).populate("church");
+    res.status(200).json({ users });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 /*
 #swagger.tags = ['User']
 */
-router.delete('/delete/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const deletedUser = await User.findByIdAndDelete(id);
-        if (!deletedUser) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        res.status(200).json({ message: 'User deleted successfully', user: deletedUser });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ error: "User not found" });
     }
+    res
+      .status(200)
+      .json({ message: "User deleted successfully", user: deletedUser });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 module.exports = router;

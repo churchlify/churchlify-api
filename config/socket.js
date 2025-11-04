@@ -2,6 +2,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const { startWorker } = require('../media-client');
 const eventWorker = require('../common/event.worker');
+const notificationWorker = require('../common/notification.worker');
 
 async function setupSocket(app) {
   const server = http.createServer(app);
@@ -10,9 +11,10 @@ async function setupSocket(app) {
   try {
     await startWorker(io);
     eventWorker.start();
-    console.log('✅ Media worker started');
+    notificationWorker.start();
+    console.log('✅ Media and Notification worker started');
   } catch (err) {
-    console.error('❌ Failed to start media worker:', err);
+    console.error('❌ Failed to start core worker:', err);
     process.exit(1);
   }
 

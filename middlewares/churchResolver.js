@@ -6,6 +6,9 @@ const cache = new Map();
 
 exports.churchResolver = async (req, res, next) => {
     const host = req.headers[CHURCH_HEADER] || req.query[CHURCH_QUERY];
+      if (req.path.includes('/findByUid')) {
+        return next();
+    }
     if (!host) {
         return res.status(400).json({ error: 'Church identifier not provided' });
     }
@@ -23,6 +26,7 @@ exports.churchResolver = async (req, res, next) => {
         }
         cache.set(host, church);
         req.church = church;
+        console.log(` Resolved ${church.name}`);
         next();
     } catch (err) {
         console.error('Church resolver critical error:', err);

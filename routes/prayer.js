@@ -93,7 +93,7 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const prayers = await Prayer.find(filter);
+    const prayers = await Prayer.find(filter).populate('author');
     res.status(200).json({ prayers });
   } catch (error) {
     res.status(500).json({ message: error.message });

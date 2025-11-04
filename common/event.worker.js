@@ -30,7 +30,7 @@ class EventWorker {
     const now = new Date();
 
     // Find recurring events that need instance generation
-    const recurringEvents = await mongoose.model('Events').find({
+    const recurringEvents = await mongoose.model('Event').find({
       isRecurring: true,
       isInstance: false,
       $or: [
@@ -58,7 +58,7 @@ class EventWorker {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    await mongoose.model('Events').deleteMany({
+    await mongoose.model('Event').deleteMany({
       isInstance: true,
       endDate: { $lt: oneMonthAgo }
     });

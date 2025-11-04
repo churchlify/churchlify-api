@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validateRefs = require('../common/validateRefs');
 const AddressSchema = require('./address');
+const applyFellowshipHooks = require('../hooks/fellowshipHooks');
 
 const fellowshipSchema = new mongoose.Schema({
   name: { type: String, required: true  },
@@ -18,6 +19,5 @@ fellowshipSchema.plugin(validateRefs, {
     { field: 'leaderId', model: 'User' }
   ]
 });
-
-// Export the Mongoose model and the Joi validation schema
+applyFellowshipHooks(fellowshipSchema);
 module.exports = mongoose.model('Fellowship', fellowshipSchema);

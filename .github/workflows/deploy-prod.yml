@@ -31,6 +31,9 @@ jobs:
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
             echo "EMAIL=${{ secrets.EMAIL }}" >> .env
             echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
+            echo "EMAIL_API_URL=${{ secrets.EMAIL_API_URL }}" >> .env
+            echo "EMAIL_CLIENT_ID=${{ secrets.EMAIL }}" >> .env
+            echo "EMAIL_CLIENT_SECRET=${{ secrets.EMAIL_PASS }}" >> .env
             echo "TURN_SECRET=${{ secrets.TURN_SECRET }}" >> .env
             echo "REMOTE_HOST=${{ secrets.REMOTE_PROD_HOST }}" >> .env 
             echo "API_BASE_URL=${{ secrets.PROD_BASE_URL }}" >> .env 

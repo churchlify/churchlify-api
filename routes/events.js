@@ -6,8 +6,8 @@
 const {validateEvent} = require('../middlewares/validators');
 // const {getFlatennedMonthEvents} = require('../common/shared');
 const express = require('express');
-const Events = require('../models/events');
 const Event = require('../models/event');
+const Venue = require('../models/venue');
 const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 //const event = require('../models/event');
@@ -21,6 +21,20 @@ router.post('/create', validateEvent(), async(req, res) => {
     //const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
     try {
         // Prepare the event data object
+         let venueId;
+          if (typeof location === 'string') {
+                const venue = await Venue.findById(location);
+                if (!venue){ throw new Error('Venue not found');}
+                venueId = venue._id;
+            } else if (location?.name && location?.address) {
+                let venue = await Venue.findOne({ name: location.name, church});
+                if (!venue) {
+                venue = await Venue.create({ name: location.name, address: location.address, church});
+                }
+                venueId = venue._id;
+            } else {
+                throw new Error('Invalid location: must be a venue ID or venue object with name and address');
+            }
         const eventData = {
             church,
             title,
@@ -29,7 +43,7 @@ router.post('/create', validateEvent(), async(req, res) => {
             startTime,
             endDate: new Date(endDate),
             endTime,
-            location,
+            location: venueId,
             flier,
             allowKidsCheckin,
             checkinStartTime,
@@ -67,38 +81,9 @@ router.post('/create', validateEvent(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const event = await Events.findById(id);
+    const event = await EventInstance.findById(id);
     if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
-});
-/*
-#swagger.tags = ['Events']
-*/
-router.get('/findByDate/:date/:church', async(req, res) => {
-    const { church, date, to } = req.params;
-    const event = await EventService.getEvents({ from:date,to, church });
-    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
-    res.json({ event });
-});
-/*
-#swagger.tags = ['Events']
-*/
-router.get('/findByDate/:date', async(req, res) => {
-    const { church, date, to } = req.params;
-    const event = await EventService.getEvents({ from:date,to, church });
-    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
-    res.json({ event });
-});
-/*
-#swagger.tags = ['Events']
-*/
-router.get('/events', async (req, res) => {
-  const { from, to, church } = req.query;
-  const result = await EventService.getEvents({ from, to, church });
-  if (!result.success) {
-    return res.status(result.code || 500).json({ error: result.error });
-  }
-  res.json(result);
 });
 /*
 #swagger.tags = ['Events']
@@ -119,21 +104,29 @@ router.get('/upcoming', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-router.put('/update/:id',validateEvent(),  async(req, res) => {
-    const { id } = req.params;
-    const { church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }  = req.body;
-    try {
-        const updatedEvent = await Events.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, allowKidsCheckin, checkinStartTime, recurrence, createdBy }}, { new: true, runValidators: true });
-       // const updatedEvent = await Event.findByIdAndUpdate(id, {$set:{ church, title, description, startDate, startTime, endDate,endTime, location, flier, reminder, checkinStartTime, recurrence, createdBy }} , { new: true, runValidators: true });
-        if (!updatedEvent) {
-            return res.status(404).json({ message: `Event with id ${id} not found` });
-        }
-         await EventService.expandRecurringEvents(); // re-cache
-        res.status(200).json({ message: 'Record updated successfully', Event: updatedEvent });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+router.patch('/update/:id', validateEvent(), async (req, res) => {
+  const { id } = req.params;
+  const allowedFields = ['church', 'title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'location', 'flier', 'reminder', 'allowKidsCheckin', 'checkinStartTime', 'recurrence', 'createdBy'];
+  const updateFields = {};
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      updateFields[field] = req.body[field];
     }
+  });
+  try {
+    const updatedEvent = await Event.findByIdAndUpdate( id, { $set: updateFields }, { new: true, runValidators: true }).lean();
+    if (!updatedEvent) {
+      return res.status(404).json({ message: `Event with id ${id} not found` });
+    }
+    if ('recurrence' in updateFields) {
+      await EventService.expandRecurringEvents(); // re-cache
+    }
+    res.status(200).json({ message: 'Record updated successfully', event: updatedEvent });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
 
 /*
 #swagger.tags = ['Events']
@@ -196,5 +189,58 @@ router.put('/update-checkin-status/:id', async (req, res) => {
         console.error('Error updating check-in status:', err);
         res.status(500).json({ error: 'Server error occurred while updating check-in status.' });
     }
+});
+
+router.get('/main/find/:id', async(req, res) => {
+    const { id } = req.params;
+    const event = await Event.findById(id);
+    if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
+    res.json({ event });
+});
+
+router.get('/main/list', async(req, res) => {
+    try {
+        const church = req.church;
+        const inputDate = new Date(req.query.date || new Date());
+        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1); //{date: { $gte: start }};
+        const filter = {endDate: { $gte: start }};
+        if (church?._id) {
+            filter.church = church._id;
+        }
+        const events = await Event.find(filter).sort({ date: 1 });
+        res.status(200).json({ events });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/*
+#swagger.tags = ['Events']
+*/
+router.get('/findByDate/:date/:church', async(req, res) => {
+    const { church, date, to } = req.params;
+    const event = await EventService.getEvents({ from:date,to, church });
+    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
+    res.json({ event });
+});
+/*
+#swagger.tags = ['Events']
+*/
+router.get('/findByDate/:date', async(req, res) => {
+    const { church, date, to } = req.params;
+    const event = await EventService.getEvents({ from:date,to, church });
+    if (!event){ return res.status(event.code || 500).json({  error: event.error , message: `Event with date ${date} not found` });}
+    res.json({ event });
+});
+/*
+#swagger.tags = ['Events']
+*/
+router.get('/events', async (req, res) => {
+  const { from, to, church } = req.query;
+  const result = await EventService.getEvents({ from, to, church });
+  if (!result.success) {
+    return res.status(result.code || 500).json({ error: result.error });
+  }
+  res.json(result);
 });
 module.exports = router;

@@ -1924,116 +1924,6 @@
         }
       }
     },
-    "/events/findByDate/{date}/{church}": {
-      "get": {
-        "tags": [
-          "events"
-        ],
-        "summary": "Get /events/findByDate/{date}/{church}",
-        "parameters": [
-          {
-            "name": "date",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced events"
-          },
-          {
-            "name": "church",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced events"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/events"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/events/findByDate/{date}": {
-      "get": {
-        "tags": [
-          "events"
-        ],
-        "summary": "Get /events/findByDate/{date}",
-        "parameters": [
-          {
-            "name": "date",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced events"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/events"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/events/events": {
-      "get": {
-        "tags": [
-          "events"
-        ],
-        "summary": "Get /events/events",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/events"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
     "/events/upcoming": {
       "get": {
         "tags": [
@@ -2062,11 +1952,11 @@
       }
     },
     "/events/update/{id}": {
-      "put": {
+      "patch": {
         "tags": [
           "events"
         ],
-        "summary": "Put /events/update/{id}",
+        "summary": "Patch /events/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -2199,6 +2089,180 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/events"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/events/main/find/{id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get /events/main/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/events"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/events/main/list": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get /events/main/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/events"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/events/findByDate/{date}/{church}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get /events/findByDate/{date}/{church}",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced events"
+          },
+          {
+            "name": "church",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/events"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/events/findByDate/{date}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get /events/findByDate/{date}",
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced events"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/events"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/events/events": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get /events/events",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -2996,6 +3060,80 @@
         }
       }
     },
+    "/notifications/batch": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Post /notifications/batch",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/notifications"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notifications"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/notifications/status/{batchId}": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get /notifications/status/{batchId}",
+        "parameters": [
+          {
+            "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced notifications"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notifications"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/payment/create": {
       "post": {
         "tags": [
@@ -3412,6 +3550,43 @@
         "parameters": [
           {
             "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced settings"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/settings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/settings/findByKey/{key}": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get /settings/findByKey/{key}",
+        "parameters": [
+          {
+            "name": "key",
             "in": "path",
             "required": true,
             "schema": {
@@ -4207,6 +4382,33 @@
         }
       }
     },
+    "/user/search": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get /user/search",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/user/findByUid/{firebaseId}": {
       "get": {
         "tags": [
@@ -4387,6 +4589,191 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/create": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/find/{id}": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/update/{id}": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/list": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Delete /Root/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
                 }
               }
             }
@@ -5020,7 +5407,9 @@
             "type": "string"
           },
           "location": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
           },
           "flier": {
             "type": "string"
@@ -5089,7 +5478,6 @@
           "endTime",
           "allowKidsCheckin",
           "rsvp",
-          "checkinStartTime",
           "recurrence.frequency"
         ]
       },
@@ -5113,7 +5501,9 @@
             "type": "string"
           },
           "location": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
           },
           "flier": {
             "type": "string"
@@ -5403,6 +5793,119 @@
         "required": [
           "name",
           "baseCost"
+        ]
+      },
+      "NotificationStatus": {
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "default": "sent"
+          },
+          "details": {
+            "type": "object",
+            "properties": {}
+          },
+          "deliveryTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providerMessageId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "batchId",
+          "recipient",
+          "status"
+        ]
+      },
+      "Notifications": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "author": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "push",
+              "email",
+              "voice"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "firebase",
+              "sendpulse",
+              "twilio"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "default": "pending"
+          },
+          "totalRecipients": {
+            "type": "number"
+          },
+          "successCount": {
+            "type": "number",
+            "default": 0
+          },
+          "failedCount": {
+            "type": "number",
+            "default": 0
+          },
+          "content.subject": {
+            "type": "string"
+          },
+          "content.body": {
+            "type": "string"
+          },
+          "jobQueueId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "author",
+          "type",
+          "provider",
+          "status",
+          "totalRecipients",
+          "content.body"
         ]
       },
       "Payment": {
@@ -5728,6 +6231,13 @@
           "pushToken": {
             "type": "string"
           },
+          "muteNotifications": {
+            "type": "boolean",
+            "default": false
+          },
+          "lastUsedToken": {
+            "type": "string"
+          },
           "adminAt": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{24}$",
@@ -5762,6 +6272,27 @@
           "phoneNumber",
           "address",
           "firebaseId"
+        ]
+      },
+      "Venue": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "church"
         ]
       },
       "CheckInChildItem": {

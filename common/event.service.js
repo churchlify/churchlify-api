@@ -3,21 +3,54 @@ const user = require('../models/user');
 const Event = require('../models/event');
 const EventInstance = require('../models/eventinstance');
 const { addDays, addMonths, addYears } = require('date-fns');
+const addWeek = (date, weeks = 1) => addDays(date, weeks * 7);
 
 class EventService {
+
+flattenObject(obj, prefix = '', result = {}) {
+  for (const key in obj) {
+    const value = obj[key];
+    const path = prefix ? `${prefix}.${key}` : key;
+
+    if (Array.isArray(value)) {
+      result[path] = value; // ✅ preserve arrays
+    } else if (value !== null && typeof value === 'object') {
+      this.flattenObject(value, path, result); // recurse
+    } else {
+      result[path] = value;
+    }
+  }
+  return result;
+}
+
+ getFirstMatchingWeekday(startDate, daysOfWeek) {
+  const start = new Date(startDate);
+  const maxLookahead = 7; // one week
+
+  for (let i = 0; i < maxLookahead; i++) {
+    const candidate = new Date(start);
+    candidate.setDate(start.getDate() + i);
+    if (daysOfWeek.includes(candidate.getDay())) {
+      return candidate;
+    }
+  }
+
+  return start; // fallback if no match (shouldn't happen)
+}
 
 async expandRecurringEvents() {
 
   const now = new Date();
-  const futureLimit = addDays(now, 60);
+  const futureLimit = addDays(now, 365);
   const events = await Event.find({ isRecurring: true });
 
   for (const event of events) {
     const { recurrence, startDate, startTime, endTime } = event;
-
+    console.log(`Expanding event ${event._id} (${event.title}) with recurrence:`, recurrence);
     let occurrences = [];
-    let current = new Date(startDate);
-
+    //let current = new Date(startDate);
+    let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || []);
+    console.log({current});
     while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
       const weekday = current.getDay();
 
@@ -26,7 +59,7 @@ async expandRecurringEvents() {
         current = addDays(current, recurrence.interval);
       } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
         occurrences.push(new Date(current));
-        current = addDays(current, 1); // check next day
+        current = addWeek(current, recurrence.interval); // check next day
       } else if (recurrence.frequency === 'MONTHLY') {
         occurrences.push(new Date(current));
         current = addMonths(current, recurrence.interval);

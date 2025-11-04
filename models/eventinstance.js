@@ -6,7 +6,7 @@ const eventInstanceSchema = new mongoose.Schema({
   church: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true },
   title: String,
   description: String,
-  location: String,
+  location: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue', required: false },
   flier: String,
   date: { type: Date, required: true },
   startTime: { type: String, required: true },

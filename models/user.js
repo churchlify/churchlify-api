@@ -2,8 +2,8 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const AddressSchema = require('./address');
-let church = require('./church');
 const validateRefs = require('../common/validateRefs');
+const applyUserHooks = require('../hooks/userHooks');
 
 const userSchema = new mongoose.Schema({
     church: {type: Schema.Types.ObjectId, ref: 'Church', index: true },
@@ -18,41 +18,12 @@ const userSchema = new mongoose.Schema({
     address: { type: AddressSchema, required: true},
     photoUrl: {type: String},
     pushToken: {type: String},
+    muteNotifications: { type: Boolean, default: false },
+    lastUsedToken: { type: String },
     adminAt: {type: Schema.Types.ObjectId, ref: 'Church'},
     firebaseId: { type: String, required: [true, 'firebaseId is required'], unique: true, trim: true },
     role: { type: String, enum: ['super', 'member', 'admin'], default: 'member' }
 }, { timestamps: true });
-
-userSchema.pre('save', async function (next) {
-    if (this.isNew || this.isModified('church')) {
-        try {
-            if (this.church) {
-                const error = new Error('Invalid Church reference.');
-                if (typeof church === 'undefined' || typeof church === undefined) {church = require('./church') ;}
-                return await church.findById(this.church) ? next() : next(error);
-              } else{
-                next();
-              }
-        } catch (err) {
-            return next(err);
-        }
-    } else {
-        next(); // Skip validation if no change in Church reference
-    }
-});
-
-userSchema.pre('findOneAndUpdate', async function (next) {
-    try {
-        const update = this.getUpdate();
-        if (update.$set && update.$set.church) {
-            const error = new Error('Invalid Church reference.');
-            if (!church)  { church = require('./church'); }
-            return  await church.findById(update.$set.church) ? next() : next(error);
-        }
-    } catch (err) {
-        return next(err);
-    }
-});
 
 userSchema.plugin(validateRefs, {
   refs: [
@@ -60,4 +31,6 @@ userSchema.plugin(validateRefs, {
     { field: 'adminAt', model: 'Church' }
   ]
 });
+applyUserHooks(userSchema);
+
 module.exports = mongoose.model('User', userSchema);

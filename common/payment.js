@@ -10,7 +10,7 @@ const PAYSTACK_API = 'https://api.paystack.co';
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
 const fetch = require('node-fetch');
 const axios = require('axios');
-const arrSecrets = ['stripe','paypal','paystack','payment'];
+const arrSecrets = ['stripe','paypal','paystack','payment','payment_card'];
  
  const generateUniqueReference = (timestamp = Date.now()) => {
   const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();

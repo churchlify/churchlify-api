@@ -1,59 +1,134 @@
-const admin = require('firebase-admin');
+const { messaging } = require('../common/firebase');
+const Assignment = require('../models/assignment');
+const User = require('../models/user');
 
-const serviceAccount = JSON.parse(
-  Buffer.from(process.env.GOOGLE_CLOUD_CREDENTIALS, 'base64').toString('utf-8')
-);
+function TopicManager() {}
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
+TopicManager.topics = {
+  church: function (churchId) {
+    return 'church_' + churchId;
+  },
+  leaders: function (churchId) {
+    return 'church_' + churchId + '_leaders';
+  },
+  ministry: function (ministryId) {
+    return 'ministry_' + ministryId;
+  },
+  fellowship: function (fellowshipId) {
+    return 'fellowship_' + fellowshipId;
+  },
+};
 
 /**
- * Sends a welcome notification to a new FCM topic.
- * @param {string} topicName - The name of the FCM topic to create.
- * @param {string} title - Notification title.
- * @param {string} body - Notification body.
- * @returns {Promise<void>}
+ * Subscribe a user to all topics related to their assignments and church
  */
-const createFcmTopic = async (topicName, title = 'New Topic Created', body = 'Welcome!') => {
-  try {
-    await admin.messaging().send({
-      topic: topicName,
-      notification: {
-        title,
-        body,
-      },
+TopicManager.subscribeUserToAssignments = function (userId, churchId) {
+  return User.findById(userId)
+    .then(function (user) {
+      if (!user || !user.pushToken) {return;}
+      var token = user.pushToken;
+      return Assignment.find({ userId: userId, churchId: churchId }).then(function (assignments) {
+        var topics = new Set([TopicManager.topics.church(churchId)]);
+
+        assignments.forEach(function (assignment) {
+          if (assignment.ministryId) {topics.add(TopicManager.topics.ministry(assignment.ministryId));}
+          if (assignment.fellowshipId) {topics.add(TopicManager.topics.fellowship(assignment.fellowshipId));}
+          if (assignment.role === 'leader') {topics.add(TopicManager.topics.leaders(churchId));}
+        });
+
+        var promises = [];
+        topics.forEach(function (topic) {
+          promises.push(
+            messaging
+              .subscribeToTopic(token, topic)
+              .then(function () {
+                console.log('✅ User ' + userId + ' subscribed to ' + topic);
+              })
+              .catch(function (err) {
+                console.error('❌ Failed to subscribe ' + userId + ' to ' + topic + ':', err.message);
+              })
+          );
+        });
+
+        return Promise.all(promises);
+      });
+    })
+    .catch(function (err) {
+      console.error('[TopicManager.subscribeUserToAssignments] Error:', err.message);
     });
-    console.log(`✅ FCM topic '${topicName}' created and notification sent.`);
-  } catch (err) {
-    console.error(`❌ Failed to create FCM topic '${topicName}':`, err.message);
-    throw err;
-  }
 };
 
 /**
- * Subscribes user tokens to a given FCM topic based on role.
- * @param {string[]} tokens - Array of FCM device tokens.
- * @param {string} topic - Sanitized topic name.
- * @param {string[]} allowedRoles - Roles eligible for subscription.
- * @param {Object[]} users - Array of user objects with `role` and `token`.
+ * Unsubscribe a user from all topics related to their assignments and church
  */
-const subscribeUsersToTopic = async (tokens, topic, allowedRoles, users) => {
-  const eligibleTokens = users
-    .filter(user => allowedRoles.includes(user.role) && tokens.includes(user.token))
-    .map(user => user.token);
+TopicManager.unsubscribeUserFromAssignments = function (userId, churchId) {
+  return User.findById(userId)
+    .then(function (user) {
+      if (!user || !user.pushToken) {return;}
+      let token = user.pushToken;
+      return Assignment.find({ userId: userId, churchId: churchId }).then(function (assignments) {
+        var topics = new Set([TopicManager.topics.church(churchId)]);
 
-  if (eligibleTokens.length === 0) {return;}
+        assignments.forEach(function (assignment) {
+          if (assignment.ministryId) {topics.add(TopicManager.topics.ministry(assignment.ministryId));}
+          if (assignment.fellowshipId){ topics.add(TopicManager.topics.fellowship(assignment.fellowshipId));}
+          if (assignment.role === 'leader'){ topics.add(TopicManager.topics.leaders(churchId));}
+        });
 
-  try {
-    await admin.messaging().subscribeToTopic(eligibleTokens, topic);
-    console.log(`✅ Subscribed ${eligibleTokens.length} users to topic '${topic}'`);
-  } catch (err) {
-    console.error(`❌ Subscription failed for topic '${topic}':`, err.message);
-    throw err;
-  }
+        let promises = [];
+        topics.forEach(function (topic) {
+          promises.push(
+            messaging
+              .unsubscribeFromTopic(token, topic)
+              .then(function () {
+                console.log('🚫 User ' + userId + ' unsubscribed from ' + topic);
+              })
+              .catch(function (err) {
+                console.error('❌ Failed to unsubscribe ' + userId + ' from ' + topic + ':', err.message);
+              })
+          );
+        });
+
+        return Promise.all(promises);
+      });
+    })
+    .catch(function (err) {
+      console.error('[TopicManager.unsubscribeUserFromAssignments] Error:', err.message);
+    });
 };
 
-module.exports = {  createFcmTopic, subscribeUsersToTopic };
+/**
+ * Logically remove a group's topic (used when a ministry/fellowship is deleted)
+ */
+TopicManager.removeGroupTopic = function (groupType, groupId) {
+  var topic =
+    groupType === 'ministry' ? TopicManager.topics.ministry(groupId) : TopicManager.topics.fellowship(groupId);
+  console.log('🧹 Topic logically removed: ' + topic);
+};
+
+/**
+ * Subscribe/unsubscribe user from leader topic when role changes
+ */
+TopicManager.updateUserRole = function (userId, churchId, newRole) {
+  return User.findById(userId)
+    .then(function (user) {
+      if (!user || !user.pushToken) {return;}
+      var token = user.pushToken;
+      var leaderTopic = TopicManager.topics.leaders(churchId);
+
+      if (newRole === 'leader') {
+        return messaging.subscribeToTopic(token, leaderTopic).then(function () {
+          console.log('✅ User ' + userId + ' added to leader topic');
+        });
+      } else {
+        return messaging.unsubscribeFromTopic(token, leaderTopic).then(function () {
+          console.log('🚫 User ' + userId + ' removed from leader topic');
+        });
+      }
+    })
+    .catch(function (err) {
+      console.error('[TopicManager.updateUserRole] Error:', err.message);
+    });
+};
+
+module.exports = TopicManager;

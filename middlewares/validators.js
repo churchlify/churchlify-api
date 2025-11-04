@@ -2,6 +2,7 @@ const { body, validationResult, check } = require('express-validator');
 const mongoose = require('mongoose');
 // const Church = require('../models/church');
 // const User = require('../models/user');
+// body('description').optional().i().withMessage('Description is required'),
 const validateUser = () => [
     body('church').optional().notEmpty().withMessage('Please provide affiliated church'),
     body('adminAt').optional().notEmpty().withMessage('Please provide Admin\'s church'),
@@ -57,7 +58,6 @@ const validateEvent = () => [
     body('church').notEmpty().withMessage('Church is required'),
     body('createdBy').notEmpty().withMessage('Invalid user or permission'),
     body('title').notEmpty().withMessage('Title is required'),
-    body('description').notEmpty().withMessage('Description is required'),
     body('startDate').isDate({format: 'YYYY-MM-DD'}).withMessage('Start Date must be date with YYYY-MM-DD format'),
     body('startTime').custom((value) => {
         if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) { throw new Error('Value must be time with HH:MM format');}
@@ -103,6 +103,22 @@ const validateMinistry = () => [
     body('leaderId').optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid leader ID'),
     body('name').notEmpty().withMessage('Name is required'),
     body('description').optional().notEmpty().withMessage('Description cannot be empty'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateNotification = () => [
+    body('recipients').notEmpty().withMessage('Recipients is required'),
+    body('author').custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage('Please provide a valid User ID'),
+    body('type').notEmpty().withMessage('Notification type is required'),
+    body('provider').notEmpty().withMessage('Notification provider is required'),
+    body('content.body').notEmpty().withMessage('Notification Body is required'),
+    body('content.subject').notEmpty().withMessage('Subject / Body is required'),
     (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -332,4 +348,4 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
-    validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem};
+    validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification};
