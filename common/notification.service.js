@@ -144,7 +144,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
       const allResponses = [];
 
       for (const chunk of tokenChunks) {
-        const { subject, body, data = {} } = content;
+        const { subject, body, data } = content;
         const messages = chunk.map(function (token) {
           return {
             token: token,
@@ -200,7 +200,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
         console.log(`✅ Sent message to topic '${topic}' — ID: ${messageId}`);
         results.push({ topic, success: true, messageId });
       } catch (err) {
-        console.error(`❌ Failed to send to topic '${topic}': ${err.message}`);
+        console.error(`❌ Failed to send to topic '${topic}': ${err.message} || ${message.data}`);
         results.push({ topic, success: false, error: err.message });
       }
     }
@@ -217,7 +217,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
 
 /**
  * Sends a batch of emails via SendPulse.
- * @param {string[]} emails - Array of recipient email addresses.
+ * @param {string[]} to - Array of recipient group ids.
  * @param {object} content - Email content (subject, body/html).
  * @returns {Promise<object[]>} - Array of simplified results for each email.
  */

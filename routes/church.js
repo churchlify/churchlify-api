@@ -155,6 +155,45 @@ router.get('/list', async(req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+router.get('/search', async (req, res) => {
+  try {
+    const { search = '', page = 0, limit = 25 } = req.query;
+
+    // Convert page/limit to numbers
+    const pageNum = parseInt(page, 10) || 0;
+    const limitNum = parseInt(limit, 10) || 25;
+
+    // Create case-insensitive search filter
+    const searchFilter = search ? {
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { 'address.city': { $regex: search, $options: 'i' } },
+            { 'address.state': { $regex: search, $options: 'i' } },
+            { 'address.country': { $regex: search, $options: 'i' } },
+          ],
+        } : {};
+
+    // Fetch paginated results
+    const churches = await Church.find(searchFilter)
+      .sort({ name: 1 })
+      .skip(pageNum * limitNum)
+      .limit(limitNum);
+
+    // Optional: get total count for client pagination
+    const total = await Church.countDocuments(searchFilter);
+
+    res.status(200).json({
+      churches,
+      total,
+      page: pageNum,
+      hasMore: (pageNum + 1) * limitNum < total,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 /*
 #swagger.tags = ['Church']
 */

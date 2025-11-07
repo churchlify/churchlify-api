@@ -25,7 +25,7 @@ router.post('/create', validateTestimony(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const testimony = await Testimony.findById(id).populate('church');
+    const testimony = await Testimony.findById(id).populate('author');
     if (!testimony) {return res.status(404).json({ message: `Testimony with id ${id} not found` });}
     res.json({ testimony });
 });
@@ -53,7 +53,7 @@ router.get('/list', async(req, res) => {
         const church = req.church;
         let filter = {};
         if(church) { filter.church = church._id; }
-        const testimonies = await Testimony.find(filter).populate('church');
+        const testimonies = await Testimony.find(filter).populate('author');
         res.status(200).json({ testimonies });
     } catch (error) {
         res.status(500).json({ message: error.message });

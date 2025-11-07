@@ -221,7 +221,6 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
                 return res.status(422).json({ errors: [{ msg: `Email ${updateObject.email} already registered by another user.` }] });
             }
         }
-        console.log({updateObject});
 
         const updatedUser = await User.findByIdAndUpdate(
             id,
