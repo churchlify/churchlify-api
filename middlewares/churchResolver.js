@@ -6,7 +6,7 @@ const cache = new Map();
 
 exports.churchResolver = async (req, res, next) => {
     const host = req.headers[CHURCH_HEADER] || req.query[CHURCH_QUERY];
-      if (req.path.includes('/findByUid')) {
+      if (req.path.includes('/findByUid') || (req.path.includes('/user/create') && req.body.role === 'admin' )) {
         return next();
     }
     if (!host) {
