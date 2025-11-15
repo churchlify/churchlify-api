@@ -31,13 +31,19 @@ jobs:
             echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
             echo "EMAIL=${{ secrets.EMAIL }}" >> .env
             echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
+            echo "EMAIL_CLIENT_ID=${{ secrets.EMAIL }}" >> .env
+            echo "EMAIL_CLIENT_SECRET=${{ secrets.EMAIL_PASS }}" >> .env
             echo "TURN_SECRET=${{ secrets.TURN_SECRET }}" >> .env
             echo "REMOTE_HOST=${{ secrets.REMOTE_DEV_HOST }}" >> .env 
+            echo "API_BASE_URL=${{ secrets.REMOTE_DEV_HOST }}" >> .env 
             echo "API_BASE_URL=${{ secrets.DEV_BASE_URL }}" >> .env 
             echo "ENCRYPTION_KEY_V1=${{ secrets.ENCRYPTION_KEY_V1 }}" >> .env
             echo "ENCRYPTION_KEY_V2=${{ secrets.ENCRYPTION_KEY_V2 }}" >> .env
             echo "ENCRYPTION_KEY_V3=${{ secrets.ENCRYPTION_KEY_V3 }}" >> .env 
             echo "ENCRYPTION_KEY_V4=${{ secrets.ENCRYPTION_KEY_V4 }}" >> .env 
+            echo "FRONTEND_URL=${{ secrets.FRONTEND_URL }}" >> .env
+            echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env 
+            echo "EMAIL_API_URL=${{ secrets.EMAIL_API_URL }}" >> .env 
 
             # Ensure coturn directory exists
             mkdir -p coturn
