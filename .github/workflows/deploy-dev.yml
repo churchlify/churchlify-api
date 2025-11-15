@@ -34,8 +34,8 @@ jobs:
             echo "EMAIL_CLIENT_ID=${{ secrets.EMAIL }}" >> .env
             echo "EMAIL_CLIENT_SECRET=${{ secrets.EMAIL_PASS }}" >> .env
             echo "TURN_SECRET=${{ secrets.TURN_SECRET }}" >> .env
-            echo "REMOTE_HOST=${{ secrets.REMOTE_DEV_HOST }}" >> .env 
-            echo "API_BASE_URL=${{ secrets.REMOTE_DEV_HOST }}" >> .env 
+            echo "REMOTE_HOST=${{ secrets.DEV_BASE_URL }}" >> .env 
+            echo "API_BASE_URL=${{ secrets.DEV_BASE_URL }}" >> .env 
             echo "ENCRYPTION_KEY_V1=${{ secrets.ENCRYPTION_KEY_V1 }}" >> .env
             echo "ENCRYPTION_KEY_V2=${{ secrets.ENCRYPTION_KEY_V2 }}" >> .env
             echo "ENCRYPTION_KEY_V3=${{ secrets.ENCRYPTION_KEY_V3 }}" >> .env 
