@@ -94,7 +94,7 @@ router.get('/upcoming', async (req, res) => {
         const church = req.church;
         let filter = {date: { $gte: now }};
         if(church) { filter.church = church._id; }
-        const event = await EventInstance.findOne(filter).sort({ date: 1 });
+        const event = await EventInstance.findOne(filter).populate('location').sort({ date: 1 });
         res.json({ event});
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
@@ -141,7 +141,7 @@ router.get('/list', async(req, res) => {
             filter.church = church._id;
         }
        // const end = new Date(req.query.end || new Date(Date.now() + 1000 * 60 * 60 * 24 * 30));
-        const events = await EventInstance.find(filter).sort({ date: 1 });
+        const events = await EventInstance.find(filter).populate('location').sort({ date: 1 });
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });

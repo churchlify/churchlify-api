@@ -40,6 +40,8 @@ const timezoneRoutes = require('./routes/timezone');
 const webhookRoutes = require('./routes/webhook');
 const uploadRoutes = require('./routes/upload');
 const notificationsRoutes = require('./routes/notifications');
+const livestreamRoutes = require('./routes/livestream');
+const verificationRoutes = require('./routes/verification');
 
 // Swagger
 const swaggerFile = require('./swagger/swagger.json');
@@ -81,6 +83,7 @@ app.use(authenticateFirebaseToken);
 // Church-based routes
 app.use(churchResolver);
 app.use('/notifications', notificationsRoutes);
+app.use('/verify', verificationRoutes);
 app.use('/user', userRoutes);
 app.use('/assignment', assignmentRoutes);
 app.use('/event', eventRoutes);
@@ -97,6 +100,7 @@ app.use('/payment', paymentRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/chat', chatRoutes);
 app.use('/donations', donationRoutes);
+app.use('/livestream', livestreamRoutes);
 
 // Error handling
 app.use((req, res, next) => {

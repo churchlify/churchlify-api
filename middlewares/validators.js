@@ -338,6 +338,23 @@ const validateAssignment = () => [
     }
     ];
 
+   const validateVerification = () => [
+        body('churchId').notEmpty().withMessage('Church ID is required').custom((value) => {
+                if (!mongoose.Types.ObjectId.isValid(value)) {
+                    throw new Error('Invalid Church ID');
+                }
+                return true;
+            }),
+        body('incorporationNumber').trim().notEmpty().withMessage('Incorporation Number is required'),
+        (req, res, next) => {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
+            next();
+        }
+    ];
+
 const validateObjectId = () => [
     check('id').optional().isMongoId().withMessage('Invalid Object Id provided'),
     check('church').optional().isMongoId().withMessage('Invalid Object Id, provide valid church ID'),
@@ -346,6 +363,6 @@ const validateObjectId = () => [
 ];
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId,
+module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, validateVerification,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
     validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification};

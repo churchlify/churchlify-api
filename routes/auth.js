@@ -3,6 +3,7 @@
 */
 // routes/auth.js
 const {authenticateFirebaseToken} = require('../middlewares/auth');
+const { auth } = require('../common/firebase');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -42,6 +43,30 @@ router.post('/login', async (req, res) => {
     res.json({ token });
 });
 
+router.post('/mintToken', async (req, res) => {
+ const idToken = req.body.idToken; 
+  if (!idToken) {
+    return res.status(400).send({ error: 'ID Token required.' });
+  }
+
+  try {
+    const decodedToken = await auth.verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+    const customToken = await auth.createCustomToken(uid);
+    console.log(`Successfully minted Custom Token for user: ${uid}`);
+    return res.status(200).send({ 
+      customToken: customToken 
+    });
+
+  } catch (error) {
+    console.error('Error minting custom token:', error);
+    return res.status(500).send({ 
+      error: 'Failed to mint custom token.',
+      details: error.message 
+    });
+  }
+});
+
 router.post('/sign-url/:url', async (req, res) => {
     const { 'x-church':churchId, 'x-user':userId } = req.body;
     const {url} = req.params;
@@ -67,4 +92,16 @@ router.post('/verify-url/', async (req, res) => {
     }
 });
 
+router.get('/validateToken', async (req, res) => {
+  try {
+    const token = req.query.token;
+    if (!token){ return res.status(400).json({ valid: false, message: 'Missing token' });}
+    const decoded = await auth.verifyIdToken(token);
+
+    return res.json({ valid: true, uid: decoded.uid, email: decoded.email });
+  } catch (err) {
+    console.warn('Token validation failed:', err.message);
+    return res.status(401).json({ valid: false, message: 'Invalid or expired token' });
+  }
+});
 module.exports = router;
