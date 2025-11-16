@@ -7,7 +7,6 @@ const Fellowship = require('../models/fellowship');
 const {validateFellowship} = require('../middlewares/validators');
 const router = express.Router();
 router.use(express.json());
-const {createFcmTopic} = require('../common/push.service');
 /*
 #swagger.tags = ['Fellowship']
 */
@@ -16,8 +15,6 @@ router.post('/create', validateFellowship(), async(req, res) => {
     const newItem = new Fellowship({ church, name, description, leaderId, address  , dayOfWeek, meetingTime });
     try {
       await newItem.save();
-      const topic = `fellowship_${newItem._id}`;
-      await createFcmTopic(topic, 'New Fellowship Created', `Welcome to ${name}!`);
       res.status(201).json({ message: 'Fellowship registered successfully', fellowship: newItem });
     } catch (err) {
         res.status(500).json({ error: err.message });

@@ -7,7 +7,6 @@ const Ministry = require('../models/ministry');
 const {validateMinistry} = require('../middlewares/validators');
 const router = express.Router();
 router.use(express.json());
-const {createFcmTopic} = require('../common/push.service');
 /*
 #swagger.tags = ['Ministry']
 */
@@ -16,8 +15,6 @@ router.post('/create', validateMinistry(), async(req, res) => {
     const newItem = new Ministry({ church, name, description, leaderId });
     try {
       await newItem.save();
-      const topic = `ministry_${newItem._id}`;
-      await createFcmTopic(topic, 'New Ministry Created', `Welcome to ${name}!`);
       res.status(201).json({ message: 'Ministry registered successfully', ministry: newItem });
     } catch (err) {
         res.status(500).json({ error: err.message });
