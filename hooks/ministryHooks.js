@@ -1,4 +1,4 @@
-const TopicManager = require('../common/push.helper');
+const TopicManager = require('../common/push.helper'); // helper has the unsubscribe method
 
 function applyMinistryHooks(schema) {
   schema.post('findOneAndDelete', async function (doc) {

@@ -1,5 +1,5 @@
 // hooks/userHooks.js
-const TopicManager = require("../common/push.helper");
+const TopicManager = require("../common/push.helper"); // helper has the unsubscribe method
 let Church;
 
 function getChurchModel() {
