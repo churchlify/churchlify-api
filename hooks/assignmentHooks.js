@@ -1,11 +1,18 @@
-// hooks/assignmentHooks.js
 const TopicManager = require('../common/push.helper');
-const User = require('../models/user');
+let User;
+
+function getUserModel() {
+  if (!User) {
+    User = require('../models/user');
+  }
+  return User;
+}
 
 function applyAssignmentHooks(schema) {
   schema.post('save', async function(doc) {
     try {
-      const user = await User.findById(doc.userId);
+      const UserModel = getUserModel();
+      const user = await UserModel.findById(doc.userId);
       if (!user?.pushToken || user.muteNotifications) {return;}
 
       await TopicManager.subscribeUserToAssignments(doc.userId, doc.churchId);
@@ -16,11 +23,12 @@ function applyAssignmentHooks(schema) {
   });
 
   schema.post('findOneAndUpdate', async function(doc) {
-    if (!doc){ return;}
+    if (!doc) {return;}
     try {
       const updatedDoc = await this.model.findById(doc._id);
-      const user = await User.findById(updatedDoc.userId);
-      if (!user?.pushToken || user.muteNotifications){ return;}
+      const UserModel = getUserModel();
+      const user = await UserModel.findById(updatedDoc.userId);
+      if (!user?.pushToken || user.muteNotifications) {return;}
 
       await TopicManager.subscribeUserToAssignments(updatedDoc.userId, updatedDoc.churchId);
       console.log(`[Hook:Assignment:findOneAndUpdate] User ${updatedDoc.userId} updated subscriptions.`);
@@ -30,9 +38,10 @@ function applyAssignmentHooks(schema) {
   });
 
   schema.post('findOneAndDelete', async function(doc) {
-    if (!doc) {return;}
+    if (!doc){ return;}
     try {
-      const user = await User.findById(doc.userId);
+      const UserModel = getUserModel();
+      const user = await UserModel.findById(doc.userId);
       if (!user?.pushToken){ return;}
 
       await TopicManager.unsubscribeUserFromAssignments(doc.userId, doc.churchId);
