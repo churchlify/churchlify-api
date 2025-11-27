@@ -102,6 +102,17 @@ const fetchEmails = async (recipients, type) => {
   return emails;
 };
 
+function stringifyData(data = {}) {
+  const result = {};
+  for (const key in data) {
+    const value = data[key];
+    // If already a string, keep it
+    // Otherwise, stringify
+    result[key] = typeof value === 'string' ? value : JSON.stringify(value);
+  }
+  return result;
+}
+
 /**
  * Sends push notifications to either:
  * - multiple FCM tokens (batched automatically, max 500 per request)
@@ -192,7 +203,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
           title: content.subject,
           body: content.body,
         },
-        data: content.data || {},
+        data: stringifyData(content.data || {}),
       };
 
       try {
