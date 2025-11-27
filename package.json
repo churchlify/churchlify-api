@@ -14,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@influxdata/influxdb-client": "^1.35.0",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "axios": "^1.12.2",
     "bcrypt": "^5.1.1",
@@ -33,6 +34,7 @@
     "moment-timezone": "^0.5.34",
     "mongoose": "^8.8.0",
     "mongoose-to-swagger": "^1.5.1",
+    "morgan": "^1.10.1",
     "multer": "^1.4.5-lts.1",
     "recast": "^0.23.11",
     "rrule": "^2.8.1",
@@ -42,6 +44,8 @@
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {

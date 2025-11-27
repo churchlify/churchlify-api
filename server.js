@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const path = require('path');
+const morgan = require('morgan');
+const logger = require('./logger/logger');
 
 // Config + DB + Socket
 const { connectDB } = require('./config/db');
@@ -56,6 +58,15 @@ app.use(cors());
 app.use(skipJsonForUploads);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Send simplified access logs to Winston
+app.use(
+  morgan('combined', {
+    stream: {
+      write: (message) => logger.info(message.trim())
+    }
+  })
+);
+
 
 // Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'files_upload')));
