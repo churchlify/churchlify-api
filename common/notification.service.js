@@ -200,6 +200,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
         console.log(`✅ Sent message to topic '${topic}' — ID: ${messageId}`);
         results.push({ topic, success: true, messageId });
       } catch (err) {
+        console.log(JSON.stringify(message, null, 2));
         console.error(`❌ Failed to send to topic '${topic}': ${err.message} || ${message.data}`);
         results.push({ topic, success: false, error: err.message });
       }
