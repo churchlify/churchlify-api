@@ -10,6 +10,8 @@ function getUserModel() {
 }
 
 function buildTopicsFromAssignment(doc, churchId) {
+  console.log('Building topics from assignment:', doc);
+  console.log('Using churchId:', churchId);
   const topics = new Set([TopicManager.topics.church(churchId)]);
   if (doc.ministryId) {topics.add(TopicManager.topics.ministry(doc.ministryId));}
   if (doc.fellowshipId) {topics.add(TopicManager.topics.fellowship(doc.fellowshipId));}
@@ -43,6 +45,7 @@ function applyAssignmentHooks(schema) {
 
       const churchId = user.church;
       const topics = buildTopicsFromAssignment(doc, churchId);
+      console.log('Subscribing user to topics after assignment update:', topics);
       await TopicManager.subscribeTokenToTopics(user.pushToken, topics);
       console.log(`[Hook:Assignment:update] User ${updatedDoc.userId} updated subscriptions.`);
     } catch (err) {
