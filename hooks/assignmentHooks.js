@@ -15,8 +15,8 @@ function buildTopicsFromAssignment(doc, churchId) {
   const topics = new Set([TopicManager.topics.church(churchId)]);
   if (doc.ministryId) {topics.add(TopicManager.topics.ministry(doc.ministryId));}
   if (doc.fellowshipId) {topics.add(TopicManager.topics.fellowship(doc.fellowshipId));}
-  if (doc.role === 'leader'){ topics.add(TopicManager.topics.leaders(doc.churchId));
-  return [...topics];}
+  if (doc.role === 'leader'){ topics.add(TopicManager.topics.leaders(doc.churchId));}
+  return [...topics];
 }
 
 function applyAssignmentHooks(schema) {
