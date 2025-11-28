@@ -11,6 +11,7 @@ const TopicManager = {
 
   async subscribeTokenToTopics(token, topics) {
     if (!token){ return;}
+    console.log('Subscribing token to topics:', topics);
     for (const topic of topics) {
       try {
         await messaging.subscribeToTopic(token, topic);
@@ -23,6 +24,7 @@ const TopicManager = {
 
   async unsubscribeTokenFromTopics(token, topics) {
     if (!token){ return;}
+    console.log('Unsubscribing token from topics:', topics);
     for (const topic of topics) {
       try {
         await messaging.unsubscribeFromTopic(token, topic);
