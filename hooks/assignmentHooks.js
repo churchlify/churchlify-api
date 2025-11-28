@@ -9,8 +9,8 @@ function getUserModel() {
   return User;
 }
 
-function buildTopicsFromAssignment(doc) {
-  const topics = new Set([TopicManager.topics.church(doc.churchId)]);
+function buildTopicsFromAssignment(doc, churchId) {
+  const topics = new Set([TopicManager.topics.church(churchId)]);
   if (doc.ministryId) {topics.add(TopicManager.topics.ministry(doc.ministryId));}
   if (doc.fellowshipId) {topics.add(TopicManager.topics.fellowship(doc.fellowshipId));}
   if (doc.role === 'leader'){ topics.add(TopicManager.topics.leaders(doc.churchId));
@@ -24,7 +24,8 @@ function applyAssignmentHooks(schema) {
       const user = await UserModel.findById(doc.userId);
       if (!user?.pushToken || user.muteNotifications){ return;}
 
-      const topics = buildTopicsFromAssignment(doc);
+      const churchId = user.church;
+      const topics = buildTopicsFromAssignment(doc, churchId);
       await TopicManager.subscribeTokenToTopics(user.pushToken, topics);
       console.log(`[Hook:Assignment:save] User ${doc.userId} subscribed to topics.`);
     } catch (err) {
@@ -40,7 +41,8 @@ function applyAssignmentHooks(schema) {
       const user = await UserModel.findById(updatedDoc.userId);
       if (!user?.pushToken || user.muteNotifications) {return;}
 
-      const topics = buildTopicsFromAssignment(updatedDoc);
+      const churchId = user.church;
+      const topics = buildTopicsFromAssignment(doc, churchId);
       await TopicManager.subscribeTokenToTopics(user.pushToken, topics);
       console.log(`[Hook:Assignment:update] User ${updatedDoc.userId} updated subscriptions.`);
     } catch (err) {
@@ -55,7 +57,8 @@ function applyAssignmentHooks(schema) {
       const user = await UserModel.findById(doc.userId);
       if (!user?.pushToken){ return;}
 
-      const topics = buildTopicsFromAssignment(doc);
+      const churchId = user.church;
+      const topics = buildTopicsFromAssignment(doc, churchId);
       await TopicManager.unsubscribeTokenFromTopics(user.pushToken, topics);
       console.log(`[Hook:Assignment:delete] User ${doc.userId} unsubscribed from topics.`);
     } catch (err) {
