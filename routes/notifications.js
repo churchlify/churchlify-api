@@ -1,11 +1,27 @@
 const express = require("express");
 const Notifications = require("../models/notifications");
+const Assignment = require("../models/assignment");
 const NotificationRecipient = require("../models/notificationStatus");
 const { validateNotification } = require("../middlewares/validators");
 const mongoose = require("mongoose");
 
 const router = express.Router();
 router.use(express.json());
+
+async function getUserTopicIds(userId, churchId) {
+  const assignments = await Assignment.find({
+    userId,
+    status: "approved"
+  }).lean();
+
+  const topicIds = [`church_${churchId.toString()}`];
+  assignments.forEach(a => {
+    if (a.ministryId){ topicIds.push(`ministry_${a.ministryId.toString()}`);}
+    if (a.fellowshipId){ topicIds.push(`fellowship_${a.fellowshipId.toString()}`);}
+  });
+
+  return Array.from(new Set(topicIds));
+}
 
 router.post("/batch", validateNotification(), async (req, res) => {
   try {
@@ -101,4 +117,71 @@ router.get("/status/:batchId", async (req, res) => {
     failedRecipients: failedRecipients,
   });
 });
+
+router.get("/missed", async (req, res) => {
+  try {
+    const { userId, since } = req.query;
+    const church = req.church;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user Id provided" });
+    }
+
+    const sinceDate = since ? new Date(since) : new Date(0);
+    const userTopicIds = await getUserTopicIds(userId, church._id); // function we defined earlier
+
+    if (!userTopicIds.length) {
+      return res.status(200).json({ notifications: [] });
+    }
+
+    const notifications = await Notifications.find({
+      "content.data.topicIds": { $in: userTopicIds },
+      createdAt: { $gt: sinceDate }
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const seen = new Set();
+    const uniqueNotifications = notifications.filter(n => {
+      if (seen.has(n.content.data.id)) {return false;}
+      seen.add(n.content.data.id);
+      return true;
+    });
+
+    res.status(200).json({ notifications: uniqueNotifications });
+
+  } catch (err) {
+    console.error("Error fetching missed notifications:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+router.get("/topics/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const church = req.church;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user identifier provided" });
+    }
+
+    const topicIds = [`church_${church._id.toString()}`];
+    const assignments = await Assignment.find({ userId, status: "approved" }).lean();
+
+    assignments.forEach(a => {
+      if (a.ministryId){ topicIds.push(`ministry_${a.ministryId.toString()}`);}
+      if (a.fellowshipId){ topicIds.push(`fellowship_${a.fellowshipId.toString()}`);}
+    });
+
+    const topicSet = Array.from(new Set(topicIds));
+
+    res.status(200).json({ topicIds: topicSet });
+  } catch (err) {
+    console.error("Error fetching user topics:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 module.exports = router;
