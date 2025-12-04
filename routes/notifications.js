@@ -11,13 +11,17 @@ router.use(express.json());
 async function getUserTopicIds(userId, churchId) {
   const assignments = await Assignment.find({
     userId,
-    status: "approved"
+    status: "approved",
   }).lean();
 
   const topicIds = [`church_${churchId.toString()}`];
-  assignments.forEach(a => {
-    if (a.ministryId){ topicIds.push(`ministry_${a.ministryId.toString()}`);}
-    if (a.fellowshipId){ topicIds.push(`fellowship_${a.fellowshipId.toString()}`);}
+  assignments.forEach((a) => {
+    if (a.ministryId) {
+      topicIds.push(`ministry_${a.ministryId.toString()}`);
+    }
+    if (a.fellowshipId) {
+      topicIds.push(`fellowship_${a.fellowshipId.toString()}`);
+    }
   });
 
   return Array.from(new Set(topicIds));
@@ -124,35 +128,56 @@ router.get("/missed", async (req, res) => {
     const church = req.church;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: "Invalid user Id provided" });
+      return res.status(400).json({ error: "Invalid userId provided" });
     }
 
-    const sinceDate = since ? new Date(since) : new Date(0);
-    const userTopicIds = await getUserTopicIds(userId, church._id); // function we defined earlier
+    // Normalize sinceDate
+    const sinceDate = since && !isNaN(Date.parse(since)) ? new Date(since)  : new Date(0);
+    const userTopicIds = await getUserTopicIds(userId, church._id);
 
     if (!userTopicIds.length) {
-      return res.status(200).json({ notifications: [] });
+      return res.status(200).json([]); // return empty array for FE compatibility
     }
 
     const notifications = await Notifications.find({
+      createdAt: { $gt: sinceDate },
       "content.data.topicIds": { $in: userTopicIds },
-      createdAt: { $gt: sinceDate }
     })
       .sort({ createdAt: -1 })
+      .select({
+        "content.data.id": 1,
+        "content.data.topicIds": 1,
+        "content.data.topicNames": 1,
+        "content.data.notification.title": 1,
+        "content.data.notification.body": 1,
+        createdAt: 1,
+      })
       .lean();
 
+    // Deduplicate based on message ID
+    const unique = [];
     const seen = new Set();
-    const uniqueNotifications = notifications.filter(n => {
-      if (seen.has(n.content.data.id)) {return false;}
-      seen.add(n.content.data.id);
-      return true;
-    });
 
-    res.status(200).json({ notifications: uniqueNotifications });
+    for (const n of notifications) {
+      const id = n?.content?.data?.id;
+      if (!id || seen.has(id)) {continue;}
+      seen.add(id);
+
+      unique.push({
+        id,
+        title: n.content.data.notification.title,
+        body: n.content.data.notification.body,
+        topicIds: n.content.data.topicIds,
+        topicNames: n.content.data.topicNames,
+        timestamp: n.createdAt,
+      });
+    }
+
+    return res.status(200).json(unique);
 
   } catch (err) {
     console.error("Error fetching missed notifications:", err);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -163,15 +188,24 @@ router.get("/topics/:userId", async (req, res) => {
     const church = req.church;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: "Invalid user identifier provided" });
+      return res
+        .status(400)
+        .json({ error: "Invalid user identifier provided" });
     }
 
     const topicIds = [`church_${church._id.toString()}`];
-    const assignments = await Assignment.find({ userId, status: "approved" }).lean();
+    const assignments = await Assignment.find({
+      userId,
+      status: "approved",
+    }).lean();
 
-    assignments.forEach(a => {
-      if (a.ministryId){ topicIds.push(`ministry_${a.ministryId.toString()}`);}
-      if (a.fellowshipId){ topicIds.push(`fellowship_${a.fellowshipId.toString()}`);}
+    assignments.forEach((a) => {
+      if (a.ministryId) {
+        topicIds.push(`ministry_${a.ministryId.toString()}`);
+      }
+      if (a.fellowshipId) {
+        topicIds.push(`fellowship_${a.fellowshipId.toString()}`);
+      }
     });
 
     const topicSet = Array.from(new Set(topicIds));
@@ -182,6 +216,5 @@ router.get("/topics/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 module.exports = router;
