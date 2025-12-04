@@ -169,7 +169,7 @@ router.get("/missed", async (req, res) => {
         body: n.content.data.notification.body,
         topicIds: n.content.data.topicIds,
         topicNames: n.content.data.topicNames,
-        timestamp: n.createdAt,
+        date: n.createdAt,
       });
     }
 
