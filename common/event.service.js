@@ -46,7 +46,7 @@ async expandRecurringEvents() {
 
   for (const event of events) {
     const { recurrence, startDate, startTime, endTime } = event;
-    console.log(`Expanding event ${event._id} (${event.title}) with recurrence:`, recurrence);
+    //console.log(`Expanding event ${event._id} (${event.title}) with recurrence:`, recurrence);
     let occurrences = [];
     //let current = new Date(startDate);
     let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || []);
