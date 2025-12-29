@@ -119,15 +119,51 @@ router.get('/search', async (req, res) => {
 #swagger.tags = ['User']
 */
 router.get('/findByUid/:firebaseId', async (req, res) => {
-  const { firebaseId } = req.params;
-  const user = await User.findOne({ firebaseId });
-  if (!user) {
-    return res
-      .status(404)
-      .json({ message: `User with firebaseId ${firebaseId} not found` });
+  try {
+    const { firebaseId } = req.params;
+    const user = await User.findOne({ firebaseId });
+    if (!user) {
+      res.clearCookie('__session', { path: '/' })
+        .clearCookie('__role', { path: '/' })
+        .clearCookie('__user_exists', { path: '/' });
+
+      return res.status(404).json({
+        message: `User with firebaseId ${firebaseId} not found`,
+        userExists: false,
+      });
+    }
+
+    // ✅ Set cookies from backend
+    res
+      .cookie('__session', firebaseId, {
+        httpOnly: true,           // critical for auth
+        secure: true,             // HTTPS only
+        sameSite: 'lax',
+        maxAge: 86400 * 1000,     // 1 day
+        path: '/',
+      })
+      .cookie('__role', user.role ?? '', {
+        httpOnly: false,          // middleware can read
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 86400 * 1000,
+        path: '/',
+      })
+      .cookie('__user_exists', 'true', {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 86400 * 1000,
+        path: '/',
+      });
+
+    return res.status(200).json({ user });
+  } catch (err) {
+    console.error('findByUid error:', err);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-  res.json({ user });
 });
+
 /*
 #swagger.tags = ['User']
 */
