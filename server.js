@@ -52,7 +52,13 @@ const app = express();
 
 // Swagger + CORS
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
-app.use(cors());
+//app.use(cors());
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(','),
+    credentials: true,
+  })
+);
 
 // JSON handling
 app.use(skipJsonForUploads);

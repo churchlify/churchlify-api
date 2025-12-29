@@ -138,21 +138,21 @@ router.get('/findByUid/:firebaseId', async (req, res) => {
       .cookie('__session', firebaseId, {
         httpOnly: true,           // critical for auth
         secure: true,             // HTTPS only
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 86400 * 1000,     // 1 day
         path: '/',
       })
       .cookie('__role', user.role ?? '', {
         httpOnly: false,          // middleware can read
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 86400 * 1000,
         path: '/',
       })
       .cookie('__user_exists', 'true', {
         httpOnly: false,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 86400 * 1000,
         path: '/',
       });

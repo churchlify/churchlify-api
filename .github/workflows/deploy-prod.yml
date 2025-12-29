@@ -40,7 +40,8 @@ jobs:
             echo "ENCRYPTION_KEY_V1=${{ secrets.ENCRYPTION_KEY_V1 }}" >> .env
             echo "ENCRYPTION_KEY_V2=${{ secrets.ENCRYPTION_KEY_V2 }}" >> .env
             echo "ENCRYPTION_KEY_V3=${{ secrets.ENCRYPTION_KEY_V3 }}" >> .env 
-            echo "ENCRYPTION_KEY_V4=${{ secrets.ENCRYPTION_KEY_V4 }}" >> .env 
+            echo "ENCRYPTION_KEY_V4=${{ secrets.ENCRYPTION_KEY_V4 }}" >> .env
+            echo "ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}" >> .env 
 
             # Ensure coturn directory exists
             mkdir -p coturn
