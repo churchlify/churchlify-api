@@ -98,27 +98,26 @@ const app = express();
 //app.use(cors());
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim());
 
-app.use(cors({ 
-  origin: function (origin, callback) { 
-    if (!origin) {return callback(null, true); }
-    if (allowedOrigins.includes(origin)) {return callback(null, true); }
-    return callback(new Error('Not allowed by CORS')); 
-  }, 
-  credentials: true, 
-  methods: ['GET','POST','PUT','DELETE','OPTIONS', 'PATCH'], 
-  allowedHeaders
-}));
-app.options('*', cors({
+const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) {return callback(null, true);}
-    if (allowedOrigins.includes(origin)) {return callback(null, true);}
-    console.log('❌ Blocked by CORS:', origin);
+    if (!origin) {return callback(null, true); }
+
+    const normalized = origin.toLowerCase().replace(/\/$/, '');
+
+    if (allowedOrigins.includes(normalized)) {
+      return callback(null, true);
+    }
+
+    console.log('❌ Blocked and Arrested by CORS:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
   allowedHeaders
-}));
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 
 // Swagger + CORS
