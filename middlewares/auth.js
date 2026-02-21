@@ -7,6 +7,10 @@ dotenv.config();
  const authenticateFirebaseToken = async (req, res, next) => {
     const idToken = req.headers.authorization?.split('Bearer ')[1];
     // if (req.headers['x-seeding'] === 'true') { return next(); }
+    if (req.method === 'OPTIONS') {
+  return res.sendStatus(200);
+}
+
     if (!idToken) {
         return res.status(401).json({ message: 'Access denied. No Firebase token provided.' });
     }
@@ -20,6 +24,10 @@ dotenv.config();
     }
 };
  const authenticateToken = (req, res, next) => {
+    if (req.method === 'OPTIONS') {
+  return res.sendStatus(200);
+}
+
     const token = req.header('Authorization')?.split(' ')[1];
     if (!token) {
         return res.status(401).json({ message: 'Access denied. No token provided.' });

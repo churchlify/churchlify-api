@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
-const {uploadImage, deleteFile} = require('../common/upload');
+const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
 const router = express.Router();
 /*
 #swagger.tags = ['Church']
@@ -23,7 +23,7 @@ async function createChurchRecord(churchData, res) {
         await newChurch.save({ session });
         const updatedUser = await User.findByIdAndUpdate(
             churchData.createdBy,
-            { church: newChurch._id, adminAt: newChurch._id }, // Link the new Church ID to the User
+            { church: newChurch._id, adminAt: newChurch._id },
             { new: true, session }
         );
         if (!updatedUser) {
@@ -43,6 +43,8 @@ async function createChurchRecord(churchData, res) {
             session.endSession();
         }     
         console.error('Transaction aborted:', error);
+        // If the transaction fails, we might have an orphan file in MinIO. 
+        // In a production app, you'd trigger a cleanup here.
         if (error.code === 11000) { 
             return res.status(409).json({ message: 'A record with this email or phone already exists.' });
         }
@@ -50,7 +52,10 @@ async function createChurchRecord(churchData, res) {
     }
 }
 
-router.post('/create',uploadImage, validateChurch(), async (req, res) => {
+/*
+#swagger.tags = ['Church']
+*/
+router.post('/create', uploadImage, validateChurch(), async (req, res) => {
   try {
     const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
     const address = req.body.address || null;
@@ -59,13 +64,21 @@ router.post('/create',uploadImage, validateChurch(), async (req, res) => {
       Church.findOne({ phoneNumber }),
       Church.findOne({ createdBy }),
     ]);
-    console.log(req.body);
-    if (existingEmail) {return res.status(422).json({ errors: [{ msg: `Email ${emailAddress} exists` }] });}
-    if (existingPhone) {return res.status(422).json({ errors: [{ msg: `Phone ${phoneNumber} exists` }] });}
+
+    if (existingEmail){ return res.status(422).json({ errors: [{ msg: `Email ${emailAddress} exists` }] });}
+    if (existingPhone){ return res.status(422).json({ errors: [{ msg: `Phone ${phoneNumber} exists` }] });}
     if (existingUser) {return res.status(422).json({ errors: [{ msg: 'User already affiliated' }] });}
 
-    const logoUrl = req.file ? `${process.env.API_BASE_URL}/uploads/${req.file.filename}` : null;
-    await createChurchRecord({ name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone }, res);
+    // --- REFACTORED FOR MINIO ---
+    let logoUrl = null;
+    if (req.file) {
+      logoUrl = await uploadToMinio(req.file);
+    }
+
+    await createChurchRecord({ 
+        name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone 
+    }, res);
+
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -88,58 +101,53 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
         const { churchId } = req.params;
         const updates = req.body;
         const updateObject = {};
+        
         const existingChurch = await Church.findById(churchId);
         if (!existingChurch) {
             return res.status(404).json({ errors: [{ msg: 'Church not found.' }] });
         }
+
         for (const key in updates) {
             if (updates[key] !== undefined && key !== '_id' && key !== 'createdBy') {
                 updateObject[key] = updates[key];
             }
         }
+
         if (req.file) {
-            updateObject.logo = `${process.env.API_BASE_URL}/uploads/${req.file.filename}`;
+            const newLogoUrl = await uploadToMinio(req.file);
+            updateObject.logo = newLogoUrl;
+
             if (existingChurch.logo) {
-                await deleteFile(existingChurch.logo); // Deletes old file
+                await deleteFile(existingChurch.logo); 
             }
         }
+
         if (Object.keys(updateObject).length === 0) {
             return res.status(400).json({ errors: [{ msg: 'No valid update fields provided.' }] });
         }
+
         if (updateObject.emailAddress || updateObject.phoneNumber) {
-            const existingChurch = await Church.findOne({
+            const duplicate = await Church.findOne({
                 $or: [
                     updateObject.emailAddress ? { emailAddress: updateObject.emailAddress } : {},
                     updateObject.phoneNumber ? { phoneNumber: updateObject.phoneNumber } : {}
                 ],
                 _id: { $ne: churchId } 
             });
-            if (existingChurch) {
-                if (existingChurch.emailAddress === updateObject.emailAddress) {
-                    return res.status(422).json({ errors: [{ msg: `Email ${updateObject.emailAddress} already exists with another church.` }] });
-                }
-                if (existingChurch.phoneNumber === updateObject.phoneNumber) {
-                    return res.status(422).json({ errors: [{ msg: `Phone ${updateObject.phoneNumber} already exists with another church.` }] });
-                }
+            if (duplicate) {
+                const field = duplicate.emailAddress === updateObject.emailAddress ? 'Email' : 'Phone';
+                return res.status(422).json({ errors: [{ msg: `${field} already exists with another church.` }] });
             }
         }
-        const updatedChurch = await Church.findByIdAndUpdate(churchId, { $set: updateObject }, { new: true, runValidators: true } );
-        if (!updatedChurch) {
-            return res.status(404).json({ errors: [{ msg: 'Church not found.' }] });
-        }
 
+        const updatedChurch = await Church.findByIdAndUpdate(churchId, { $set: updateObject }, { new: true, runValidators: true } );
+        
         return res.status(200).json({
             message: 'Church updated successfully',
             church: updatedChurch
         });
 
     } catch (err) {
-        if (err.name === 'ValidationError') {
-            return res.status(422).json({ errors: [{ msg: err.message }] });
-        }
-        if (err.kind === 'ObjectId') {
-             return res.status(404).json({ errors: [{ msg: 'Invalid Church ID format.' }] });
-        }
         console.error(err);
         res.status(500).json({ error: 'Server error during church update.' });
     }

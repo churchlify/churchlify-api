@@ -50,25 +50,34 @@ const swaggerFile = require('./swagger/swagger.json');
 
 const app = express();
 
+//app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim());
+
+app.use(cors({ 
+  origin: function (origin, callback) { 
+    if (!origin) {return callback(null, true); }
+    if (allowedOrigins.includes(origin)) {return callback(null, true); }
+    return callback(new Error('Not allowed by CORS')); 
+  }, 
+  credentials: true, 
+  methods: ['GET','POST','PUT','DELETE','OPTIONS', 'PATCH'], 
+  allowedHeaders: '*', 
+}));
+app.options('*', cors({
+  origin: function (origin, callback) {
+    if (!origin) {return callback(null, true);}
+    if (allowedOrigins.includes(origin)) {return callback(null, true);}
+    console.log('❌ Blocked by CORS:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
+  allowedHeaders: '*',
+}));
+
+
 // Swagger + CORS
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
-//app.use(cors());
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',');
-
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Authorization','Content-Type'],
-}));
-
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Authorization','Content-Type'],
-}));
-
 // JSON handling
 app.use(skipJsonForUploads);
 app.use(express.urlencoded({ extended: true }));

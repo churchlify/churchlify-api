@@ -1,61 +1,69 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
-const fsp = require('fs/promises');
 const { v4: uuidv4 } = require('uuid');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
-const uploadDir = path.join(__dirname, '..', 'files_upload');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure S3 Client for MinIO
+const s3Client = new S3Client({
+  endpoint: 'https://s3.churchlify.com',
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY,
+    secretAccessKey: process.env.MINIO_SECRET_KEY,
+  },
+  forcePathStyle: true,
+});
+
+const BUCKET_NAME = 'churchlify-data';
+const storage = multer.memoryStorage();
 
 function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif|pdf/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
-  return mimetype && extname ? cb(null, true) : cb('Error: Images Only!');
+  return mimetype && extname ? cb(null, true) : cb(new Error('Error: Images/PDF Only!'));
 }
 
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${uuidv4()}${ext}`);
-  }
-});
-
+// Single Image Helper
 const uploadImage = multer({
   storage,
   limits: { fileSize: 200 * 1024 },
   fileFilter: (req, file, cb) => checkFileType(file, cb)
 }).single('image');
 
-const uploadDocs= (fields = []) => {
-  const upload = multer({
+// Multi-field Documents Helper
+const uploadDocs = (fields = []) => {
+  return multer({
     storage,
-    limits: { fileSize: 200 * 1024 }, // 2MB per file
+    limits: { fileSize: 1024 * 1024 * 2 }, // 2MB for docs
     fileFilter: (req, file, cb) => checkFileType(file, cb)
   }).fields(fields);
+};
 
-  return (req, res, next) => {
-    upload(req, res, (err) => {
-      if (err) {
-        return res.status(400).json({ error: err.message || err });
-      }
-      next();
-    });
-  };
+const uploadToMinio = async (file) => {
+  const ext = path.extname(file.originalname);
+  const fileName = `${uuidv4()}${ext}`;
+
+  await s3Client.send(new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  }));
+
+  return `https://s3.churchlify.com/${BUCKET_NAME}/${fileName}`;
 };
 
 const deleteFile = async (fileUrl) => {
-  const oldFilename = decodeURIComponent(fileUrl.split('/').pop().trim());
-  const filePath = path.join(uploadDir, oldFilename);
   try {
-    await fsp.access(filePath, fsp.constants.F_OK);
-    await fsp.unlink(filePath);
+    const fileName = fileUrl.split('/').pop();
+    await s3Client.send(new DeleteObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: fileName,
+    }));
   } catch (error) {
-    console.error(`Error deleting old logo file: ${oldFilename}`, error.message);
+    console.error(`MinIO Delete Error:`, error.message);
   }
 };
 
-module.exports = {uploadImage, uploadDocs, uploadDir, checkFileType, storage, deleteFile};
+module.exports = { uploadImage, uploadDocs, uploadToMinio, deleteFile };
