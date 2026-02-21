@@ -44,6 +44,51 @@ const uploadRoutes = require('./routes/upload');
 const notificationsRoutes = require('./routes/notifications');
 const livestreamRoutes = require('./routes/livestream');
 const verificationRoutes = require('./routes/verification');
+const allowedHeaders = [
+  'Authorization',
+  'Content-Type',
+  'Accept',
+  'Origin',
+  'User-Agent',
+  'Referer',
+  'Accept-Encoding',
+  'Accept-Language',
+  'Cache-Control',
+  'Pragma',
+  'X-Requested-With',
+  'X-CSRF-Token',
+  'X-XSRF-TOKEN',
+  'X-Auth-Token',
+  'X-Api-Key',
+  'X-Access-Token',
+  'X-Refresh-Token',
+  'X-Custom-Header',
+  'X-Client-Version',
+  'X-App-Version',
+  'X-Device-Id',
+  'X-Session-Id',
+  'X-Trace-Id',
+  'X-Request-Id',
+  'Content-Length',
+  'Content-Encoding',
+  'Content-Language',
+  'Content-Location',
+  'Content-Disposition',
+  'Content-MD5',
+  'Content-Range',
+  'If-Modified-Since',
+  'If-None-Match',
+  'Range',
+  'X-Debug',
+  'X-Forwarded-For',
+  'X-Forwarded-Host',
+  'X-Forwarded-Proto',
+  'X-Real-IP',
+  'x-church',
+  'x-user',
+  'x-Restricted',
+];
+
 
 // Swagger
 const swaggerFile = require('./swagger/swagger.json');
@@ -61,7 +106,7 @@ app.use(cors({
   }, 
   credentials: true, 
   methods: ['GET','POST','PUT','DELETE','OPTIONS', 'PATCH'], 
-  allowedHeaders: '*', 
+  allowedHeaders
 }));
 app.options('*', cors({
   origin: function (origin, callback) {
@@ -72,7 +117,7 @@ app.options('*', cors({
   },
   credentials: true,
   methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
-  allowedHeaders: '*',
+  allowedHeaders
 }));
 
 
