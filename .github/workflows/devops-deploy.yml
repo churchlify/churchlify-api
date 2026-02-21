@@ -14,8 +14,8 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-    
+        uses: actions/checkout@v4 # Updated to v4 for consistency
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -37,21 +37,23 @@ jobs:
         with:
           repository: churchlify/churchlify-gitops
           token: ${{ secrets.GITOPS_PAT }}
-          path: gitops
-          submodules: false
+          path: gitops-repo
 
       - name: Update Image Tag in GitOps
         run: |
-          # 1. Enter the production overlay directory
-          cd gitops/apps/churchlify/api/overlays/production
+          # Navigate into the checked-out GitOps repo
+          cd gitops-repo/apps/churchlify/api/overlays/production
           
-          # 2. Update (or create) the image override
+          # 1. Update the image override
           kustomize edit set image ghcr.io/churchlify/churchlify-api=ghcr.io/churchlify/churchlify-api:${{ github.sha }}
           
-          # 3. Commit and Push
-          cd ../../../../../../ 
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
+          # 2. Configure Git inside this directory
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 3. Add and Commit ONLY within the GitOps repo scope
+          git add kustomization.yaml
           git diff-index --quiet HEAD || git commit -m "deploy: update api image to ${{ github.sha }}"
+          
+          # 4. Push directly
           git push
