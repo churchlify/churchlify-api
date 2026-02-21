@@ -107,7 +107,7 @@ const corsOptions = {
     if (allowedOrigins.includes(normalized)) {
       return callback(null, true);
     }
-
+    console.log('Allowed Origins:', allowedOrigins);
     console.log('❌ Blocked and Arrested by CORS:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
