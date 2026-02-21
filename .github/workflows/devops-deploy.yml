@@ -38,6 +38,7 @@ jobs:
           repository: churchlify/churchlify-gitops
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
+          submodules: false
 
       - name: Update Image Tag in GitOps
         run: |
