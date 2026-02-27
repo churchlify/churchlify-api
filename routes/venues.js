@@ -7,7 +7,7 @@ const { validatePrayer } = require('../middlewares/validators');
 const router = express.Router();
 router.use(express.json());
 
-router.post('/create', validatePrayer(), async (req, res) => {
+router.post('/create', validateVenue(), async (req, res) => {
   const { name, address } = req.body;
   const church = req.church;
   const newItem = new Venue({ name,address, church });

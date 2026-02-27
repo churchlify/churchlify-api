@@ -338,6 +338,19 @@ const validateAssignment = () => [
     }
     ];
 
+
+    const validateVenue = () =>  [
+        body('name').isString().withMessage('Venue name is required'),
+        body('address').optional().notEmpty().withMessage('Please provide a valid address'),    
+        (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+    ];
+
    const validateVerification = () => [
         body('churchId').notEmpty().withMessage('Church ID is required').custom((value) => {
                 if (!mongoose.Types.ObjectId.isValid(value)) {
