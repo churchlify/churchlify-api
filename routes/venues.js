@@ -3,7 +3,7 @@
 */
 const express = require('express');
 const Venue = require('../models/venue');
-const { validatePrayer } = require('../middlewares/validators');
+const { validateVenue } = require('../middlewares/validators');
 const router = express.Router();
 router.use(express.json());
 

@@ -377,5 +377,5 @@ const validateObjectId = () => [
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, validateVerification,
-    validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription,
+    validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription, validateVenue,
     validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification};
