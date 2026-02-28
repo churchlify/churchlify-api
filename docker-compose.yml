@@ -19,7 +19,7 @@ services:
       - MONGO_URI=${MONGO_URI}
       - NODE_ENV=production
       - PORT=3000
-      - REDIS_HOST=redis
+      - REDIS_HOST=${REDIS_HOST}
       - TURN_URL=${REMOTE_HOST}
       - TURN_SHARED_SECRET=${TURN_SECRET}
       - TURN_USER_EXPIRY_SEC=600
@@ -77,4 +77,5 @@ services:
     volumes:
       - redis_data:/data
     networks:
+      - db_network
       - webrtc-net

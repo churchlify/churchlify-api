@@ -1,40 +1,55 @@
 // common/redis.connection.js
 const IORedis = require('ioredis');
 
+const redisHost = process.env.REDIS_HOST || 'redis.default.svc.cluster.local';
+const redisPort = parseInt(process.env.REDIS_PORT || '6379');
+
 const connection = new IORedis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT || 6379,
+    host: redisHost,
+    port: redisPort,
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     enableOfflineQueue: true,
-    
-    // Retry strategy for resilience
+    connectTimeout: 10000,
+    commandTimeout: 5000,
+    lazyConnect: false,
+    keepAlive: 30000,
+
     retryStrategy: (times) => {
-        const delay = Math.min(times * 50, 2000);
+        if (times > 10) {
+            console.error('Redis: Max retries exceeded, giving up');
+            return null;
+        }
+        const delay = Math.min(times * 100, 5000);
+        console.log(`Redis reconnecting... attempt ${times}, delay ${delay}ms`);
         return delay;
     },
-    
-    // Reconnect on read-only errors (cluster failover)
+
     reconnectOnError: (err) => {
-        const targetError = 'READONLY';
-        if (err.message.includes(targetError)) {
-            return true;
+        const targetErrors = ['READONLY', 'ECONNREFUSED', 'ENOTFOUND'];
+        const shouldReconnect = targetErrors.some(e => err.message.includes(e));
+        if (shouldReconnect) {
+            console.log(`Redis reconnecting due to: ${err.code}`);
         }
-        return false;
+        return shouldReconnect;
     },
 });
 
 connection.on('ready', () => {
-    console.log(`✅ Central Redis connection established at ${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`);
+    console.log(`Redis connected to ${redisHost}:${redisPort}`);
 });
 
 connection.on('error', (err) => {
-    console.error('❌ Redis connection error:', err.message);
+    console.error(`Redis error [${err.code}]:`, err.message);
 });
 
 connection.on('close', () => {
-    console.log('⚠️ Redis connection closed');
+    console.log('Redis connection closed');
+});
+
+connection.on('reconnecting', () => {
+    console.log('Redis reconnecting...');
 });
 
 module.exports = connection;
