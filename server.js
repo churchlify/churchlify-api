@@ -146,7 +146,6 @@ app.use(logAuditTrails);
 app.use('/webhook', webhookRoutes);
 app.use('/timezone', timezoneRoutes);
 app.use('/church', churchRoutes);
-app.use('/venues', venueRoutes);
 app.use('/audit', auditRoutes);
 app.use('/upload', uploadRoutes);
 
@@ -161,6 +160,7 @@ app.use(authenticateFirebaseToken);
 
 // Church-based routes
 app.use(churchResolver);
+app.use('/venues', venueRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/verify', verificationRoutes);
 app.use('/user', userRoutes);
