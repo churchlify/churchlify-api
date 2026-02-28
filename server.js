@@ -13,7 +13,7 @@ const { PORT, MONGO_URI } = require('./config/env');
 // Middlewares
 const { logAuditTrails } = require('./middlewares/audits');
 const { authenticateFirebaseToken } = require('./middlewares/auth');
-const { churchResolver } = require('./middlewares/churchResolver');
+const { churchResolver, cacheMiddleware } = require('./middlewares/churchResolver');
 const { skipJsonForUploads } = require('./middlewares/skipJsonForUploads');
 const { errorHandler } = require('./middlewares/errorHandler');
 
@@ -159,6 +159,7 @@ app.use('/auth', authRoutes); // public first
 app.use(authenticateFirebaseToken);
 
 // Church-based routes
+app.use(cacheMiddleware);      // gives req.cache for tenant helpers
 app.use(churchResolver);
 app.use('/venues', venueRoutes);
 app.use('/notifications', notificationsRoutes);
