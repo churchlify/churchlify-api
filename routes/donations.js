@@ -36,7 +36,7 @@ router.get('/items', async (req, res) => {
   const church = req.church;
   const churchId = church._id;
   if (!churchId) {return res.status(400).json({ error: 'Church header missing' });}
-  const items = await DonationItem.find({churchId }).lean();
+  const items = await DonationItem.find({churchId }).select('title description amount category').lean();
   res.json(items);
 });
 

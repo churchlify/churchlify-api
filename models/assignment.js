@@ -4,14 +4,19 @@ const applyAssignmentHooks = require('../hooks/assignmentHooks');
 
 const AssignmentSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User', index: true },
-  fellowshipId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fellowship' },
-  ministryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ministry' },
+  fellowshipId: { type: mongoose.Schema.Types.ObjectId, ref: 'Fellowship', index: true },
+  ministryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ministry', index: true },
   role: { type: String, required: true, default: 'member'},
   availability: Object, // Can be used to store a map of data
   skills: [String],
   status: { type: String,required: true, enum: ['pending', 'approved'], default: 'pending' },
   dateAssigned: { type: Date, required: true }
 });
+
+// Compound indexes for common queries
+AssignmentSchema.index({ userId: 1, status: 1 });
+AssignmentSchema.index({ userId: 1, ministryId: 1 });
+AssignmentSchema.index({ userId: 1, fellowshipId: 1 });
 
 AssignmentSchema.pre('validate', function (next) {
   if (!this.ministryId && !this.fellowshipId) {

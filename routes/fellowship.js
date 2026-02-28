@@ -25,7 +25,7 @@ router.post('/create', validateFellowship(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const fellowship = await Fellowship.findById(id).populate('church');
+    const fellowship = await Fellowship.findById(id).populate('church').lean();
     if (!fellowship) {return res.status(404).json({ message: `Fellowship with id ${id} not found` });}
     res.json({ fellowship });
 });
@@ -54,7 +54,7 @@ router.get('/list', async(req, res) => {
         const church = req.church;
         let filter = {};
         if(church) { filter.church = church._id; }
-        const fellowships = await Fellowship.find(filter);
+        const fellowships = await Fellowship.find(filter).select('name description leaderId address dayOfWeek meetingTime').lean();
         res.status(200).json({ fellowships });
     } catch (error) {
         res.status(500).json({ message: error.message });

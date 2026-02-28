@@ -27,7 +27,7 @@ router.post(
       const existing = await Verification.findOne({
         churchId,
         status: 'pending',
-      });
+      }).lean();
       if (existing) {
         return res.status(422).json({
           errors: [{ msg: 'You already have a pending verification.' }],

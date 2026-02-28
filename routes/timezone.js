@@ -24,7 +24,7 @@ router.post('/create', async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const timezone = await Timezone.findById(id);
+    const timezone = await Timezone.findById(id).lean();
     if (!timezone) {return res.status(404).json({ message: `Timezone with id ${id} not found` });}
     res.json({ timezone });
 });
@@ -49,7 +49,7 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const timezones = await Timezone.find();
+        const timezones = await Timezone.find().select('key value continent').lean();
         res.status(200).json({ timezones });
     } catch (error) {
         res.status(500).json({ message: error.message });

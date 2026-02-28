@@ -25,7 +25,7 @@ router.post('/create', validateDevotion(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const devotion = await Devotion.findById(id).populate('church');
+    const devotion = await Devotion.findById(id).populate('church').lean();
     if (!devotion) {return res.status(404).json({ message: `Devotion with id ${id} not found` });}
     res.json({ devotion });
 });
@@ -57,7 +57,7 @@ router.get('/list', async(req, res) => {
         if (churchId) {
             filter.church = churchId;
         }
-        const devotions = await Devotion.find(filter).populate('church');
+        const devotions = await Devotion.find(filter).select('title scripture date author tags isPublished church').lean();
         res.status(200).json({ devotions });
     } catch (error) {
         res.status(500).json({ message: error.message });

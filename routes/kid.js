@@ -26,7 +26,7 @@ router.post('/create', validateKid(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const kid = await Kid.findById(id).populate('parent');
+    const kid = await Kid.findById(id).populate('parent').lean();
     if (!kid) {return res.status(404).json({ message: `Child with id ${id} not found` });}
     res.json({ kid });
 });
@@ -51,7 +51,7 @@ router.put('/update/:id',validateKid(),  async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const kids = await Kid.find().populate('parent');
+        const kids = await Kid.find().select('firstName lastName gender dateOfBirth parent allergies color').lean();
         res.status(200).json({ kids });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -63,7 +63,7 @@ router.get('/list', async(req, res) => {
 router.get('/list/:parent', async(req, res) => {
     try {
         const { parent } = req.params;
-        const kids = await Kid.find({parent: parent});
+        const kids = await Kid.find({parent: parent}).select('firstName lastName gender dateOfBirth allergies color').lean();
         res.status(200).json({ kids });
     } catch (error) {
         res.status(500).json({ message: error.message });

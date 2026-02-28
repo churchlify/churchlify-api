@@ -43,7 +43,7 @@ router.post("/create", validateAssignment(), async (req, res) => {
 
 router.get("/find/:id", async (req, res) => {
   const { id } = req.params;
-  const setting = await Assignment.findById(id).populate("church");
+  const setting = await Assignment.findById(id).populate("church").lean();
   if (!setting) {
     return res
       .status(404)
@@ -76,7 +76,7 @@ router.patch("/update/:id", async (req, res) => {
 
 router.get("/list", async (req, res) => {
   try {
-    const assignment = await Assignment.find().populate("userId");
+    const assignment = await Assignment.find().select("userId ministryId fellowshipId role status dateAssigned").lean();
     res.status(200).json({ assignment });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -88,7 +88,7 @@ router.get("/list/:userId", async (req, res) => {
     const { userId } = req.params;
     const assignment = await Assignment.find({ userId: userId }).sort({
       dateAssigned: -1,
-    });
+    }).lean();
     res.status(200).json({ assignment });
   } catch (error) {
     res.status(500).json({ message: error.message });

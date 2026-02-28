@@ -15,7 +15,7 @@ router.post('/create', validateModule(), async (req, res) => {
 });
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const module = await Module.findById(id).populate('church');
+  const module = await Module.findById(id).populate('church').lean();
   if (!module){ return res.status(404).json({ message: `Module with id ${id} not found` });}
   res.json({ module });
 });
@@ -31,18 +31,10 @@ router.patch('/update/:id', async (req, res) => {
 });
 router.get('/list', async (req, res) => {
   try {
-    const modules = await Module.find().populate('church');
-    res.status(200).json({ modules });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-router.get('/list', async (req, res) => {
-  try {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const modules = await Module.find(filter);
+    const modules = await Module.find(filter).select('modules startDate expiryDate status church').lean();
     res.status(200).json({ modules });
   } catch (error) {
     res.status(500).json({ message: error.message });

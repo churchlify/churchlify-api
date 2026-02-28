@@ -25,7 +25,7 @@ router.post('/create', validateMinistry(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const ministry = await Ministry.findById(id).populate('church');
+    const ministry = await Ministry.findById(id).populate('church').lean();
     if (!ministry) {return res.status(404).json({ message: `Ministry with id ${id} not found` });}
     res.json({ ministry });
 });
@@ -50,21 +50,10 @@ router.patch('/update/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const ministries = await Ministry.find().populate('church');
-        res.status(200).json({ ministries });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-/*
-#swagger.tags = ['Ministry']
-*/
-router.get('/list', async(req, res) => {
-    try {
         const church = req.church;
         let filter = {};
         if(church) { filter.church = church._id; }
-        const ministries = await Ministry.find(filter);
+        const ministries = await Ministry.find(filter).select('name description leaderId church').lean();
         res.status(200).json({ ministries });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -107,14 +107,14 @@ router.get("/status/:batchId", async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(batchId)) {
     return res.status(400).json({ error: "Invalid job identifier provided" });
   }
-  const batchStatus = await Notifications.findById(batchId).select("-content");
+  const batchStatus = await Notifications.findById(batchId).select("-content").lean();
   if (!batchStatus) {
     return res.status(404).json({ message: "Batch not found" });
   }
   const failedRecipients = await NotificationRecipient.find({
     batchId,
     status: "failed",
-  }).select("recipient status details providerMessageId -_id");
+  }).select("recipient status details providerMessageId -_id").lean();
 
   res.json({
     ...batchStatus.toObject(),

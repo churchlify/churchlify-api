@@ -3,11 +3,11 @@ const validateRefs = require("../common/validateRefs");
 
 const NotificationsSchema = new mongoose.Schema(
   {
-    church: { type: mongoose.Schema.Types.ObjectId, ref: "Church", required: true,index: true,},
+    church: { type: mongoose.Schema.Types.ObjectId, ref: "Church", required: true, index: true,},
     author: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true,},
     type: { type: String, enum: ["push", "email", "voice"], required: true },
-    provider: { type: String, enum: ["firebase", "sendpulse", "twilio"], required: true, },
-    status: { type: String, default: "pending", required: true },
+    provider: { type: String, enum: ["firebase", "sendpulse", "twilio"], required: true, index: true },
+    status: { type: String, default: "pending", required: true, index: true },
     totalRecipients: { type: Number, required: true },
     successCount: { type: Number, default: 0 },
     failedCount: { type: Number, default: 0 },
@@ -20,6 +20,10 @@ const NotificationsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Compound indexes for efficient queries
+NotificationsSchema.index({ church: 1, createdAt: -1 });
+NotificationsSchema.index({ status: 1, createdAt: -1 });
 
 NotificationsSchema.plugin(validateRefs, {
   refs: [

@@ -121,7 +121,7 @@ router.patch('/:id/status', async (req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const checkin = await CheckIn.findById(id).populate('child');
+    const checkin = await CheckIn.findById(id).populate('child').lean();
     if (!checkin){ return res.status(404).json({ message: `CheckIn with id ${id} not found` });}
     res.json({ checkin });
 });
@@ -130,7 +130,7 @@ router.get('/find/:id', async(req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const checkins = await CheckIn.find().populate('child');
+        const checkins = await CheckIn.find().select('child status expiresAt eventInstance').lean();
         res.status(200).json({ checkins });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -142,7 +142,7 @@ router.get('/list', async(req, res) => {
 router.get('/list/:child', async(req, res) => {
     try {
         const { child } = req.params;
-        const checkins = await CheckIn.find({child});
+        const checkins = await CheckIn.find({child}).select('status expiresAt createdAt eventInstance').lean();
         res.status(200).json({ checkins });
     } catch (error) {
         res.status(500).json({ message: error.message });

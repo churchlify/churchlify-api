@@ -15,7 +15,7 @@ router.post('/create', validatePayment(), async (req, res) => {
 });
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const payment = await Payment.findById(id).populate('church');
+  const payment = await Payment.findById(id).populate('church').lean();
   if (!payment){ return res.status(404).json({ message: `Payment with id ${id} not found` });}
   res.json({ payment });
 });
@@ -31,18 +31,10 @@ router.patch('/update/:id', async (req, res) => {
 });
 router.get('/list', async (req, res) => {
   try {
-    const payments = await Payment.find().populate('church');
-    res.status(200).json({ payments });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-router.get('/list', async (req, res) => {
-  try {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const payments = await Payment.find(filter);
+    const payments = await Payment.find(filter).select('user church payment amount status').lean();
     res.status(200).json({ payments });
   } catch (error) {
     res.status(500).json({ message: error.message });

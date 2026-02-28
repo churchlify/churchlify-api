@@ -14,7 +14,7 @@ const SupportingDocSchema = new Schema(
 
 const VerificationSchema = new Schema(
   {
-    churchId: { type: Schema.Types.ObjectId, ref: "Church", required: true },
+    churchId: { type: Schema.Types.ObjectId, ref: "Church", required: true, index: true },
     incorporationNumber: { type: String, required: true },
     craNumber: { type: String },
     governmentId: {
@@ -30,13 +30,18 @@ const VerificationSchema = new Schema(
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
+      index: true
     },
-    submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    submittedBy: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User" },
     notes: { type: String },
   },
   { timestamps: true }
 );
+
+// Compound indexes for efficient queries
+VerificationSchema.index({ churchId: 1, status: 1 });
+VerificationSchema.index({ submittedBy: 1, createdAt: -1 });
 
 VerificationSchema.plugin(validateRefs, {
   refs: [

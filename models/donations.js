@@ -7,8 +7,8 @@ const donationLineItemSchema = new mongoose.Schema({
 }, { _id: false });
 
 const donationSchema = new mongoose.Schema({
-  churchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  churchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Church', required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   lineItems: { type: [donationLineItemSchema], required: true,
     validate: { validator: function(v) {return v.length > 0; },
       message: 'A donation must specify at least one fund line item.'
@@ -18,16 +18,21 @@ const donationSchema = new mongoose.Schema({
   currency: { type: String, default: 'USD' },
   isRecurring: { type: Boolean, default: false },
   isTestMode: { type: Boolean, default: false },
-  platform: { type: String, enum: ['stripe', 'paystack'], required: true },
+  platform: { type: String, enum: ['stripe', 'paystack'], required: true, index: true },
   transactionReferenceId: { type: String, required: false, unique: true, sparse: true }, 
   subscriptionId: { type: String,  required: false },
   customerId: { type: String, required: false},
-  status: { type: String, enum: ['initiated', 'processing', 'succeeded', 'failed', 'refunded', 'requires_action'], default: 'initiated' },
+  status: { type: String, enum: ['initiated', 'processing', 'succeeded', 'failed', 'refunded', 'requires_action'], default: 'initiated', index: true },
   platformDetails: { type: mongoose.Schema.Types.Mixed },
   webhookEventId: { type: String, unique: true, sparse: true},
   completedAt: { type: Date },
   webhookReceivedAt: { type: Date }
 }, { timestamps: true });
+
+// Compound indexes for common queries
+donationSchema.index({ churchId: 1, userId: 1 });
+donationSchema.index({ churchId: 1, status: 1 });
+donationSchema.index({ userId: 1, platform: 1 });
 
 donationSchema.pre('save', function(next) {
   if (this.isModified('lineItems') || this.isNew) {

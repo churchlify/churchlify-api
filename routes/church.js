@@ -89,7 +89,7 @@ router.post('/create', uploadImage, validateChurch(), async (req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const church = await Church.findById(id);
+    const church = await Church.findById(id).lean();
     if (!church) {return res.status(400).json({ message: `Church with id ${id} not found` });}
     res.json({ church });
 });
@@ -157,7 +157,7 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
 */
 router.get('/list', async(req, res) => {
     try {
-        const churches = await Church.find();
+        const churches = await Church.find().select('name shortName emailAddress phoneNumber address timeZone').lean();
         res.status(200).json({ churches });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -184,9 +184,11 @@ router.get('/search', async (req, res) => {
 
     // Fetch paginated results
     const churches = await Church.find(searchFilter)
+      .select('name shortName address.city address.state address.country')
       .sort({ name: 1 })
       .skip(pageNum * limitNum)
-      .limit(limitNum);
+      .limit(limitNum)
+      .lean();
 
     // Optional: get total count for client pagination
     const total = await Church.countDocuments(searchFilter);

@@ -15,7 +15,7 @@ router.post('/create', validateSubscription(), async (req, res) => {
 });
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const subscription = await Subscription.findById(id).populate('church');
+  const subscription = await Subscription.findById(id).populate('church').lean();
   if (!subscription){ return res.status(404).json({ message: `Subscription with id ${id} not found` });}
   res.json({ subscription });
 });
@@ -34,7 +34,7 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const subscriptions = await Subscription.find(filter).populate('church');
+    const subscriptions = await Subscription.find(filter).select('modules startDate expiryDate status church').lean();
     res.status(200).json({ subscriptions });
   } catch (error) {
     res.status(500).json({ message: error.message });

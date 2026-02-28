@@ -28,7 +28,7 @@ router.post('/create', validateEvent(), async(req, res) => {
 */
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const event = await Event.findById(id);
+    const event = await Event.findById(id).lean();
     if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
     res.json({ event });
 });
@@ -74,14 +74,11 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 router.get('/list', async(req, res) => {
     try {
         const church = req.church;
-        // const inputDate = new Date(req.query.date || new Date());
-        // const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
-        //{date: { $gte: start }};
         const filter = {};
         if (church?._id) {
             filter.church = church._id;
         }
-        const events = await Event.find(filter);
+        const events = await Event.find(filter).select('title description startDate startTime endDate endTime location allowKidsCheckin').lean();
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });

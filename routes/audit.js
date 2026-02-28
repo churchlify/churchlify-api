@@ -16,7 +16,7 @@ router.use(express.json());
 #swagger.responses[200] = { description: 'Success', schema: { $ref: "#/definitions/Audit" } }*/
 router.get('/find/:id', async(req, res) => {
     const { id } = req.params;
-    const audit = await Audit.findById(id);
+    const audit = await Audit.findById(id).lean();
     if (!audit) {
         return res.status(404).json({ message: `Audit lo entry with id ${id} not found` });
     }

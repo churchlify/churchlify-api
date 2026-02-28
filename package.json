@@ -4,10 +4,12 @@
   "main": "index.js",
   "scripts": {
     "api": "node server.js",
-    "gen-doc": "node swagger/generate-swagger.js ",
+    "gen-doc": "node swagger/generate-swagger.js",
     "loadtest": "artillery run test/load-test.yml",
     "lint": "jshint .",
-    "validate": "npm ls"
+    "validate": "npm ls",
+    "build-indexes": "node removeIndexes.js",
+    "verify-indexes": "node verifyIndexes.js"
   },
   "keywords": [],
   "author": "",

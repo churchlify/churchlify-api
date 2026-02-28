@@ -22,7 +22,7 @@ router.post('/create', validateVenue(), async (req, res) => {
 
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const venue = await Venue.findById(id).populate('church');
+  const venue = await Venue.findById(id).populate('church').lean();
   if (!venue){ return res.status(404).json({ message: `Venue with id ${id} not found` });}
   res.json({ venue });
 });
@@ -43,7 +43,7 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const venues = await Venue.find(filter);
+    const venues = await Venue.find(filter).select('name address church').lean();
     res.status(200).json({ venues });
   } catch (error) {
     res.status(500).json({ message: error.message });

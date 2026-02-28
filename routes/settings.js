@@ -19,7 +19,7 @@ router.post('/create', validateSettings(), async (req, res) => {
 
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const setting = await Setting.findById(id).populate('church');
+  const setting = await Setting.findById(id).populate('church').lean();
   if (!setting){ return res.status(404).json({ message: `Setting with id ${id} not found` });}
   res.json({ setting });
 });
@@ -30,12 +30,10 @@ router.get('/findByKey/:key', async (req, res) => {
     const { key } = req.params;
     let filter = {key};
     if(church) { filter.church = church._id; }
-    const settings = await Setting.findOne(filter).populate('church');
-       // const settings = await Setting.findOne(filter);
+    const settings = await Setting.findOne(filter).select('value keyVersion').lean();
     if (!settings){ return res.status(404).json({ message: 'Payment settings not found' });}
     const decryptedData = (isSecret(key))? decrypt(settings.value, settings.keyVersion): settings.value;
     res.status(200).json({ _id: settings._id, key, value: decryptedData});
-    //res.status(200).json({ settings:filteredSettings });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -69,12 +67,11 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const settings = await Setting.find(filter).populate('church');
-    const filteredSettings = settings.filter(setting => {
-      const key = setting.key?.toLowerCase() || '';
-      return !arrSecrets.some(sub => key.includes(sub.toLowerCase()));
-    });
-    res.status(200).json({ settings:filteredSettings });
+    // Exclude secret keys in the query
+    const regex = arrSecrets.join('|');
+    filter.key = { $not: { $regex: regex, $options: 'i' } };
+    const settings = await Setting.find(filter).select('key value church').lean();
+    res.status(200).json({ settings });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -82,15 +79,13 @@ router.get('/list', async (req, res) => {
 
 router.get('/payment', async (req, res) => {
   try {
-    // clientKey is paypalClientId or stripePublishableKey or paystackSecretKey
     const regex = arrSecrets.join('|');
     const church = req.church;
     let filter = { key: { $regex: regex, $options: 'i' }};
     if(church) { filter.church = church._id; }
-    const settings = await Setting.findOne(filter);
+    const settings = await Setting.findOne(filter).select('value keyVersion').lean();
     if (!settings){ return res.status(404).json({ message: 'Payment settings not found' });}
     const decryptedData =  decrypt(settings.value, settings.keyVersion);
-    //console.log(decryptedData)
     const key = getPaymentKey(decryptedData);
     res.status(200).json({ key, provider: decryptedData.provider});
   } catch (error) {

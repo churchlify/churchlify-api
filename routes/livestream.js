@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/feed', async(req, res) => {
     const church = req.church._id;
-    const setting = await Settings.findOne({church, key: 'channel'});
+    const setting = await Settings.findOne({church, key: 'channel'}).select('value').lean();
     const channelId =  setting.value;
     if (!setting) {return res.status(400).json({ message: `Livestream settings for church  ${church} not found` });}
     const apiKey = process.env.YOUTUBE_API_KEY;

@@ -77,7 +77,7 @@ router.post('/create', uploadImage, validateUser(), async (req, res) => {
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.findById(id).populate('church');
+    const user = await User.findById(id).select('-password').lean();
     if (!user) {
       return res.status(404).json({ message: `User with id ${id} not found` });
     }
@@ -108,7 +108,7 @@ router.get('/search', async (req, res) => {
       filter.church = church._id;
     }
 
-    const users = await User.find(filter);
+    const users = await User.find(filter).select('firstName lastName phoneNumber emailAddress photoUrl').lean();
 
     if (users.length === 0) {
       return res.status(404).json({ message: 'No matching users found' });
@@ -127,7 +127,7 @@ router.get('/search', async (req, res) => {
 router.get('/findByUid/:firebaseId', async (req, res) => {
   try {
     const { firebaseId } = req.params;
-    const user = await User.findOne({ firebaseId });
+    const user = await User.findOne({ firebaseId }).select('-password').lean();
     if (!user) {
       res.clearCookie('__session', { path: '/' })
         .clearCookie('__role', { path: '/' })

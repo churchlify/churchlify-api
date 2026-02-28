@@ -7,9 +7,15 @@ const checkInSchema = new mongoose.Schema({
     child: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Kid' }],
     validate: [array => array.length > 0, 'At least one child is required'], required: true},
     status: { type: String, enum: ['check_in_request', 'dropped_off', 'pickup_request', 'picked_up'], default: 'check_in_request' },
+    eventInstance: { type: mongoose.Schema.Types.ObjectId, ref: 'EventInstance', index: true },
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true }
 }, { timestamps: true });
+
+// Indexes for common queries
+checkInSchema.index({ status: 1, expiresAt: 1 });
+checkInSchema.index({ child: 1 });
+checkInSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
 checkInSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('child')) {

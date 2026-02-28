@@ -43,7 +43,7 @@ router.post('/create', validatePrayer(), async (req, res) => {
 */
 router.get('/find/:id', async (req, res) => {
   const { id } = req.params;
-  const prayer = await Prayer.findById(id).populate('church');
+  const prayer = await Prayer.findById(id).populate('church').lean();
   if (!prayer){ return res.status(404).json({ message: `Prayer with id ${id} not found` });}
   res.json({ prayer });
 });
@@ -93,7 +93,7 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const prayers = await Prayer.find(filter).populate('author');
+    const prayers = await Prayer.find(filter).select('title prayerRequest author urgency isPublic anonymous createdAt').lean();
     res.status(200).json({ prayers });
   } catch (error) {
     res.status(500).json({ message: error.message });
