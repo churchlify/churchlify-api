@@ -135,27 +135,29 @@ async function seedTimezones() {
 const resetIndexesForAllModels = async () => {
   try {
     const mongoose = require('mongoose');
-    // Retrieve all registered models in Mongoose
     const models = mongoose.models;
-    // Iterate through each model and reset indexes
+    
+    console.log('Syncing indexes for all models...');
+    
     for (const modelName in models) {
       const Model = models[modelName];
       try {
-        await Model.collection.dropIndexes();
-      } catch (err) {
-        console.error(`Error dropping indexes for ${modelName}:`, err.message);
-      }
-
-      // Recreate indexes based on schema definitions
-      try {
+        // Just sync indexes without dropping (safer for production K8s)
         await Model.syncIndexes();
       } catch (err) {
-        console.error(`Error syncing indexes for ${modelName}:`, err.message);
+        // Log but don't fail startup if index sync fails
+        if (err.message.includes('not found')) {
+          // Collection doesn't exist yet - this is normal on first run
+          console.log(`Index sync skipped for ${modelName}: collection not yet created`);
+        } else {
+          console.warn(`Index sync warning for ${modelName}: ${err.message}`);
+        }
       }
     }
-    console.log('Finished processing all models indexes!');
+    console.log('Index synchronization completed!');
   } catch (error) {
-    console.error('Error resetting indexes:', error.message);
+    console.warn('Index sync warning:', error.message);
+    // Don't fail startup over index issues
   }
 };
 
