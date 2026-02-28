@@ -4,6 +4,8 @@
 const express = require('express');
 const Venue = require('../models/venue');
 const { validateVenue } = require('../middlewares/validators');
+const { cacheRoute } = require('../middlewares/tenantCache');
+const { del: delCache } = require('../common/cache');
 const router = express.Router();
 router.use(express.json());
 
@@ -38,7 +40,7 @@ router.patch('/update/:id', async (req, res) => {
   }
 });
 
-router.get('/list', async (req, res) => {
+router.get('/list', cacheRoute('venues:list', 60), async (req, res) => {
   try {
     const church = req.church;
     let filter = {};
@@ -55,6 +57,12 @@ router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     const deletedVenue = await Venue.findByIdAndDelete(id);
     if (!deletedVenue) {return res.status(404).json({ error: 'Venue not found' });}
+    
+    // Invalidate church's venue list cache
+    if (deletedVenue.church) {
+      await delCache(deletedVenue.church.toString(), 'venues:list');
+    }
+    
     res.status(200).json({ message: 'Venue deleted successfully', venue: deletedVenue });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,6 +1,8 @@
 const express = require('express');
 const Subscription = require('../models/subscription');
 const { validateSubscription } = require('../middlewares/validators');
+const { cacheRoute } = require('../middlewares/tenantCache');
+const { del: delCache } = require('../common/cache');
 const router = express.Router();
 router.use(express.json());
 router.post('/create', validateSubscription(), async (req, res) => {
@@ -29,7 +31,7 @@ router.patch('/update/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.get('/list', async (req, res) => {
+router.get('/list', cacheRoute('subscription:list', 60), async (req, res) => {
   try {
     const church = req.church;
     let filter = {};
@@ -46,6 +48,12 @@ router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     const deletedSubscription = await Subscription.findByIdAndDelete(id);
     if (!deletedSubscription) {return res.status(404).json({ error: 'Subscription not found' });}
+    
+    // Invalidate church's subscription list cache
+    if (deletedSubscription.church) {
+      await delCache(deletedSubscription.church.toString(), 'subscription:list');
+    }
+    
     res.status(200).json({ message: 'Subscription deleted successfully', subscription: deletedSubscription });
   } catch (err) {
     res.status(500).json({ error: err.message });

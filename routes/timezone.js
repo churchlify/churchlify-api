@@ -3,6 +3,7 @@
 */
 // routes/timezone.js
 const express = require('express');
+const { cacheRoute } = require('../middlewares/tenantCache');
 const Timezone = require('../models/timezone');
 const router = express.Router();
 router.use(express.json());
@@ -47,7 +48,7 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Timezone']
 */
-router.get('/list', async(req, res) => {
+router.get('/list', cacheRoute('timezone:list', 60), async(req, res) => {
     try {
         const timezones = await Timezone.find().select('key value continent').lean();
         res.status(200).json({ timezones });

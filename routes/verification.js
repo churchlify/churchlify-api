@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Verification = require('../models/verification');
 const Church = require('../models/church');
 const { validateVerification } = require('../middlewares/validators');
+const { cacheRoute } = require('../middlewares/tenantCache');
 const { uploadDocs } = require('../common/upload');
 const router = express.Router();
 
@@ -243,14 +244,14 @@ router.patch('/status/:churchId', async (req, res) => {
 /*
 #swagger.tags = ['Verification']
 */
-router.get('/list', async(req, res) => {
-    try {
-        const churchId = req.church._id;
-        const verification = await Verification.find({churchId});
-        res.status(200).json({ verification });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+router.get('/list', cacheRoute('verification:list', 60), async(req, res) => {
+  try {
+    const churchId = req.church._id;
+    const verification = await Verification.find({churchId});
+    res.status(200).json({ verification });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 /*

@@ -26,8 +26,14 @@ router.get('/turn-credentials', (req, res) => {
 router.post('/rooms', async (req, res) => {
   const { roomId } = req.body;
   if (!roomId) {return res.status(400).json({ error: 'roomId required' });}
-  if (redisClient) {await redisClient.del(`room:${roomId}`);}
-  else if (!rooms.has(roomId)){ rooms.set(roomId, new Set());}
+  
+  if (redisClient) {
+    // Create room and set 1-hour TTL; auto-expires if not refreshed
+    await redisClient.del(`room:${roomId}`);
+    await redisClient.expire(`room:${roomId}`, 3600);
+  } else if (!rooms.has(roomId)) {
+    rooms.set(roomId, new Set());
+  }
   res.json({ roomId, status: 'created' });
 });
 

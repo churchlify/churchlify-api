@@ -7,6 +7,8 @@ const {validateEvent} = require('../middlewares/validators');
 const {getFlatennedMonthEvents} = require('../common/shared');
 const express = require('express');
 const Event = require('../models/event');
+const { cacheRoute } = require('../middlewares/tenantCache');
+const { del: delCache } = require('../common/cache');
 //const event = require('../models/event');
 const router = express.Router();
 router.use(express.json());
@@ -71,7 +73,7 @@ router.put('/update/:id',validateEvent(),  async(req, res) => {
 /*
 #swagger.tags = ['Event']
 */
-router.get('/list', async(req, res) => {
+router.get('/list', cacheRoute('events:list', 60), async(req, res) => {
     try {
         const church = req.church;
         const filter = {};
@@ -92,6 +94,12 @@ router.delete('/delete/:id', async (req, res) => {
         const { id } = req.params;
         const deletedItem = await Event.findByIdAndDelete(id);
         if (!deletedItem) {return res.status(404).json({ error: 'Event not found' });}
+        
+        // Invalidate church's event list cache
+        if (deletedItem.church) {
+            await delCache(deletedItem.church.toString(), 'events:list');
+        }
+        
         res.status(200).json({ message: 'Event deleted successfully', event: deletedItem });
     } catch (err) {
         res.status(500).json({ error: err.message });

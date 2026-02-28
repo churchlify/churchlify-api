@@ -37,13 +37,31 @@ async function set(churchId, key, value, ttl = 300) {
 }
 
 /**
- * invalidate one or multiple keys for a church
+ * invalidate one or multiple keys for a church using SCAN (non-blocking)
+ * avoids blocking entire Redis instance on large datasets
  */
 async function del(churchId, keyPattern) {
   const pattern = tenantKey(churchId, keyPattern);
-  const keys = await redis.keys(pattern);
-  if (keys.length) {
-    await redis.del(...keys);
+  let cursor = '0';
+  const deleteKeys = [];
+  
+  // Use SCAN to paginate without blocking
+  try {
+    do {
+      const [nextCursor, keys] = await redis.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      cursor = nextCursor;
+      deleteKeys.push(...keys);
+    } while (cursor !== '0');
+    
+    // Delete in batches to avoid memory spikes
+    if (deleteKeys.length > 0) {
+      for (let i = 0; i < deleteKeys.length; i += 1000) {
+        await redis.del(...deleteKeys.slice(i, i + 1000));
+      }
+    }
+  } catch (e) {
+    console.error('Cache del error during scan:', e.message);
+    throw e;
   }
 }
 

@@ -5,6 +5,8 @@
 const express = require('express');
 const Testimony = require('../models/testimony');
 const {validateTestimony} = require('../middlewares/validators');
+const { cacheRoute } = require('../middlewares/tenantCache');
+const { del: delCache } = require('../common/cache');
 const router = express.Router();
 router.use(express.json());
 /*
@@ -48,7 +50,7 @@ router.patch('/update/:id', async(req, res) => {
 /*
 #swagger.tags = ['Testimony']
 */
-router.get('/list', async(req, res) => {
+router.get('/list', cacheRoute('testimony:list', 60), async(req, res) => {
     try {
         const church = req.church;
         let filter = {};
@@ -69,6 +71,12 @@ router.delete('/delete/:id', async (req, res) => {
         if (!deletedTestimony) {
             return res.status(404).json({ error: 'Testimony not found' });
         }
+        
+        // Invalidate church's testimony list cache
+        if (deletedTestimony.church) {
+            await delCache(deletedTestimony.church.toString(), 'testimony:list');
+        }
+        
         res.status(200).json({ message: 'Testimony deleted successfully', testimony: deletedTestimony });
     } catch (err) {
         res.status(500).json({ error: err.message });

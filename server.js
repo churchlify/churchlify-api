@@ -201,9 +201,42 @@ app.use(errorHandler);
   });
 
   // Graceful shutdown
+  const redis = require('./common/redis.connection');
+  
   process.on('SIGINT', async () => {
     console.log('\n🛑 Shutting down gracefully...');
-    await require('mongoose').connection.close();
+    
+    try {
+      await require('mongoose').connection.close();
+      console.log('✅ MongoDB connection closed');
+    } catch (err) {
+      console.error('❌ Error closing MongoDB:', err.message);
+    }
+    
+    try {
+      await redis.quit();
+      console.log('✅ Redis connection closed');
+    } catch (err) {
+      console.error('❌ Error closing Redis:', err.message);
+    }
+    
+    server.close(() => {
+      console.log('✅ HTTP server closed');
+      process.exit(0);
+    });
+  });
+  
+  // Also handle SIGTERM for container shutdowns
+  process.on('SIGTERM', async () => {
+    console.log('\n🛑 SIGTERM received, shutting down...');
+    
+    try {
+      await require('mongoose').connection.close();
+      await redis.quit();
+    } catch (err) {
+      console.error('Error during shutdown:', err.message);
+    }
+    
     server.close(() => process.exit(0));
   });
 })();

@@ -5,7 +5,9 @@
 const express = require('express');
 const User = require('../models/user');
 const { validateUser } = require('../middlewares/validators');
+const { cacheRoute } = require('../middlewares/tenantCache');
 const { uploadImage, deleteFile, uploadToMinio } = require('../common/upload');
+const { del: delCache } = require('../common/cache');
 const router = express.Router();
 
 function escapeRegExp(string) {
@@ -240,7 +242,7 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
 /*
 #swagger.tags = ['User']
 */
-router.get('/list', async (req, res) => {
+router.get('/list', cacheRoute('users:list', 60), async (req, res) => {
   try {
     const church = req.church;
     let filter = {};
@@ -272,6 +274,12 @@ router.delete('/delete/:id', async (req, res) => {
     }
 
     await User.findByIdAndDelete(id);
+    
+    // Invalidate church's user list cache
+    if (userToDelete.church) {
+      await delCache(userToDelete.church.toString(), 'users:list');
+    }
+    
     res.status(200).json({ message: 'User deleted successfully', user: userToDelete });
   } catch (err) {
     res.status(500).json({ error: err.message });
