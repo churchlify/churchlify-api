@@ -194,6 +194,32 @@ app.use(errorHandler);
 (async () => {
   await connectDB(MONGO_URI);
 
+  // Wait for Redis to be ready before starting server
+  const redis = require('./common/redis.connection');
+  
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  
+  let redisReady = false;
+  let attempts = 0;
+  const maxAttempts = 30;
+
+  while (!redisReady && attempts < maxAttempts) {
+    try {
+      await redis.ping();
+      redisReady = true;
+      console.log('✅ Redis: Readiness check passed');
+    } catch (err) {
+      attempts++;
+      console.log(`⏳ Redis: Waiting for readiness... attempt ${attempts}/${maxAttempts}`);
+      await sleep(1000);
+    }
+  }
+
+  if (!redisReady) {
+    console.error('❌ Redis: Failed readiness check after 30 attempts');
+    process.exit(1);
+  }
+
   const { server } = await setupSocket(app);
 
   server.listen(PORT, () => {
@@ -201,13 +227,13 @@ app.use(errorHandler);
   });
 
   // Graceful shutdown
-  const redis = require('./common/redis.connection');
+  const mongooseConnection = require('mongoose').connection;
   
   process.on('SIGINT', async () => {
     console.log('\n🛑 Shutting down gracefully...');
     
     try {
-      await require('mongoose').connection.close();
+      await mongooseConnection.close();
       console.log('✅ MongoDB connection closed');
     } catch (err) {
       console.error('❌ Error closing MongoDB:', err.message);
@@ -231,7 +257,7 @@ app.use(errorHandler);
     console.log('\n🛑 SIGTERM received, shutting down...');
     
     try {
-      await require('mongoose').connection.close();
+      await mongooseConnection.close();
       await redis.quit();
     } catch (err) {
       console.error('Error during shutdown:', err.message);
