@@ -15,6 +15,7 @@ router.post('/create', validateVenue(), async (req, res) => {
     await newItem.save();
     res.status(201).json({ message: 'Venue registered successfully', venue: newItem });
   } catch (err) {
+    console.log('Error creating venue:', newItem, err);
     res.status(500).json({ error: err.message });
   }
 });
