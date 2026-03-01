@@ -41,7 +41,6 @@ CHANGELOG.md
 # Optional files
 removeIndexes.js
 seeder.js
-media-client.js
 test/
 tests/
 __tests__/
