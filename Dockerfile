@@ -31,12 +31,17 @@ COPY --from=builder /usr/src/app/node_modules ./node_modules
 # Copy application files (excluding what's in .dockerignore)
 COPY . .
 
-# Remove unnecessary files
-RUN rm -f removeIndexes.js seeder.js *.json docker-compose.yml
+# Remove unnecessary files (but keep package.json and package-lock.json)
+RUN rm -f removeIndexes.js seeder.js docker-compose.yml \
+    && rm -f service_account.json churchlify-firebase-adminsdk-*.json \
+    && rm -rf .git .github .vscode .idea test __tests__
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
+
+# Create logs directory with proper permissions for nodejs user
+RUN mkdir -p logs && chown -R nodejs:nodejs /usr/src/app
 
 USER nodejs
 
