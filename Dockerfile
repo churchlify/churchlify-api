@@ -1,10 +1,17 @@
-# Build stage
-FROM node:22-alpine AS builder
+# Build stage - use Debian-based image for mediasoup compilation requirements
+FROM node:22-bookworm AS builder
 
 WORKDIR /usr/src/app
 
-# Install build dependencies required by native modules (mediasoup needs python3, pip, and build tools)
-RUN apk add --no-cache python3 py3-pip make g++ gcc
+# Install build dependencies required by mediasoup (needs kernel headers, libffi, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    make \
+    g++ \
+    gcc \
+    linux-headers-generic \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy only package files
 COPY package*.json ./
