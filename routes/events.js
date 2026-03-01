@@ -10,14 +10,15 @@ const Event = require('../models/event');
 const Venue = require('../models/venue');
 const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
+const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
 //const event = require('../models/event');
 const router = express.Router();
 router.use(express.json());
 /*
 #swagger.tags = ['Events']
 */
-router.post('/create', validateEvent(), async(req, res) => {
-    const { church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } = req.body;
+router.post('/create', uploadImage, validateEvent(), async(req, res) => {
+    const { church, title, description, startDate, startTime, endDate,endTime, location, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } = req.body;
     //const newItem = new Event({ church, title, description, startDate, startTime, endDate,endTime, location, flier, allowKidsCheckin, checkinStartTime, reminder, recurrence, createdBy } );
     try {
         // Prepare the event data object
@@ -35,6 +36,13 @@ router.post('/create', validateEvent(), async(req, res) => {
             } else {
                 throw new Error('Invalid location: must be a venue ID or venue object with name and address');
             }
+        
+        // Handle flier image upload if provided
+        let flierUrl = null;
+        if (req.file) {
+          flierUrl = await uploadToMinio(req.file);
+        }
+
         const eventData = {
             church,
             title,
@@ -44,7 +52,7 @@ router.post('/create', validateEvent(), async(req, res) => {
             endDate: new Date(endDate),
             endTime,
             location: venueId,
-            flier,
+            flier: flierUrl,
             allowKidsCheckin,
             checkinStartTime,
             reminder,
@@ -104,7 +112,7 @@ router.get('/upcoming', async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-router.patch('/update/:id', validateEvent(), async (req, res) => {
+router.patch('/update/:id', uploadImage, validateEvent(), async (req, res) => {
   const { id } = req.params;
   const allowedFields = ['church', 'title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'location', 'flier', 'reminder', 'allowKidsCheckin', 'checkinStartTime', 'recurrence', 'createdBy'];
   const updateFields = {};
@@ -114,10 +122,23 @@ router.patch('/update/:id', validateEvent(), async (req, res) => {
     }
   });
   try {
-    const updatedEvent = await Event.findByIdAndUpdate( id, { $set: updateFields }, { new: true, runValidators: true }).lean();
-    if (!updatedEvent) {
+    const existingEvent = await Event.findById(id);
+    if (!existingEvent) {
       return res.status(404).json({ message: `Event with id ${id} not found` });
     }
+
+    // Handle flier image upload if provided
+    if (req.file) {
+      const newFlierUrl = await uploadToMinio(req.file);
+      updateFields.flier = newFlierUrl;
+
+      // Delete old flier image if it exists
+      if (existingEvent.flier) {
+        await deleteFile(existingEvent.flier);
+      }
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true }).lean();
     if ('recurrence' in updateFields) {
       await EventService.expandRecurringEvents(); // re-cache
     }
@@ -155,6 +176,12 @@ router.delete('/delete/:id', async (req, res) => {
          // Delete the base event
         const deletedEvent = await Event.findByIdAndDelete(id);
         if (!deletedEvent) {return res.status(404).json({ error: 'Event not found' });}
+        
+        // Delete associated flier image if it exists
+        if (deletedEvent.flier) {
+            await deleteFile(deletedEvent.flier);
+        }
+        
         await EventInstance.deleteMany({ eventId: id });   // Delete all cached instances
         res.status(200).json({ message: 'Event deleted successfully', event: deletedEvent });
     } catch (err) {
