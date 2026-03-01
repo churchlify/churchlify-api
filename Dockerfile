@@ -3,8 +3,8 @@ FROM node:22-alpine AS builder
 
 WORKDIR /usr/src/app
 
-# Install build dependencies required by native modules (mediasoup needs python)
-RUN apk add --no-cache python3 make g++ gcc
+# Install build dependencies required by native modules (mediasoup needs python3, pip, and build tools)
+RUN apk add --no-cache python3 py3-pip make g++ gcc
 
 # Copy only package files
 COPY package*.json ./
