@@ -20,8 +20,8 @@ COPY package*.json ./
 RUN npm ci --only=production && \
     npm cache clean --force
 
-# Production stage
-FROM node:22-alpine
+# Production stage - use Debian-slim for mediasoup binary compatibility
+FROM node:22-bookworm-slim
 
 WORKDIR /usr/src/app
 
@@ -37,8 +37,8 @@ RUN rm -f removeIndexes.js seeder.js docker-compose.yml \
     && rm -rf .git .github .vscode .idea test __tests__
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN groupadd -g 1001 nodejs && \
+    useradd -g nodejs -u 1001 -m -s /bin/bash nodejs
 
 # Create logs directory with proper permissions for nodejs user
 RUN mkdir -p logs && chown -R nodejs:nodejs /usr/src/app
