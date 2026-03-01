@@ -1,17 +1,40 @@
-# Use official Node.js image as base
-FROM node:22
-# Set the working directory
+# Build stage
+FROM node:22-alpine AS builder
+
 WORKDIR /usr/src/app
-# Copy package.json and install dependencies
+
+# Copy only package files
 COPY package*.json ./
-RUN npm install
-# Copy the rest of the application files
+
+# Install dependencies with production flag and clean cache
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Production stage
+FROM node:22-alpine
+
+WORKDIR /usr/src/app
+
+# Copy built node_modules from builder
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+# Copy application files (excluding what's in .dockerignore)
 COPY . .
+
+# Remove unnecessary files
+RUN rm -f removeIndexes.js seeder.js *.json docker-compose.yml
+
+# Set environment credentials
 ENV GOOGLE_APPLICATION_CREDENTIALS=service_account.json
-# Expose the port the app will run on
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+USER nodejs
+
 EXPOSE 3000
-# Command to run the app
+
 CMD ["npm", "run", "api"]
-LABEL version="3"
-# Run the index drop script
-# RUN node removeIndexes.js
+
+LABEL version="4"

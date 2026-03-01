@@ -1,1 +1,49 @@
-/node_modules
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment & Credentials
+.env
+.env.local
+.env.*.local
+service_account.json
+churchlify-firebase-adminsdk-*.json
+
+# Version Control
+.git
+.gitignore
+.github
+
+# Development
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build & Test
+dist
+build
+coverage
+.nyc_output
+*.tsbuildinfo
+
+# Documentation & Config
+README.md
+docker-compose.yml
+CHANGELOG.md
+.eslintrc*
+.prettierrc*
+
+# Optional files
+removeIndexes.js
+seeder.js
+media-client.js
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
