@@ -102,7 +102,7 @@ router.get('/upcoming', async (req, res) => {
         const church = req.church;
         let filter = {date: { $gte: now }};
         if(church) { filter.church = church._id; }
-        const event = await EventInstance.findOne(filter).populate('location').select('title date location isCheckinOpen').sort({ date: 1 }).lean();
+        const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1 }).lean();
         res.json({ event});
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
