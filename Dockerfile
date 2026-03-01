@@ -3,6 +3,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /usr/src/app
 
+# Install build dependencies required by native modules (mediasoup needs python)
+RUN apk add --no-cache python3 make g++ gcc
+
 # Copy only package files
 COPY package*.json ./
 
@@ -24,9 +27,6 @@ COPY . .
 # Remove unnecessary files
 RUN rm -f removeIndexes.js seeder.js *.json docker-compose.yml
 
-# Set environment credentials
-ENV GOOGLE_APPLICATION_CREDENTIALS=service_account.json
-
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
@@ -35,6 +35,7 @@ USER nodejs
 
 EXPOSE 3000
 
+# Note: Credentials should be injected via secrets or mounted volumes, not hardcoded
 CMD ["npm", "run", "api"]
 
-LABEL version="4"
+LABEL version="5"
