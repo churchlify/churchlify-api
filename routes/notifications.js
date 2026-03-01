@@ -3,10 +3,112 @@ const Notifications = require("../models/notifications");
 const Assignment = require("../models/assignment");
 const NotificationRecipient = require("../models/notificationStatus");
 const { validateNotification } = require("../middlewares/validators");
+const { cacheRoute } = require("../middlewares/tenantCache");
+const { del: delCache } = require("../common/cache");
 const mongoose = require("mongoose");
 
 const router = express.Router();
 router.use(express.json());
+
+/**
+ * GET /list
+ * Retrieve all notifications with their delivery status
+ * Query params: limit (default 20), skip (default 0)
+ */
+router.get("/list", cacheRoute("notifications:list", 60), async (req, res) => {
+  try {
+    const church = req.church;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const skip = parseInt(req.query.skip) || 0;
+
+    // Get all notifications for this church, sorted by newest first
+    const notifications = await Notifications.find({ church: church._id })
+      .select({
+        church: 1,
+        author: 1,
+        type: 1,
+        provider: 1,
+        status: 1,
+        totalRecipients: 1,
+        successCount: 1,
+        failedCount: 1,
+        "content.subject": 1,
+        "content.body": 1,
+        createdAt: 1,
+        updatedAt: 1,
+      })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip(skip)
+      .lean();
+
+    // Get status breakdown for each notification using aggregation
+    const statusBreakdown = await NotificationRecipient.aggregate([
+      {
+        $match: {
+          batchId: {
+            $in: notifications.map((n) => n._id),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$batchId",
+          sent: {
+            $sum: { $cond: [{ $eq: ["$status", "sent"] }, 1, 0] },
+          },
+          delivered: {
+            $sum: { $cond: [{ $eq: ["$status", "delivered"] }, 1, 0] },
+          },
+          failed: {
+            $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] },
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    // Create a map for quick lookup
+    const statusMap = statusBreakdown.reduce((acc, item) => {
+      acc[item._id.toString()] = {
+        sent: item.sent || 0,
+        delivered: item.delivered || 0,
+        failed: item.failed || 0,
+        pending: item.pending || 0,
+      };
+      return acc;
+    }, {});
+
+    // Enrich notifications with status breakdown
+    const enrichedNotifications = notifications.map((notification) => ({
+      ...notification,
+      statusBreakdown: statusMap[notification._id.toString()] || {
+        sent: 0,
+        delivered: 0,
+        failed: 0,
+        pending: 0,
+      },
+    }));
+
+    const total = await Notifications.countDocuments({ church: church._id });
+
+    res.json({
+      notifications: enrichedNotifications,
+      pagination: {
+        limit,
+        skip,
+        total,
+        hasMore: skip + limit < total,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching notifications list:", error);
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+});
+
 
 async function getUserTopicIds(userId, churchId) {
   const assignments = await Assignment.find({
@@ -91,6 +193,9 @@ router.post("/batch", validateNotification(), async (req, res) => {
       status: "sent",
     }));
     await NotificationRecipient.insertMany(recipientDocs);
+
+    // Invalidate notifications list cache
+    await delCache(req, `notifications:list`);
 
     res.status(202).json({
       message: "Notifications scheduled successfully",
