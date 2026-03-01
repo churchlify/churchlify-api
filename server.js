@@ -124,8 +124,8 @@ app.options('*', cors(corsOptions));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 // JSON handling
 app.use(skipJsonForUploads);
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(express.json({ limit: '1mb' }));
 // Send simplified access logs to Winston
 app.use(
   morgan('combined', {
