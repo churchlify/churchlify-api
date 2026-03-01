@@ -197,9 +197,32 @@ router.post("/batch", validateNotification(), async (req, res) => {
     // Invalidate notifications list cache
     await delCache(req, `notifications:list`);
 
+    // Format notification response similar to /list endpoint
+    const notification = {
+      _id: batchJob._id,
+      church: batchJob.church,
+      author: batchJob.author,
+      type: batchJob.type,
+      provider: batchJob.provider,
+      status: batchJob.status,
+      totalRecipients: batchJob.totalRecipients,
+      successCount: batchJob.successCount,
+      failedCount: batchJob.failedCount,
+      "content.subject": batchJob.content?.subject,
+      "content.body": batchJob.content?.body,
+      createdAt: batchJob.createdAt,
+      updatedAt: batchJob.updatedAt,
+      statusBreakdown: {
+        sent: totalRecipients,
+        delivered: 0,
+        failed: 0,
+        pending: 0,
+      },
+    };
+
     res.status(202).json({
       message: "Notifications scheduled successfully",
-      batchId: batchJob._id,
+      notification: notification,
     });
   } catch (error) {
     console.error("Batch job initiation error:", error);

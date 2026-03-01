@@ -94,7 +94,8 @@ async expandRecurringEvents() {
    const  event = await Event.create(eventData);
    console.log('Created Event:', event);
     if (event.isRecurring) {
-         return await this.expandRecurringEvents(); // cache future instances
+         await this.expandRecurringEvents(); // cache future instances
+         return event; // Return the base event object for recurring events
       } else {
           // Insert one instance directly
           return await EventInstance.create({
