@@ -163,7 +163,12 @@ router.get('/list', async(req, res) => {
         if (church?._id) {
             filter.church = church._id;
         }
-        const events = await EventInstance.find(filter).populate('location', 'name address').select('title date location isCheckinOpen').sort({ date: 1 }).lean();
+        const events = await EventInstance.find(filter)
+            .populate('location', 'name address')
+            .populate('eventId', 'name type')
+            .select('title date location isCheckinOpen eventId')
+            .sort({ date: 1 })
+            .lean();
         res.status(200).json({ events });
     } catch (error) {
         res.status(500).json({ message: error.message });

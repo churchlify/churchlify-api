@@ -849,6 +849,14 @@ router.get('/event-instance/:eventInstanceId/:ministryId', async (req, res) => {
       eventInstanceId,
       ministryId
     })
+      .populate({
+        path: 'eventInstanceId',
+        select: 'title date startTime endTime location eventId',
+        populate: {
+          path: 'eventId',
+          select: 'name type'
+        }
+      })
       .populate('roleId', 'name description')
       .populate('templateId', 'requiredCount')
       .populate('userId', 'firstName lastName emailAddress phoneNumber')
@@ -887,7 +895,14 @@ router.get('/monthly', async (req, res) => {
       ministryId,
       scheduleDate: { $gte: startDate, $lt: endDate }
     })
-      .populate('eventInstanceId', 'title date startTime endTime location')
+      .populate({
+        path: 'eventInstanceId',
+        select: 'title date startTime endTime location eventId',
+        populate: {
+          path: 'eventId',
+          select: 'name type'
+        }
+      })
       .populate('templateId', 'requiredCount')
       .populate('roleId', 'name')
       .populate('userId', 'firstName lastName')
