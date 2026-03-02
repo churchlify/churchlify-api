@@ -3907,6 +3907,43 @@
         }
       }
     },
+    "/Root/templates/event/{eventId}/aggregate": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/templates/event/{eventId}/aggregate",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/Root/templates/event-instance/{eventInstanceId}": {
       "get": {
         "tags": [
@@ -4397,6 +4434,181 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/my-assignments": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/my-assignments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/assignments/{id}/respond": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/assignments/{id}/respond",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/availability/block": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/availability/block",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/availability/blocks": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/availability/blocks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/availability/blocks/{id}": {
+      "delete": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Delete /Root/availability/blocks/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -5926,6 +6138,77 @@
           }
         }
       },
+      "AvailabilityBlock": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "userId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "isRecurring": {
+            "type": "boolean",
+            "default": false
+          },
+          "recurrencePattern.frequency": {
+            "type": "string",
+            "enum": [
+              "weekly",
+              "monthly",
+              "yearly"
+            ]
+          },
+          "recurrencePattern.interval": {
+            "type": "number"
+          },
+          "recurrencePattern.daysOfWeek": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AvailabilityBlockRecurrencePattern.daysOfWeekItem"
+            }
+          },
+          "recurrencePattern.endRecurrence": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "userId",
+          "startDate",
+          "endDate",
+          "reason"
+        ]
+      },
       "CheckIn": {
         "type": "object",
         "properties": {
@@ -7037,6 +7320,22 @@
             "type": "string",
             "format": "date-time"
           },
+          "responseStatus": {
+            "type": "string",
+            "default": "pending",
+            "enum": [
+              "pending",
+              "accepted",
+              "declined"
+            ]
+          },
+          "responseDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "declineReason": {
+            "type": "string"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -7459,6 +7758,17 @@
           "registrationProof.originalName",
           "submittedBy"
         ]
+      },
+      "AvailabilityBlockRecurrencePattern.daysOfWeekItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "number"
+          },
+          "max": {
+            "type": "string"
+          }
+        }
       },
       "CheckInChildItem": {
         "type": "object",

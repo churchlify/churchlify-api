@@ -17,7 +17,15 @@ const scheduleSchema = new mongoose.Schema({
   },
   scheduleDate: { type: Date, required: true, index: true },
   assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  assignedAt: { type: Date, default: Date.now }
+  assignedAt: { type: Date, default: Date.now },
+  responseStatus: {
+    type: String,
+    enum: ['pending', 'accepted', 'declined'],
+    default: 'pending',
+    index: true
+  },
+  responseDate: { type: Date },
+  declineReason: { type: String }
 }, { timestamps: true });
 
 scheduleSchema.index({ eventInstanceId: 1, ministryId: 1, roleId: 1, slotNumber: 1 }, { unique: true });

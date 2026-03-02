@@ -9,7 +9,8 @@ const AssignmentSchema = new mongoose.Schema({
   ministryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ministry', index: true },
   scheduleRoleId: { type: mongoose.Schema.Types.ObjectId, ref: 'ScheduleRole', index: true },
   role: { type: String, required: true, default: 'member'},
-  availability: Object, // Can be used to store a map of data
+  // @deprecated Use AvailabilityBlock model instead for structured time-based availability management
+  availability: { type: Object, deprecated: true },
   skills: [String],
   status: { type: String,required: true, enum: ['pending', 'approved'], default: 'pending' },
   dateAssigned: { type: Date, required: true }

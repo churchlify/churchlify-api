@@ -502,7 +502,43 @@ const validateObjectId = () => [
 ];
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const validateAvailabilityBlock = () => [
+    body('ministryId').optional().isMongoId().withMessage('Invalid ministry ID'),
+    body('startDate').notEmpty().withMessage('Start date is required').isISO8601().withMessage('Invalid start date format'),
+    body('endDate').notEmpty().withMessage('End date is required').isISO8601().withMessage('Invalid end date format'),
+    body('reason').notEmpty().withMessage('Reason is required').isLength({ min: 3, max: 500 }).withMessage('Reason must be between 3 and 500 characters'),
+    body('isRecurring').optional().isBoolean().withMessage('isRecurring must be a boolean'),
+    body('recurrencePattern.frequency').optional().isIn(['weekly', 'monthly', 'yearly']).withMessage('Invalid recurrence frequency'),
+    body('recurrencePattern.interval').optional().isInt({ min: 1 }).withMessage('Recurrence interval must be at least 1'),
+    body('recurrencePattern.daysOfWeek').optional().isArray().withMessage('Days of week must be an array'),
+    body('recurrencePattern.daysOfWeek.*').optional().isInt({ min: 0, max: 6 }).withMessage('Invalid day of week'),
+    body('recurrencePattern.endRecurrence').optional().isISO8601().withMessage('Invalid end recurrence date'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateAssignmentResponse = () => [
+    body('responseStatus').notEmpty().withMessage('Response status is required').isIn(['accepted', 'declined']).withMessage('Response status must be accepted or declined'),
+    body('declineReason').optional().isLength({ min: 3, max: 500 }).withMessage('Decline reason must be between 3 and 500 characters'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        // If declining, require a reason
+        if (req.body.responseStatus === 'declined' && !req.body.declineReason) {
+            return res.status(400).json({ errors: [{ msg: 'Decline reason is required when declining an assignment' }] });
+        }
+        next();
+    }
+];
+
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, validateVerification,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription, validateVenue,
     validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification,
-    validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule};
+    validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule, validateAvailabilityBlock, validateAssignmentResponse};

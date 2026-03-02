@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 const Assignment = require('../models/assignment');
+const AvailabilityBlock = require('../models/availabilityBlock');
 const Event = require('../models/event');
 const EventInstance = require('../models/eventinstance');
 const EventScheduleTemplate = require('../models/eventScheduleTemplate');
@@ -11,7 +12,7 @@ const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
 
-const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule } = require('../middlewares/validators');
+const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule, validateAvailabilityBlock, validateAssignmentResponse } = require('../middlewares/validators');
 
 const router = express.Router();
 router.use(express.json());
@@ -93,6 +94,50 @@ function findNextAvailableSlot(requiredCount, occupiedSlots) {
     }
   }
   return null;
+}
+
+function aggregateEventTemplateRows(templates = []) {
+  const ministryMap = new Map();
+  let totalRequiredPeople = 0;
+
+  templates.forEach((entry) => {
+    const ministry = entry.ministryId || {};
+    const role = entry.roleId || {};
+    const ministryKey = String(ministry._id || entry.ministryId);
+
+    if (!ministryMap.has(ministryKey)) {
+      ministryMap.set(ministryKey, {
+        ministryId: ministry._id || entry.ministryId,
+        ministryName: ministry.name || null,
+        leaderId: ministry.leaderId || null,
+        roles: [],
+        totalRequiredPeople: 0
+      });
+    }
+
+    const bucket = ministryMap.get(ministryKey);
+    const requiredCount = Number(entry.requiredCount) || 0;
+
+    bucket.roles.push({
+      templateId: entry._id,
+      roleId: role._id || entry.roleId,
+      roleName: role.name || null,
+      roleDescription: role.description || null,
+      requiredCount
+    });
+    bucket.totalRequiredPeople += requiredCount;
+    totalRequiredPeople += requiredCount;
+  });
+
+  const ministries = Array.from(ministryMap.values());
+  return {
+    ministries,
+    totals: {
+      ministries: ministries.length,
+      roles: templates.length,
+      requiredPeople: totalRequiredPeople
+    }
+  };
 }
 
 /*
@@ -182,7 +227,44 @@ router.get('/templates/event/:eventId', async (req, res) => {
       .sort({ createdAt: 1 })
       .lean();
 
+    if (req.query.aggregate === 'true') {
+      return res.json({
+        eventId,
+        ...aggregateEventTemplateRows(templates)
+      });
+    }
+
     return res.json({ templates });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/*
+#swagger.tags = ['Schedule']
+#swagger.summary = 'Get event template as aggregate ministries/roles'
+#swagger.description = 'Returns event-level staffing template grouped by ministry with roles and counts.'
+*/
+router.get('/templates/event/:eventId/aggregate', async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: 'Invalid event ID.' });
+    }
+
+    const templates = await EventScheduleTemplate.find({
+      church: req.church._id,
+      eventId
+    })
+      .populate('ministryId', 'name leaderId')
+      .populate('roleId', 'name description')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    return res.json({
+      eventId,
+      ...aggregateEventTemplateRows(templates)
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -216,6 +298,18 @@ router.get('/templates/event-instance/:eventInstanceId', async (req, res) => {
       .populate('roleId', 'name description')
       .sort({ createdAt: 1 })
       .lean();
+
+    if (req.query.aggregate === 'true') {
+      return res.json({
+        eventInstance: {
+          _id: eventInstance._id,
+          eventId: eventInstance.eventId,
+          title: eventInstance.title,
+          date: eventInstance.date
+        },
+        ...aggregateEventTemplateRows(templates)
+      });
+    }
 
     return res.json({
       eventInstance: {
@@ -981,11 +1075,32 @@ router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
           for (let attempts = 0; attempts < pool.users.length; attempts++) {
             const candidateIndex = (pool.pointer + attempts) % pool.users.length;
             const candidateUserId = pool.users[candidateIndex];
-            if (!assignedUsersInRole.has(candidateUserId)) {
-              chosenUserId = candidateUserId;
-              pool.pointer = (candidateIndex + 1) % pool.users.length;
-              break;
+            
+            // Skip if user already assigned to this role for this instance
+            if (assignedUsersInRole.has(candidateUserId)) {
+              continue;
             }
+            
+            // Check for availability blocks
+            const hasBlockConflict = await AvailabilityBlock.findOne({
+              userId: candidateUserId,
+              church: church._id,
+              $or: [
+                { ministryId: null }, // Global block
+                { ministryId: ministryId } // Ministry-specific block
+              ],
+              startDate: { $lte: instance.date },
+              endDate: { $gte: instance.date }
+            }).lean();
+            
+            if (hasBlockConflict) {
+              // Skip this candidate due to availability block
+              continue;
+            }
+            
+            chosenUserId = candidateUserId;
+            pool.pointer = (candidateIndex + 1) % pool.users.length;
+            break;
           }
 
           if (!chosenUserId) {
@@ -995,7 +1110,7 @@ router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
               roleId,
               roleName: pool.roleName,
               slotNumber: slot,
-              reason: 'Not enough distinct members to fill all slots'
+              reason: 'Not enough available members (considering availability blocks and slot constraints)'
             });
             continue;
           }
@@ -1083,6 +1198,529 @@ router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
       unfilled,
       created,
       proposed
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /schedule/my-assignments:
+ *   get:
+ *     tags: [Schedule]
+ *     summary: Get my monthly assignments
+ *     description: Retrieve all assignments for the current user within a specified month and year
+ *     parameters:
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 12
+ *         required: true
+ *         description: Month (1-12)
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Year (e.g., 2026)
+ *       - in: query
+ *         name: ministryId
+ *         schema:
+ *           type: string
+ *         description: Filter by ministry ID
+ *       - in: query
+ *         name: responseStatus
+ *         schema:
+ *           type: string
+ *           enum: [pending, accepted, declined]
+ *         description: Filter by response status
+ *     responses:
+ *       200:
+ *         description: Monthly assignments retrieved successfully
+ *       400:
+ *         description: Invalid month or year
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/my-assignments', async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { month, year, ministryId, responseStatus } = req.query;
+
+    // Validate month and year
+    const monthNum = parseInt(month);
+    const yearNum = parseInt(year);
+    
+    if (!monthNum || !yearNum || monthNum < 1 || monthNum > 12) {
+      return res.status(400).json({ message: 'Valid month (1-12) and year are required' });
+    }
+
+    // Build date range for the month
+    const startDate = new Date(yearNum, monthNum - 1, 1);
+    const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+
+    // Build query
+    const query = {
+      church: currentUser.church,
+      userId: currentUser._id,
+      scheduleDate: { $gte: startDate, $lte: endDate }
+    };
+
+    if (ministryId) {
+      query.ministryId = asObjectId(ministryId);
+    }
+
+    if (responseStatus) {
+      query.responseStatus = responseStatus;
+    }
+
+    const assignments = await Schedule.find(query)
+      .populate('ministryId', 'name description')
+      .populate('roleId', 'name description')
+      .populate('eventInstanceId')
+      .populate('assignedBy', 'firstName lastName')
+      .sort({ scheduleDate: 1 })
+      .lean();
+
+    // Populate event details
+    const eventInstanceIds = assignments.map(a => a.eventInstanceId?._id).filter(Boolean);
+    const eventInstances = await EventInstance.find({ _id: { $in: eventInstanceIds } })
+      .populate('eventId', 'name type')
+      .lean();
+
+    const eventMap = {};
+    eventInstances.forEach(ei => {
+      eventMap[String(ei._id)] = ei;
+    });
+
+    // Enrich assignments with event data
+    const enrichedAssignments = assignments.map(assignment => {
+      const eventInstance = eventMap[String(assignment.eventInstanceId?._id)];
+      return {
+        _id: assignment._id,
+        scheduleDate: assignment.scheduleDate,
+        ministry: assignment.ministryId,
+        role: assignment.roleId,
+        event: eventInstance?.eventId,
+        eventInstance: assignment.eventInstanceId,
+        taskNotes: assignment.taskNotes,
+        status: assignment.status,
+        responseStatus: assignment.responseStatus,
+        responseDate: assignment.responseDate,
+        declineReason: assignment.declineReason,
+        assignedBy: assignment.assignedBy,
+        assignedAt: assignment.assignedAt,
+        slotNumber: assignment.slotNumber
+      };
+    });
+
+    // Get availability blocks for this period
+    const availabilityBlocks = await AvailabilityBlock.find({
+      church: currentUser.church,
+      userId: currentUser._id,
+      $or: [
+        // Block starts within the month
+        { startDate: { $gte: startDate, $lte: endDate } },
+        // Block ends within the month
+        { endDate: { $gte: startDate, $lte: endDate } },
+        // Block spans the entire month
+        { startDate: { $lte: startDate }, endDate: { $gte: endDate } }
+      ]
+    })
+      .populate('ministryId', 'name')
+      .sort({ startDate: 1 })
+      .lean();
+
+    return res.status(200).json({
+      month: monthNum,
+      year: yearNum,
+      totalAssignments: enrichedAssignments.length,
+      pending: enrichedAssignments.filter(a => a.responseStatus === 'pending').length,
+      accepted: enrichedAssignments.filter(a => a.responseStatus === 'accepted').length,
+      declined: enrichedAssignments.filter(a => a.responseStatus === 'declined').length,
+      assignments: enrichedAssignments,
+      availabilityBlocks
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /schedule/assignments/{id}/respond:
+ *   patch:
+ *     tags: [Schedule]
+ *     summary: Accept or decline an assignment
+ *     description: Allow members to accept or decline their assignments with optional reason
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Assignment (Schedule) ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - responseStatus
+ *             properties:
+ *               responseStatus:
+ *                 type: string
+ *                 enum: [accepted, declined]
+ *               declineReason:
+ *                 type: string
+ *                 description: Required when declining
+ *     responses:
+ *       200:
+ *         description: Response recorded successfully
+ *       400:
+ *         description: Invalid input or decline reason missing
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Not authorized to respond to this assignment
+ *       404:
+ *         description: Assignment not found
+ *       500:
+ *         description: Server error
+ */
+router.patch('/assignments/:id/respond', validateAssignmentResponse(), async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { responseStatus, declineReason } = req.body;
+
+    // Find the assignment
+    const assignment = await Schedule.findById(id).populate('ministryId', 'name leaderId').lean();
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    // Verify the assignment belongs to the current user
+    if (String(assignment.userId) !== String(currentUser._id)) {
+      return res.status(403).json({ message: 'You are not authorized to respond to this assignment' });
+    }
+
+    // Verify the assignment belongs to the user's church
+    if (String(assignment.church) !== String(currentUser.church)) {
+      return res.status(403).json({ message: 'Assignment not found in your church' });
+    }
+
+    // Update the assignment
+    const updateData = {
+      responseStatus,
+      responseDate: new Date()
+    };
+
+    if (responseStatus === 'declined') {
+      updateData.declineReason = declineReason;
+      // Optionally update status to 'cancelled' when declined
+      updateData.status = 'cancelled';
+    } else if (responseStatus === 'accepted') {
+      // Clear any previous decline reason
+      updateData.declineReason = null;
+      // Update status to 'confirmed' when accepted
+      if (assignment.status === 'planned') {
+        updateData.status = 'confirmed';
+      }
+    }
+
+    const updatedAssignment = await Schedule.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    )
+      .populate('ministryId', 'name')
+      .populate('roleId', 'name')
+      .populate('eventInstanceId')
+      .lean();
+
+    // Notify ministry leader about the response
+    if (assignment.ministryId?.leaderId) {
+      const leaderUser = await User.findById(assignment.ministryId.leaderId).lean();
+      if (leaderUser?.fcmToken) {
+        const userName = `${currentUser.firstName} ${currentUser.lastName}`;
+        const roleName = updatedAssignment.roleId?.name || 'Unknown Role';
+        const statusText = responseStatus === 'accepted' ? 'accepted' : 'declined';
+        
+        await sendPushNotification({
+          token: leaderUser.fcmToken,
+          title: `Assignment ${statusText}`,
+          body: `${userName} has ${statusText} the assignment for ${roleName}${responseStatus === 'declined' && declineReason ? ': ' + declineReason : ''}`,
+          data: {
+            type: 'assignment_response',
+            assignmentId: String(updatedAssignment._id),
+            ministryId: String(assignment.ministryId._id),
+            responseStatus
+          }
+        });
+      }
+    }
+
+    return res.status(200).json({
+      message: `Assignment ${responseStatus} successfully`,
+      assignment: updatedAssignment
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /schedule/availability/block:
+ *   post:
+ *     tags: [Schedule]
+ *     summary: Block availability
+ *     description: Create a new availability block to indicate when you're unavailable for scheduling
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - startDate
+ *               - endDate
+ *               - reason
+ *             properties:
+ *               ministryId:
+ *                 type: string
+ *                 description: Optional - block for specific ministry only
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *               reason:
+ *                 type: string
+ *               isRecurring:
+ *                 type: boolean
+ *               recurrencePattern:
+ *                 type: object
+ *                 properties:
+ *                   frequency:
+ *                     type: string
+ *                     enum: [weekly, monthly, yearly]
+ *                   interval:
+ *                     type: integer
+ *                   daysOfWeek:
+ *                     type: array
+ *                     items:
+ *                       type: integer
+ *                   endRecurrence:
+ *                     type: string
+ *                     format: date-time
+ *     responses:
+ *       201:
+ *         description: Availability block created successfully
+ *       400:
+ *         description: Invalid input
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.post('/availability/block', validateAvailabilityBlock(), async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { ministryId, startDate, endDate, reason, isRecurring, recurrencePattern } = req.body;
+
+    // Validate ministry if provided
+    if (ministryId) {
+      const ministry = await Ministry.findOne({
+        _id: ministryId,
+        church: currentUser.church
+      }).lean();
+
+      if (!ministry) {
+        return res.status(404).json({ message: 'Ministry not found in your church' });
+      }
+
+      // Verify user is a member of this ministry
+      const isMember = await Assignment.findOne({
+        ministryId,
+        userId: currentUser._id,
+        status: 'approved'
+      }).lean();
+
+      if (!isMember) {
+        return res.status(403).json({ message: 'You are not a member of this ministry' });
+      }
+    }
+
+    const blockData = {
+      church: currentUser.church,
+      userId: currentUser._id,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      reason,
+      isRecurring: isRecurring || false
+    };
+
+    if (ministryId) {
+      blockData.ministryId = ministryId;
+    }
+
+    if (isRecurring && recurrencePattern) {
+      blockData.recurrencePattern = recurrencePattern;
+    }
+
+    const availabilityBlock = await AvailabilityBlock.create(blockData);
+
+    const populatedBlock = await AvailabilityBlock.findById(availabilityBlock._id)
+      .populate('ministryId', 'name')
+      .lean();
+
+    return res.status(201).json({
+      message: 'Availability block created successfully',
+      block: populatedBlock
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /schedule/availability/blocks:
+ *   get:
+ *     tags: [Schedule]
+ *     summary: Get my availability blocks
+ *     description: Retrieve all availability blocks for the current user
+ *     parameters:
+ *       - in: query
+ *         name: ministryId
+ *         schema:
+ *           type: string
+ *         description: Filter by ministry ID
+ *       - in: query
+ *         name: upcoming
+ *         schema:
+ *           type: boolean
+ *         description: Only show future blocks
+ *     responses:
+ *       200:
+ *         description: Availability blocks retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+router.get('/availability/blocks', async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { ministryId, upcoming } = req.query;
+
+    const query = {
+      church: currentUser.church,
+      userId: currentUser._id
+    };
+
+    if (ministryId) {
+      query.ministryId = asObjectId(ministryId);
+    }
+
+    if (upcoming === 'true') {
+      query.endDate = { $gte: new Date() };
+    }
+
+    const blocks = await AvailabilityBlock.find(query)
+      .populate('ministryId', 'name')
+      .sort({ startDate: 1 })
+      .lean();
+
+    return res.status(200).json({
+      total: blocks.length,
+      blocks
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /schedule/availability/blocks/{id}:
+ *   delete:
+ *     tags: [Schedule]
+ *     summary: Delete availability block
+ *     description: Remove an availability block
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Availability block ID
+ *     responses:
+ *       200:
+ *         description: Availability block deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Not authorized to delete this block
+ *       404:
+ *         description: Availability block not found
+ *       500:
+ *         description: Server error
+ */
+router.delete('/availability/blocks/:id', async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+
+    const block = await AvailabilityBlock.findById(id).lean();
+
+    if (!block) {
+      return res.status(404).json({ message: 'Availability block not found' });
+    }
+
+    // Verify ownership
+    if (String(block.userId) !== String(currentUser._id)) {
+      return res.status(403).json({ message: 'You are not authorized to delete this block' });
+    }
+
+    if (String(block.church) !== String(currentUser.church)) {
+      return res.status(403).json({ message: 'Block not found in your church' });
+    }
+
+    await AvailabilityBlock.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: 'Availability block deleted successfully'
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
