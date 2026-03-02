@@ -103,9 +103,10 @@ async function cleanupChurchData(churchId, options = {}) {
       userIds.length ? { userId: { $in: userIds } } : null
     ].filter(Boolean);
 
-    const kids = userIds.length
-      ? await Kid.find({ parent: { $in: userIds } }).select('_id').session(session).lean()
-      : [];
+    let kids = [];
+    if (userIds.length) {
+      kids = await Kid.find({ parent: { $in: userIds } }).select('_id').session(session).lean();
+    }
     const kidIds = kids.map((item) => item._id);
 
     fileUrls = new Set();
