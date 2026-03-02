@@ -309,9 +309,25 @@ const validateAssignment = () => [
             }
             return true;
         }),
+        body('scheduleRoleId').optional().notEmpty().withMessage('Schedule Role ID cannot be empty').custom((value) => {
+            if (!mongoose.Types.ObjectId.isValid(value)) {
+                throw new Error('Invalid Schedule Role ID');
+            }
+            return true;
+        }),
         body('fellowshipId').optional().notEmpty().withMessage('Fellowship ID is required').custom((value) => {
             if (!mongoose.Types.ObjectId.isValid(value)) {
                 throw new Error('Invalid Fellowship ID');
+            }
+            return true;
+        }),
+        body().custom((value) => {
+            const status = value.status || 'pending';
+            if (value.ministryId && status === 'approved' && !value.scheduleRoleId) {
+                throw new Error('scheduleRoleId is required when approving ministry assignment');
+            }
+            if (value.fellowshipId && value.scheduleRoleId) {
+                throw new Error('scheduleRoleId is only allowed for ministry assignments');
             }
             return true;
         }),
@@ -409,6 +425,32 @@ const validateScheduleTemplate = () => [
     }
 ];
 
+const validateAutoSchedule = () => [
+    body('eventId').notEmpty().withMessage('Event ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Event ID');
+        }
+        return true;
+    }),
+    body('ministryId').notEmpty().withMessage('Ministry ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Ministry ID');
+        }
+        return true;
+    }),
+    body('month').notEmpty().withMessage('Month is required').isInt({ min: 1, max: 12 }).withMessage('Month must be between 1 and 12'),
+    body('year').notEmpty().withMessage('Year is required').isInt({ min: 1900 }).withMessage('Year must be a valid number'),
+    body('overwriteExisting').optional().isBoolean().withMessage('overwriteExisting must be boolean'),
+    body('previewOnly').optional().isBoolean().withMessage('previewOnly must be boolean'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
     const validateDonationItem = () =>  [
         body('title').isString().withMessage('Donation Title is required'),
         body('description').optional().notEmpty().withMessage('Please provide a valid description'),
@@ -463,4 +505,4 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, validateVerification,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription, validateVenue,
     validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification,
-    validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate};
+    validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule};

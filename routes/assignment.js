@@ -13,6 +13,7 @@ router.post("/create", validateAssignment(), async (req, res) => {
   const {
     userId,
     ministryId,
+    scheduleRoleId,
     fellowshipId,
     role,
     availability,
@@ -23,6 +24,7 @@ router.post("/create", validateAssignment(), async (req, res) => {
   const newItem = new Assignment({
     userId,
     ministryId,
+    scheduleRoleId,
     fellowshipId,
     role,
     availability,
@@ -76,7 +78,7 @@ router.patch("/update/:id", async (req, res) => {
 
 router.get("/list", async (req, res) => {
   try {
-    const assignment = await Assignment.find().select("userId ministryId fellowshipId role status dateAssigned").lean();
+    const assignment = await Assignment.find().select("userId ministryId scheduleRoleId fellowshipId role status dateAssigned").lean();
     res.status(200).json({ assignment });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -249,7 +251,7 @@ router.get("/groupMembers/:groupType/:groupId", async (req, res) => {
     };
     console.log(filter);
 
-    const members = await Assignment.find(filter).populate("userId");
+    const members = await Assignment.find(filter).populate("userId").populate("scheduleRoleId", "name ministryId");
     console.log(members);
 
     res.json({ success: true, members });

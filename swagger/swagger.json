@@ -4380,6 +4380,43 @@
         }
       }
     },
+    "/Root/auto-schedule": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/auto-schedule",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/settings/create": {
       "post": {
         "tags": [
@@ -5793,6 +5830,11 @@
             "example": "507f1f77bcf86cd799439011"
           },
           "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "scheduleRoleId": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{24}$",
             "example": "507f1f77bcf86cd799439011"

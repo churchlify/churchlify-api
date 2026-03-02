@@ -11,7 +11,7 @@ const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
 
-const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate } = require('../middlewares/validators');
+const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule } = require('../middlewares/validators');
 
 const router = express.Router();
 router.use(express.json());
@@ -43,15 +43,16 @@ async function ensureLeader(ministryId, currentUserId, churchId) {
   return { ok: true, ministry };
 }
 
-async function ensureApprovedMember(ministryId, userId) {
+async function ensureApprovedMember(ministryId, userId, roleId) {
   const assignment = await Assignment.findOne({
     ministryId,
     userId,
+    scheduleRoleId: roleId,
     status: 'approved'
   }).lean();
 
   if (!assignment) {
-    return { ok: false, code: 400, message: 'Selected user is not an approved member of this ministry.' };
+    return { ok: false, code: 400, message: 'Selected user does not have an approved assignment for this ministry role.' };
   }
 
   return { ok: true };
@@ -504,7 +505,7 @@ router.post('/create', validateScheduleAssignment(), async (req, res) => {
     const [eventInstance, role, memberResult] = await Promise.all([
       EventInstance.findOne({ _id: eventInstanceId, church: church._id }).lean(),
       ScheduleRole.findOne({ _id: roleId, church: church._id, ministryId, isActive: true }).lean(),
-      ensureApprovedMember(ministryId, userId)
+      ensureApprovedMember(ministryId, userId, roleId)
     ]);
 
     if (!eventInstance) {
@@ -630,7 +631,7 @@ router.patch('/update/:id', async (req, res) => {
     let notifyNewUser = false;
 
     if (req.body.userId && String(req.body.userId) !== String(schedule.userId)) {
-      const memberResult = await ensureApprovedMember(schedule.ministryId, req.body.userId);
+      const memberResult = await ensureApprovedMember(schedule.ministryId, req.body.userId, schedule.roleId);
       if (!memberResult.ok) {
         return res.status(memberResult.code).json({ message: memberResult.message });
       }
@@ -652,6 +653,13 @@ router.patch('/update/:id', async (req, res) => {
 
       schedule.roleId = req.body.roleId;
       notifyNewUser = true;
+    }
+
+    if (req.body.userId !== undefined || req.body.roleId !== undefined) {
+      const memberResult = await ensureApprovedMember(schedule.ministryId, schedule.userId, schedule.roleId);
+      if (!memberResult.ok) {
+        return res.status(memberResult.code).json({ message: memberResult.message });
+      }
     }
 
     if (req.body.slotNumber !== undefined) {
@@ -826,6 +834,256 @@ router.delete('/delete/:id', async (req, res) => {
 
     await Schedule.findByIdAndDelete(schedule._id);
     return res.json({ message: 'Schedule deleted successfully.' });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+/*
+#swagger.tags = ['Schedule']
+#swagger.summary = 'Auto-schedule a ministry for month/year'
+#swagger.description = 'Automatically assigns approved ministry members to all event instances of a base event in a given month/year based on event templates.'
+#swagger.parameters['body'] = {
+  in: 'body',
+  required: true,
+  schema: {
+    eventId: '65f0f9a16c2f65c9d2ab1201',
+    ministryId: '65f0f9a16c2f65c9d2ab2201',
+    month: 3,
+    year: 2026,
+    overwriteExisting: false,
+    previewOnly: true
+  }
+}
+*/
+router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
+  try {
+    const church = req.church;
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unable to resolve authenticated user profile.' });
+    }
+
+    const { eventId, ministryId, month, year, overwriteExisting = false, previewOnly = false } = req.body;
+    const authResult = await ensureLeader(ministryId, currentUser._id, church._id);
+    if (!authResult.ok) {
+      return res.status(authResult.code).json({ message: authResult.message });
+    }
+
+    const event = await Event.findOne({ _id: eventId, church: church._id }).lean();
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found for this church.' });
+    }
+
+    const templates = await EventScheduleTemplate.find({
+      church: church._id,
+      eventId,
+      ministryId
+    })
+      .populate('roleId', 'name')
+      .lean();
+
+    if (!templates.length) {
+      return res.status(404).json({ message: 'No templates found for this event and ministry.' });
+    }
+
+    const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1, 0, 0, 0, 0));
+    const endDate = new Date(Date.UTC(Number(year), Number(month), 1, 0, 0, 0, 0));
+
+    const eventInstances = await EventInstance.find({
+      church: church._id,
+      eventId,
+      date: { $gte: startDate, $lt: endDate }
+    })
+      .sort({ date: 1 })
+      .lean();
+
+    if (!eventInstances.length) {
+      return res.status(200).json({
+        message: 'No event instances found for the selected month/year.',
+        summary: {
+          createdCount: 0,
+          unfilledSlots: 0,
+          eventInstances: 0
+        }
+      });
+    }
+
+    const rolePool = {};
+    for (const template of templates) {
+      const roleIdKey = String(template.roleId._id || template.roleId);
+      const assignments = await Assignment.find({
+        ministryId,
+        scheduleRoleId: roleIdKey,
+        status: 'approved'
+      })
+        .select('userId dateAssigned')
+        .sort({ dateAssigned: 1, _id: 1 })
+        .lean();
+
+      const uniqueUserIds = Array.from(new Set(assignments.map((entry) => String(entry.userId))));
+      rolePool[roleIdKey] = {
+        users: uniqueUserIds,
+        pointer: 0,
+        roleName: template.roleId?.name || 'Role'
+      };
+    }
+
+    const created = [];
+    const proposed = [];
+    const unfilled = [];
+
+    for (const instance of eventInstances) {
+      for (const template of templates) {
+        const roleId = String(template.roleId._id || template.roleId);
+        const pool = rolePool[roleId];
+
+        if (overwriteExisting && !previewOnly) {
+          await Schedule.deleteMany({
+            church: church._id,
+            eventInstanceId: instance._id,
+            ministryId,
+            templateId: template._id
+          });
+        }
+
+        const existingSchedules = await Schedule.find({
+          church: church._id,
+          eventInstanceId: instance._id,
+          ministryId,
+          templateId: template._id,
+          status: { $ne: 'cancelled' }
+        })
+          .select('slotNumber userId')
+          .lean();
+
+        const occupiedSlots = new Set(existingSchedules.map((entry) => entry.slotNumber));
+        const assignedUsersInRole = new Set(existingSchedules.map((entry) => String(entry.userId)));
+
+        for (let slot = 1; slot <= template.requiredCount; slot++) {
+          if (occupiedSlots.has(slot)) {
+            continue;
+          }
+
+          if (!pool.users.length) {
+            unfilled.push({
+              eventInstanceId: instance._id,
+              eventDate: instance.date,
+              roleId,
+              roleName: pool.roleName,
+              slotNumber: slot,
+              reason: 'No approved members for role'
+            });
+            continue;
+          }
+
+          let chosenUserId = null;
+          for (let attempts = 0; attempts < pool.users.length; attempts++) {
+            const candidateIndex = (pool.pointer + attempts) % pool.users.length;
+            const candidateUserId = pool.users[candidateIndex];
+            if (!assignedUsersInRole.has(candidateUserId)) {
+              chosenUserId = candidateUserId;
+              pool.pointer = (candidateIndex + 1) % pool.users.length;
+              break;
+            }
+          }
+
+          if (!chosenUserId) {
+            unfilled.push({
+              eventInstanceId: instance._id,
+              eventDate: instance.date,
+              roleId,
+              roleName: pool.roleName,
+              slotNumber: slot,
+              reason: 'Not enough distinct members to fill all slots'
+            });
+            continue;
+          }
+
+          const proposedEntry = {
+            church: church._id,
+            ministryId,
+            eventInstanceId: instance._id,
+            templateId: template._id,
+            roleId,
+            roleName: pool.roleName,
+            slotNumber: slot,
+            userId: chosenUserId,
+            scheduleDate: instance.date,
+            eventTitle: instance.title
+          };
+
+          if (previewOnly) {
+            proposed.push(proposedEntry);
+            assignedUsersInRole.add(String(chosenUserId));
+            continue;
+          }
+
+          try {
+            const schedule = await Schedule.create({
+              church: proposedEntry.church,
+              ministryId: proposedEntry.ministryId,
+              eventInstanceId: proposedEntry.eventInstanceId,
+              templateId: proposedEntry.templateId,
+              roleId: proposedEntry.roleId,
+              slotNumber: proposedEntry.slotNumber,
+              userId: proposedEntry.userId,
+              taskNotes: '',
+              status: 'planned',
+              scheduleDate: proposedEntry.scheduleDate,
+              assignedBy: currentUser._id,
+              assignedAt: new Date()
+            });
+
+            created.push(schedule);
+            assignedUsersInRole.add(String(chosenUserId));
+
+            const [assignedUser, ministry] = await Promise.all([
+              User.findById(chosenUserId).select('pushToken muteNotifications').lean(),
+              Ministry.findById(ministryId).select('name').lean()
+            ]);
+
+            await notifyUserOnAssignment({
+              assignedUser,
+              roleName: pool.roleName,
+              eventTitle: instance.title,
+              eventDate: instance.date,
+              ministryName: ministry?.name || 'Ministry',
+              eventInstanceId: instance._id,
+              ministryId,
+              roleId
+            });
+          } catch (error) {
+            if (error.code === 11000) {
+              unfilled.push({
+                eventInstanceId: instance._id,
+                eventDate: instance.date,
+                roleId,
+                roleName: pool.roleName,
+                slotNumber: slot,
+                reason: 'Duplicate constraint conflict during scheduling'
+              });
+              continue;
+            }
+            throw error;
+          }
+        }
+      }
+    }
+
+    return res.status(201).json({
+      message: previewOnly ? 'Auto scheduling preview generated.' : 'Auto scheduling completed.',
+      summary: {
+        previewOnly,
+        createdCount: created.length,
+        proposedCount: proposed.length,
+        unfilledSlots: unfilled.length,
+        eventInstances: eventInstances.length
+      },
+      unfilled,
+      created,
+      proposed
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

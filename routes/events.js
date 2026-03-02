@@ -43,13 +43,15 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
           flierUrl = await uploadToMinio(req.file);
         }
 
+        const resolvedEndDate = recurrence?.endDate ? new Date(recurrence.endDate) : new Date(endDate);
+
         const eventData = {
             church,
             title,
             description,
             startDate: new Date(startDate),
             startTime,
-            endDate: new Date(endDate),
+            endDate: resolvedEndDate,
             endTime,
             location: venueId,
             flier: flierUrl,
