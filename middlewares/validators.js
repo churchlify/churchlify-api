@@ -325,6 +325,90 @@ const validateAssignment = () => [
         }
     ];
 
+const validateScheduleRole = () => [
+    body('ministryId').notEmpty().withMessage('Ministry ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Ministry ID');
+        }
+        return true;
+    }),
+    body('name').trim().notEmpty().withMessage('Role name is required'),
+    body('description').optional().isString().withMessage('Description must be a string'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateScheduleAssignment = () => [
+    body('ministryId').notEmpty().withMessage('Ministry ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Ministry ID');
+        }
+        return true;
+    }),
+    body('eventInstanceId').notEmpty().withMessage('Event Instance ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Event Instance ID');
+        }
+        return true;
+    }),
+    body('roleId').notEmpty().withMessage('Role ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Role ID');
+        }
+        return true;
+    }),
+    body('userId').notEmpty().withMessage('User ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid User ID');
+        }
+        return true;
+    }),
+    body('taskNotes').optional().isString().withMessage('Task notes must be a string'),
+    body('slotNumber').optional().isInt({ min: 1 }).withMessage('slotNumber must be a positive integer'),
+    body('status').optional().isIn(['planned', 'confirmed', 'completed', 'cancelled']).withMessage('Invalid schedule status'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
+const validateScheduleTemplate = () => [
+    body('eventId').notEmpty().withMessage('Event ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Event ID');
+        }
+        return true;
+    }),
+    body('ministryId').notEmpty().withMessage('Ministry ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Ministry ID');
+        }
+        return true;
+    }),
+    body('roleId').notEmpty().withMessage('Role ID is required').custom((value) => {
+        if (!mongoose.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid Role ID');
+        }
+        return true;
+    }),
+    body('requiredCount').notEmpty().withMessage('Required count is required').isInt({ min: 1 }).withMessage('Required count must be a number greater than zero'),
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        next();
+    }
+];
+
     const validateDonationItem = () =>  [
         body('title').isString().withMessage('Donation Title is required'),
         body('description').optional().notEmpty().withMessage('Please provide a valid description'),
@@ -378,4 +462,5 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 module.exports = { validateChurch, validateUser, validateEvent, validateKid, validateObjectId, isValidObjectId, validateVerification,
     validatePrayer, validateTestimony, validateDevotion ,validateMinistry, validateFellowship, validateSubscription, validateVenue,
-    validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification};
+    validateModule, validatePayment, validateSettings, validateAssignment, validateDonationItem, validateNotification,
+    validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate};

@@ -44,6 +44,7 @@ const uploadRoutes = require('./routes/upload');
 const notificationsRoutes = require('./routes/notifications');
 const livestreamRoutes = require('./routes/livestream');
 const verificationRoutes = require('./routes/verification');
+const scheduleRoutes = require('./routes/schedule');
 const allowedHeaders = [
   'Authorization',
   'Content-Type',
@@ -166,6 +167,7 @@ app.use('/notifications', notificationsRoutes);
 app.use('/verify', verificationRoutes);
 app.use('/user', userRoutes);
 app.use('/assignment', assignmentRoutes);
+app.use('/schedule', scheduleRoutes);
 app.use('/event', eventRoutes);
 app.use('/kid', kidRoutes);
 app.use('/checkin', checkinRoutes);

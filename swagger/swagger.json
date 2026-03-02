@@ -265,6 +265,126 @@
         }
       }
     },
+    "/assignment/groupLed/{userId}": {
+      "get": {
+        "tags": [
+          "assignment"
+        ],
+        "summary": "Get /assignment/groupLed/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/assignment/isLeader/{userId}": {
+      "get": {
+        "tags": [
+          "assignment"
+        ],
+        "summary": "Get /assignment/isLeader/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/assignment/groupMembers/{groupType}/{groupId}": {
+      "get": {
+        "tags": [
+          "assignment"
+        ],
+        "summary": "Get /assignment/groupMembers/{groupType}/{groupId}",
+        "parameters": [
+          {
+            "name": "groupType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced assignment"
+          },
+          {
+            "name": "groupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced assignment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/assignment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/auth/register": {
       "post": {
         "tags": [
@@ -366,6 +486,43 @@
         }
       }
     },
+    "/auth/mintToken": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Post /auth/mintToken",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/auth/sign-url/{url}": {
       "post": {
         "tags": [
@@ -430,6 +587,33 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/auth"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/auth/validateToken": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get /auth/validateToken",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -900,6 +1084,33 @@
           "church"
         ],
         "summary": "Get /church/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/church"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/church/search": {
+      "get": {
+        "tags": [
+          "church"
+        ],
+        "summary": "Get /church/search",
         "parameters": [],
         "responses": {
           "200": {
@@ -2690,6 +2901,33 @@
         }
       }
     },
+    "/Root/feed": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/feed",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/ministry/create": {
       "post": {
         "tags": [
@@ -3060,6 +3298,33 @@
         }
       }
     },
+    "/notifications/list": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get /notifications/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notifications"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/notifications/batch": {
       "post": {
         "tags": [
@@ -3106,6 +3371,70 @@
         "parameters": [
           {
             "name": "batchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced notifications"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notifications"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/notifications/missed": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get /notifications/missed",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/notifications"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/notifications/topics/{userId}": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Get /notifications/topics/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3491,6 +3820,553 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/prayer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/templates/create": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/templates/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/templates/event/{eventId}": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/templates/event/{eventId}",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/templates/event-instance/{eventInstanceId}": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/templates/event-instance/{eventInstanceId}",
+        "parameters": [
+          {
+            "name": "eventInstanceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/templates/update/{id}": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/templates/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/templates/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Delete /Root/templates/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/roles/create": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/roles/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/roles/list/{ministryId}": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/roles/list/{ministryId}",
+        "parameters": [
+          {
+            "name": "ministryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/roles/update/{id}": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/roles/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/roles/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Delete /Root/roles/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/create": {
+      "post": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Post /Root/create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/update/{id}": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/event-instance/{eventInstanceId}/{ministryId}": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/event-instance/{eventInstanceId}/{ministryId}",
+        "parameters": [
+          {
+            "name": "eventInstanceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          },
+          {
+            "name": "ministryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/monthly": {
+      "get": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Get /Root/monthly",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Delete /Root/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
                 }
               }
             }
@@ -4447,51 +5323,6 @@
       }
     },
     "/user/update/{id}": {
-      "put": {
-        "tags": [
-          "user"
-        ],
-        "summary": "Put /user/update/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced user"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/user"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/user"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      },
       "patch": {
         "tags": [
           "user"
@@ -4602,43 +5433,6 @@
         }
       }
     },
-    "/Root/create": {
-      "post": {
-        "tags": [
-          "Root"
-        ],
-        "summary": "Post /Root/create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Root"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Root"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
     "/Root/find/{id}": {
       "get": {
         "tags": [
@@ -4656,53 +5450,6 @@
             "description": "ID of the referenced Root"
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Root"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Root/update/{id}": {
-      "patch": {
-        "tags": [
-          "Root"
-        ],
-        "summary": "Patch /Root/update/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Root"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Root"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -4750,15 +5497,15 @@
         }
       }
     },
-    "/Root/delete/{id}": {
-      "delete": {
+    "/Root/find/{churchId}": {
+      "get": {
         "tags": [
           "Root"
         ],
-        "summary": "Delete /Root/delete/{id}",
+        "summary": "Get /Root/find/{churchId}",
         "parameters": [
           {
-            "name": "id",
+            "name": "churchId",
             "in": "path",
             "required": true,
             "schema": {
@@ -4767,6 +5514,53 @@
             "description": "ID of the referenced Root"
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Root"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/Root/status/{churchId}": {
+      "patch": {
+        "tags": [
+          "Root"
+        ],
+        "summary": "Patch /Root/status/{churchId}",
+        "parameters": [
+          {
+            "name": "churchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced Root"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Root"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
@@ -4841,6 +5635,70 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/webhook/generate-otp": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Post /webhook/generate-otp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/webhook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/webhook/clear-database": {
+      "delete": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Delete /webhook/clear-database",
+        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -5044,6 +5902,11 @@
               "pickup_request",
               "picked_up"
             ]
+          },
+          "eventInstance": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
           },
           "createdAt": {
             "type": "string",
@@ -5481,6 +6344,56 @@
           "recurrence.frequency"
         ]
       },
+      "EventScheduleTemplate": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "eventId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "roleId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "requiredCount": {
+            "type": "number",
+            "default": 1
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "eventId",
+          "ministryId",
+          "roleId",
+          "requiredCount",
+          "createdBy"
+        ]
+      },
       "EventInstance": {
         "type": "object",
         "properties": {
@@ -5886,6 +6799,10 @@
           "content.body": {
             "type": "string"
           },
+          "content.data": {
+            "type": "object",
+            "properties": {}
+          },
           "jobQueueId": {
             "type": "string"
           },
@@ -6013,6 +6930,139 @@
           "author",
           "title",
           "prayerRequest"
+        ]
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "eventInstanceId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "templateId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "roleId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "slotNumber": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "taskNotes": {
+            "type": "string",
+            "default": ""
+          },
+          "status": {
+            "type": "string",
+            "default": "planned",
+            "enum": [
+              "planned",
+              "confirmed",
+              "completed",
+              "cancelled"
+            ]
+          },
+          "scheduleDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "assignedBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "assignedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "ministryId",
+          "eventInstanceId",
+          "templateId",
+          "roleId",
+          "slotNumber",
+          "userId",
+          "scheduleDate",
+          "assignedBy"
+        ]
+      },
+      "ScheduleRole": {
+        "type": "object",
+        "properties": {
+          "church": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "ministryId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "name": {
+            "type": "string"
+          },
+          "roleKey": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "default": ""
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          },
+          "createdBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "church",
+          "ministryId",
+          "name",
+          "roleKey",
+          "createdBy"
         ]
       },
       "Settings": {
@@ -6295,6 +7345,79 @@
           "church"
         ]
       },
+      "Verification": {
+        "type": "object",
+        "properties": {
+          "churchId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "incorporationNumber": {
+            "type": "string"
+          },
+          "craNumber": {
+            "type": "string"
+          },
+          "governmentId.fileUrl": {
+            "type": "string"
+          },
+          "governmentId.originalName": {
+            "type": "string"
+          },
+          "registrationProof.fileUrl": {
+            "type": "string"
+          },
+          "registrationProof.originalName": {
+            "type": "string"
+          },
+          "supportingDocs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerificationSupportingDocsItem"
+            }
+          },
+          "status": {
+            "type": "string",
+            "default": "pending",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ]
+          },
+          "submittedBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "reviewedBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "churchId",
+          "incorporationNumber",
+          "governmentId.fileUrl",
+          "governmentId.originalName",
+          "registrationProof.fileUrl",
+          "registrationProof.originalName",
+          "submittedBy"
+        ]
+      },
       "CheckInChildItem": {
         "type": "object",
         "properties": {
@@ -6433,6 +7556,25 @@
             "type": "string"
           }
         }
+      },
+      "VerificationSupportingDocsItem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "originalName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "fileUrl",
+          "originalName"
+        ]
       }
     },
     "securitySchemes": {
