@@ -9,6 +9,7 @@ const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
+const { cleanupChurchData } = require('../common/church.cleanup.service');
 const router = express.Router();
 /*
 #swagger.tags = ['Church']
@@ -210,9 +211,31 @@ router.get('/search', async (req, res) => {
 router.delete('/delete/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const deletedItem = await Church.findByIdAndDelete(id);
-        if (!deletedItem) {return res.status(404).json({ error: 'Churc not found' });}
-        res.status(200).json({ message: 'Church deleted successfully', event: deletedItem });
+        const previewOnly = req.query.preview === 'true';
+        const confirmationToken = req.query.confirm;
+
+        if (!previewOnly && confirmationToken !== 'DELETE_CHURCH') {
+            return res.status(400).json({
+                error: 'Deletion not confirmed. Pass confirm=DELETE_CHURCH to execute.',
+                hint: 'Use preview=true first to inspect impact safely.'
+            });
+        }
+
+        const result = await cleanupChurchData(id, { previewOnly });
+
+        if (!result.deleted && !result.preview) {
+            return res.status(404).json({ error: 'Church not found' });
+        }
+
+        if (result.preview) {
+            return res.status(200).json({
+                message: 'Preview generated. No data was deleted.',
+                preview: true,
+                summary: result.summary
+            });
+        }
+
+        res.status(200).json({ message: 'Church deleted successfully', preview: false, summary: result.summary });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
