@@ -4,9 +4,11 @@ const { startWorker } = require('../media-client');
 const eventWorker = require('../common/event.worker');
 const notificationWorker = require('../common/notification.worker');
 
+let io; // Store io instance globally
+
 async function setupSocket(app) {
   const server = http.createServer(app);
-  const io = new Server(server);
+  io = new Server(server);
 
   try {
     await startWorker(io);
@@ -21,4 +23,12 @@ async function setupSocket(app) {
   return { server, io };
 }
 
-module.exports = { setupSocket };
+// Getter function to access io instance
+function getIO() {
+  if (!io) {
+    throw new Error('Socket.io not initialized! Call setupSocket first.');
+  }
+  return io;
+}
+
+module.exports = { setupSocket, getIO };

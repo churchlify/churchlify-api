@@ -4,46 +4,72 @@ const kid = require ('./kid');
 const validateRefs = require('../common/validateRefs');
 
 const checkInSchema = new mongoose.Schema({
-    child: { type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Kid' }],
-    validate: [array => array.length > 0, 'At least one child is required'], required: true},
-    status: { type: String, enum: ['check_in_request', 'dropped_off', 'pickup_request', 'picked_up'], default: 'check_in_request' },
-    eventInstance: { type: mongoose.Schema.Types.ObjectId, ref: 'EventInstance', index: true },
+    eventInstance: { type: mongoose.Schema.Types.ObjectId, ref: 'EventInstance', required: true, index: true },
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    pickupCode: { type: String, required: true }, // Shared PIN for all kids in this check-in
+    children: [{
+        child: { type: mongoose.Schema.Types.ObjectId, ref: 'Kid', required: true },
+        status: { type: String, enum: ['check_in_request', 'dropped_off', 'picked_up'], default: 'check_in_request' },
+        droppedOffBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        droppedOffAt: { type: Date },
+        pickedUpBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        pickedUpAt: { type: Date }
+    }],
     createdAt: { type: Date, default: Date.now },
     expiresAt: { type: Date, required: true }
 }, { timestamps: true });
 
+// Validate at least one child
+checkInSchema.path('children').validate(function(children) {
+    return children && children.length > 0;
+}, 'At least one child is required');
+
 // Indexes for common queries
-checkInSchema.index({ status: 1, expiresAt: 1 });
-checkInSchema.index({ child: 1 });
+checkInSchema.index({ 'children.child': 1 });
+checkInSchema.index({ 'children.status': 1 });
 checkInSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
 checkInSchema.pre('save', async function (next) {
-    if (this.isNew || this.isModified('child')) {
+    if (this.isNew || this.isModified('children')) {
         try {
-            const error = new Error('Invalid child reference.');
-            return await kid.findById(this.child) ? next() : next(error);
+            // Validate all children exist
+            for (const childEntry of this.children) {
+                const childExists = await kid.findById(childEntry.child);
+                if (!childExists) {
+                    return next(new Error(`Invalid child reference: ${childEntry.child}`));
+                }
+            }
+            next();
         } catch (err) {
             return next(err);
         }
     } else {
-        next(); // Skip validation if no change in Church reference
+        next();
     }
 });
 
 checkInSchema.pre('findOneAndUpdate', async function (next) {
     try {
         const update = this.getUpdate();
-        if (update.$set && update.$set.child) {
-            const error = new Error('Invalid Child reference.');
-            return  await kid.findById(update.$set.child) ? next() : next(error);
+        if (update.$set && update.$set.children) {
+            // Validate all children exist
+            for (const childEntry of update.$set.children) {
+                const childExists = await kid.findById(childEntry.child);
+                if (!childExists) {
+                    return next(new Error(`Invalid child reference: ${childEntry.child}`));
+                }
+            }
         }
+        next();
     } catch (err) {
         return next(err);
     }
 });
 checkInSchema.plugin(validateRefs, {
   refs: [
-    { field: 'child', model: 'Kid' }
+    { field: 'eventInstance', model: 'EventInstance' },
+    { field: 'requestedBy', model: 'User' }
+    // children.child, droppedOffBy, pickedUpBy validated in pre-save hooks
   ]
 });
 

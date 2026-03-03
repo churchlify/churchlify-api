@@ -11,6 +11,7 @@ const Schedule = require('../models/schedule');
 const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
+const { getMonthBoundaries, parseChurchDate } = require('../common/timezone.helper');
 
 const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule, validateAvailabilityBlock, validateAssignmentResponse } = require('../middlewares/validators');
 
@@ -887,8 +888,9 @@ router.get('/monthly', async (req, res) => {
       return res.status(400).json({ message: 'Provide valid month (1-12) and year.' });
     }
 
-    const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
-    const endDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+    // Get church timezone for proper month boundary calculation
+    const timezone = req.church.timeZone || 'UTC';
+    const { startDate, endDate } = getMonthBoundaries(year, month, timezone);
 
     const schedules = await Schedule.find({
       church: req.church._id,
@@ -996,8 +998,9 @@ router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
       return res.status(404).json({ message: 'No templates found for this event and ministry.' });
     }
 
-    const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1, 0, 0, 0, 0));
-    const endDate = new Date(Date.UTC(Number(year), Number(month), 1, 0, 0, 0, 0));
+    // Get church timezone for proper month boundary calculation
+    const timezone = church.timeZone || 'UTC';
+    const { startDate, endDate } = getMonthBoundaries(Number(year), Number(month), timezone);
 
     const eventInstances = await EventInstance.find({
       church: church._id,
@@ -1588,11 +1591,16 @@ router.post('/availability/block', validateAvailabilityBlock(), async (req, res)
       }
     }
 
+    // Get church timezone for proper date parsing
+    const timezone = currentUser.church ? 
+      (await require('../models/church').findById(currentUser.church).select('timeZone').lean())?.timeZone || 'UTC' 
+      : 'UTC';
+
     const blockData = {
       church: currentUser.church,
       userId: currentUser._id,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: parseChurchDate(startDate, timezone),
+      endDate: parseChurchDate(endDate, timezone),
       reason,
       isRecurring: isRecurring || false
     };

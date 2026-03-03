@@ -2,8 +2,8 @@ const Church = require('../models/church');
 const user = require('../models/user');
 const Event = require('../models/event');
 const EventInstance = require('../models/eventinstance');
-const { addDays, addMonths, addYears } = require('date-fns');
-const addWeek = (date, weeks = 1) => addDays(date, weeks * 7);
+const { getChurchTimezone, nowInChurchTz, addTimeInChurchTz } = require('./timezone.helper');
+const moment = require('moment-timezone');
 
 class EventService {
 
@@ -23,51 +23,54 @@ flattenObject(obj, prefix = '', result = {}) {
   return result;
 }
 
- getFirstMatchingWeekday(startDate, daysOfWeek) {
-  const start = new Date(startDate);
+ getFirstMatchingWeekday(startDate, daysOfWeek, timezone) {
+  const start = moment.tz(startDate, timezone);
   const maxLookahead = 7; // one week
 
   for (let i = 0; i < maxLookahead; i++) {
-    const candidate = new Date(start);
-    candidate.setDate(start.getDate() + i);
-    if (daysOfWeek.includes(candidate.getDay())) {
-      return candidate;
+    const candidate = start.clone().add(i, 'days');
+    if (daysOfWeek.includes(candidate.day())) {
+      return candidate.toDate();
     }
   }
 
-  return start; // fallback if no match (shouldn't happen)
+  return start.toDate(); // fallback if no match (shouldn't happen)
 }
 
 async expandRecurringEvents() {
 
-  const now = new Date();
-  const futureLimit = addDays(now, 365);
-  const events = await Event.find({ isRecurring: true });
+  const events = await Event.find({ isRecurring: true }).populate('church');
 
   for (const event of events) {
+    // Get church timezone for proper date calculations
+    const timezone = await getChurchTimezone(event.church);
+    const now = nowInChurchTz(timezone);
+    const futureLimit = now.clone().add(365, 'days').toDate();
+    
     const { recurrence, startDate, startTime, endTime } = event;
     //console.log(`Expanding event ${event._id} (${event.title}) with recurrence:`, recurrence);
     let occurrences = [];
     //let current = new Date(startDate);
-    let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || []);
+    let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || [], timezone);
     console.log({current});
     while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
-      const weekday = current.getDay();
+      const currentMoment = moment.tz(current, timezone);
+      const weekday = currentMoment.day();
 
       if (recurrence.frequency === 'DAILY') {
         occurrences.push(new Date(current));
-        current = addDays(current, recurrence.interval);
+        current = addTimeInChurchTz(current, recurrence.interval, 'days', timezone);
       } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
         occurrences.push(new Date(current));
-        current = addWeek(current, recurrence.interval); // check next day
+        current = addTimeInChurchTz(current, recurrence.interval * 7, 'days', timezone);
       } else if (recurrence.frequency === 'MONTHLY') {
         occurrences.push(new Date(current));
-        current = addMonths(current, recurrence.interval);
+        current = addTimeInChurchTz(current, recurrence.interval, 'months', timezone);
       } else if (recurrence.frequency === 'YEARLY') {
         occurrences.push(new Date(current));
-        current = addYears(current, recurrence.interval);
+        current = addTimeInChurchTz(current, recurrence.interval, 'years', timezone);
       } else {
-        current = addDays(current, 1);
+        current = addTimeInChurchTz(current, 1, 'days', timezone);
       }
     }
 

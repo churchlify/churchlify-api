@@ -772,12 +772,59 @@
         }
       }
     },
-    "/checkIn/{id}/status": {
+    "/checkIn/{id}/confirm-dropoff": {
       "patch": {
         "tags": [
           "checkIn"
         ],
-        "summary": "Patch /checkIn/{id}/status",
+        "summary": "Patch /checkIn/{id}/confirm-dropoff",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced checkIn"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/checkIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/checkIn"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/checkIn/{id}/pickup": {
+      "patch": {
+        "tags": [
+          "checkIn"
+        ],
+        "summary": "Patch /checkIn/{id}/pickup",
         "parameters": [
           {
             "name": "id",
@@ -6212,26 +6259,24 @@
       "CheckIn": {
         "type": "object",
         "properties": {
-          "child": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CheckInChildItem"
-            }
-          },
-          "status": {
-            "type": "string",
-            "default": "check_in_request",
-            "enum": [
-              "check_in_request",
-              "dropped_off",
-              "pickup_request",
-              "picked_up"
-            ]
-          },
           "eventInstance": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{24}$",
             "example": "507f1f77bcf86cd799439011"
+          },
+          "requestedBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "pickupCode": {
+            "type": "string"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckInChildrenItem"
+            }
           },
           "createdAt": {
             "type": "string",
@@ -6247,7 +6292,9 @@
           }
         },
         "required": [
-          "child",
+          "eventInstance",
+          "requestedBy",
+          "pickupCode",
           "expiresAt"
         ]
       },
@@ -7770,18 +7817,45 @@
           }
         }
       },
-      "CheckInChildItem": {
+      "CheckInChildrenItem": {
         "type": "object",
         "properties": {
-          "type": {
+          "child": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{24}$",
             "example": "507f1f77bcf86cd799439011"
           },
-          "ref": {
-            "type": "string"
+          "status": {
+            "type": "string",
+            "default": "check_in_request",
+            "enum": [
+              "check_in_request",
+              "dropped_off",
+              "picked_up"
+            ]
+          },
+          "droppedOffBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "droppedOffAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickedUpBy": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{24}$",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "pickedUpAt": {
+            "type": "string",
+            "format": "date-time"
           }
-        }
+        },
+        "required": [
+          "child"
+        ]
       },
       "DevotionTagsItem": {
         "type": "object",

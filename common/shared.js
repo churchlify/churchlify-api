@@ -1,6 +1,7 @@
 const Church = require('../models/church');
 const Event = require('../models/event'); // Adjust the path as needed
 const moment = require('moment-timezone');
+const { nowInChurchTz, getDayBoundaries, getMonthBoundaries, parseChurchDateTime } = require('./timezone.helper');
 const sysTimezone = moment.tz.guess();
 
 const normalizeValue = (value) => {
@@ -22,11 +23,9 @@ const normalizeValue = (value) => {
   return value;
 };
 
-const parseDateTime = async(dateString, timeString) => {
-const date = new Date(dateString); // Parse the date string into a Date object
-const [hours, minutes] = timeString.split(':').map(Number); // Split the time string into hours and minutes
-date.setUTCHours(hours, minutes); // Set the hours and minutes on the date object
-return date;
+const parseDateTime = async(dateString, timeString, timezone = 'UTC') => {
+  // Use timezone-aware parsing
+  return parseChurchDateTime(dateString, timeString, timezone);
 };
 
 const convertTime = async(time, toZone = 'America/Toronto') => {
@@ -34,11 +33,14 @@ const convertTime = async(time, toZone = 'America/Toronto') => {
 };
 
 const getTodaysEvents = async (church) => {
-  const today = new Date();
-  const churchData = Church.findById(church);
-  const churchTimeZone = (churchData.timeZone) ? churchData.timeZone : 'America/Toronto';
-  const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const currentTime = await convertTime(today.getHours() + ':' + today.getMinutes(), churchTimeZone);
+  const churchData = await Church.findById(church);
+  const churchTimeZone = (churchData?.timeZone) ? churchData.timeZone : 'America/Toronto';
+  
+  // Get day boundaries in church timezone
+  const now = nowInChurchTz(churchTimeZone);
+  const { startOfDay } = getDayBoundaries(now.toDate(), churchTimeZone);
+  const currentTime = now.format('HH:mm');
+  
   try {
     const query = {
         startDate: { $lte: startOfDay }, // Event starts on or before today
@@ -79,8 +81,20 @@ const getTodaysEvents = async (church) => {
 // };
 
  const getFlatennedMonthEvents = async(d, churchId ='') => {
-    const startOfMonth = new Date(new Date(d).getFullYear(), new Date(d).getMonth(), 1);
-    const endOfMonth = new Date(new Date(d).getFullYear(), new Date(d).getMonth() + 1, 0);
+    // Get church timezone for proper month calculation
+    let churchTimeZone = 'UTC';
+    if (churchId) {
+      const churchData = await Church.findById(churchId).select('timeZone').lean();
+      churchTimeZone = churchData?.timeZone || 'UTC';
+    }
+    
+    const inputMoment = moment.tz(d, churchTimeZone);
+    const { startDate: startOfMonth, endDate: endOfMonth } = getMonthBoundaries(
+      inputMoment.year(),
+      inputMoment.month() + 1,
+      churchTimeZone
+    );
+    
     let flattenedEvents =[];
     let query = {
         $or: [
@@ -93,16 +107,18 @@ const getTodaysEvents = async (church) => {
     }
     const events = await Event.find(query);
     events.forEach(event => {
-        let currentDate = new Date(event.startDate);
-        const eventEndDate = new Date(event.endDate);
-        while (currentDate <= eventEndDate && currentDate <= endOfMonth) {
-          if (currentDate >= startOfMonth) {
+        let currentDate = moment.tz(event.startDate, churchTimeZone);
+        const eventEndDate = moment.tz(event.endDate, churchTimeZone);
+        const endOfMonthMoment = moment.tz(endOfMonth, churchTimeZone);
+        
+        while (currentDate.isSameOrBefore(eventEndDate) && currentDate.isSameOrBefore(endOfMonthMoment)) {
+          if (currentDate.isSameOrAfter(moment.tz(startOfMonth, churchTimeZone))) {
             flattenedEvents.push({
-              id: event.id + '_' +event.startDate.toISOString().replace(/[^\w\s]/gi, ''),
+              id: event.id + '_' + event.startDate.toISOString().replace(/[^\w\s]/gi, ''),
               church: event.church,
               title: event.title,
               description: event.description,
-              startDate: new Date(currentDate),
+              startDate: currentDate.toDate(),
               startTime: event.startTime,
               endTime: event.endTime,
               createdBy: event.createdBy,
@@ -115,22 +131,22 @@ const getTodaysEvents = async (church) => {
           if(event.recurrence){
               switch (event.recurrence.frequency) {
                   case 'daily':
-                      currentDate.setDate(currentDate.getDate() + 1);
+                      currentDate.add(1, 'days');
                       break;
                   case 'weekly':
-                      currentDate.setDate(currentDate.getDate() + 7);
+                      currentDate.add(7, 'days');
                       break;
                   case 'monthly':
-                      currentDate.setMonth(currentDate.getMonth() + 1);
+                      currentDate.add(1, 'months');
                       break;
                   case 'yearly':
-                      currentDate.setFullYear(currentDate.getFullYear() + 1);
+                      currentDate.add(1, 'years');
                       break;
                   default:
-                      currentDate = new Date(eventEndDate.getTime() + 1); // Move past the end date to exit the loop
+                      currentDate = eventEndDate.clone().add(1, 'days'); // Move past the end date to exit the loop
               }
           }else{
-              currentDate = new Date(eventEndDate.getTime() + 1);
+              currentDate = eventEndDate.clone().add(1, 'days');
           }
         }
       });

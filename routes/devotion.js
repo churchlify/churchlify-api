@@ -6,6 +6,8 @@ const express = require('express');
 const Devotion = require('../models/devotion');
 const {validateDevotion} = require('../middlewares/validators');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
+const { getMonthBoundaries, nowInChurchTz, parseChurchDate } = require('../common/timezone.helper');
+const moment = require('moment-timezone');
 const router = express.Router();
 router.use(express.json());
 /*
@@ -83,9 +85,20 @@ router.patch('/update/:id', uploadImage, async(req, res) => {
 router.get('/list', async(req, res) => {
     try {
         const churchId = req.church?._id;
-        const inputDate = new Date(req.query.date || new Date());
-        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
-        const filter = {date: { $gte: start }};
+        const timezone = req.church?.timeZone || 'UTC';
+        
+        // Parse input date or use current time in church timezone
+        const inputMoment = req.query.date ?
+          moment.tz(parseChurchDate(req.query.date, timezone), timezone) :
+          nowInChurchTz(timezone);
+        
+        const { startDate } = getMonthBoundaries(
+          inputMoment.year(),
+          inputMoment.month() + 1,
+          timezone
+        );
+        
+        const filter = {date: { $gte: startDate }};
         if (churchId) {
             filter.church = churchId;
         }

@@ -11,6 +11,7 @@ const Venue = require('../models/venue');
 const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
+const { getChurchTimezone, parseChurchDate, getMonthBoundaries, nowInChurchTz } = require('../common/timezone.helper');
 //const event = require('../models/event');
 const router = express.Router();
 router.use(express.json());
@@ -43,13 +44,15 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
           flierUrl = await uploadToMinio(req.file);
         }
 
-        const resolvedEndDate = recurrence?.endDate ? new Date(recurrence.endDate) : new Date(endDate);
+        // Get church timezone for proper date parsing
+        const timezone = await getChurchTimezone(church);
+        const resolvedEndDate = recurrence?.endDate ? parseChurchDate(recurrence.endDate, timezone) : parseChurchDate(endDate, timezone);
 
         const eventData = {
             church,
             title,
             description,
-            startDate: new Date(startDate),
+            startDate: parseChurchDate(startDate, timezone),
             startTime,
             endDate: resolvedEndDate,
             endTime,
@@ -67,7 +70,7 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
                 frequency: recurrence.frequency,
                 interval: recurrence.interval || 1,
                 daysOfWeek: recurrence.daysOfWeek || [], // For weekly recurrence
-                endDate: recurrence.endDate ? new Date(recurrence.endDate) : null
+                endDate: recurrence.endDate ? parseChurchDate(recurrence.endDate, timezone) : null
             };
         }
          // Use the EventService to create the event
@@ -100,8 +103,15 @@ router.get('/find/:id', async(req, res) => {
 */
 router.get('/upcoming', async (req, res) => {
     try {
-        const now = new Date();
         const church = req.church;
+        if (!church) {
+            return res.status(400).json({ message: 'Church context required' });
+        }
+        
+        // Get current time in church timezone
+        const timezone = church.timeZone || 'UTC';
+        const now = nowInChurchTz(timezone).toDate();
+        
         let filter = {date: { $gte: now }};
         if(church) { filter.church = church._id; }
         const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1 }).lean();
@@ -157,9 +167,26 @@ router.patch('/update/:id', uploadImage, validateEvent(), async (req, res) => {
 router.get('/list', async(req, res) => {
     try {
         const church = req.church;
-        const inputDate = new Date(req.query.date || new Date());
-        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
-        const filter = {date: { $gte: start }};
+        if (!church) {
+            return res.status(400).json({ message: 'Church context required' });
+        }
+        
+        // Get church timezone for proper month calculation
+        const timezone = church.timeZone || 'UTC';
+        const inputMoment = nowInChurchTz(timezone);
+        
+        if (req.query.date) {
+            const parsedDate = parseChurchDate(req.query.date, timezone);
+            inputMoment.year(parsedDate.getFullYear()).month(parsedDate.getMonth());
+        }
+        
+        const { startDate } = getMonthBoundaries(
+            inputMoment.year(),
+            inputMoment.month() + 1,
+            timezone
+        );
+        
+        const filter = {date: { $gte: startDate }};
         if (church?._id) {
             filter.church = church._id;
         }
