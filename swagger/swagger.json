@@ -3880,19 +3880,19 @@
         }
       }
     },
-    "/Root/templates/create": {
+    "/schedule/templates/create": {
       "post": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Post /Root/templates/create",
+        "summary": "Post /schedule/templates/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -3903,7 +3903,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -3917,12 +3917,12 @@
         }
       }
     },
-    "/Root/templates/event/{eventId}": {
+    "/schedule/templates/event/{eventId}": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/templates/event/{eventId}",
+        "summary": "Get /schedule/templates/event/{eventId}",
         "parameters": [
           {
             "name": "eventId",
@@ -3931,7 +3931,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -3940,7 +3940,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -3954,12 +3954,12 @@
         }
       }
     },
-    "/Root/templates/event/{eventId}/aggregate": {
+    "/schedule/templates/event/{eventId}/aggregate": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/templates/event/{eventId}/aggregate",
+        "summary": "Get /schedule/templates/event/{eventId}/aggregate",
         "parameters": [
           {
             "name": "eventId",
@@ -3968,7 +3968,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -3977,7 +3977,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -3991,12 +3991,12 @@
         }
       }
     },
-    "/Root/templates/event-instance/{eventInstanceId}": {
+    "/schedule/templates/event-instance/{eventInstanceId}": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/templates/event-instance/{eventInstanceId}",
+        "summary": "Get /schedule/templates/event-instance/{eventInstanceId}",
         "parameters": [
           {
             "name": "eventInstanceId",
@@ -4005,7 +4005,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4014,7 +4014,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4028,12 +4028,12 @@
         }
       }
     },
-    "/Root/templates/update/{id}": {
+    "/schedule/templates/update/{id}": {
       "patch": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Patch /Root/templates/update/{id}",
+        "summary": "Patch /schedule/templates/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4042,7 +4042,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "requestBody": {
@@ -4050,7 +4050,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4061,7 +4061,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4075,12 +4075,12 @@
         }
       }
     },
-    "/Root/templates/delete/{id}": {
+    "/schedule/templates/delete/{id}": {
       "delete": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Delete /Root/templates/delete/{id}",
+        "summary": "Delete /schedule/templates/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4089,7 +4089,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4098,7 +4098,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4112,19 +4112,19 @@
         }
       }
     },
-    "/Root/roles/create": {
+    "/schedule/roles/create": {
       "post": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Post /Root/roles/create",
+        "summary": "Post /schedule/roles/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4135,7 +4135,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4149,12 +4149,12 @@
         }
       }
     },
-    "/Root/roles/list/{ministryId}": {
+    "/schedule/roles/list/{ministryId}": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/roles/list/{ministryId}",
+        "summary": "Get /schedule/roles/list/{ministryId}",
         "parameters": [
           {
             "name": "ministryId",
@@ -4163,7 +4163,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4172,7 +4172,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4186,12 +4186,12 @@
         }
       }
     },
-    "/Root/roles/update/{id}": {
+    "/schedule/roles/update/{id}": {
       "patch": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Patch /Root/roles/update/{id}",
+        "summary": "Patch /schedule/roles/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4200,7 +4200,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "requestBody": {
@@ -4208,7 +4208,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4219,7 +4219,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4233,12 +4233,12 @@
         }
       }
     },
-    "/Root/roles/delete/{id}": {
+    "/schedule/roles/delete/{id}": {
       "delete": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Delete /Root/roles/delete/{id}",
+        "summary": "Delete /schedule/roles/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4247,7 +4247,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4256,7 +4256,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4270,19 +4270,19 @@
         }
       }
     },
-    "/Root/create": {
+    "/schedule/create": {
       "post": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Post /Root/create",
+        "summary": "Post /schedule/create",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4293,7 +4293,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4307,12 +4307,12 @@
         }
       }
     },
-    "/Root/update/{id}": {
+    "/schedule/update/{id}": {
       "patch": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Patch /Root/update/{id}",
+        "summary": "Patch /schedule/update/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4321,7 +4321,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "requestBody": {
@@ -4329,7 +4329,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4340,7 +4340,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4354,12 +4354,12 @@
         }
       }
     },
-    "/Root/event-instance/{eventInstanceId}/{ministryId}": {
+    "/schedule/event-instance/{eventInstanceId}/{ministryId}": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/event-instance/{eventInstanceId}/{ministryId}",
+        "summary": "Get /schedule/event-instance/{eventInstanceId}/{ministryId}",
         "parameters": [
           {
             "name": "eventInstanceId",
@@ -4368,7 +4368,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           },
           {
             "name": "ministryId",
@@ -4377,7 +4377,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4386,7 +4386,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4400,12 +4400,12 @@
         }
       }
     },
-    "/Root/monthly": {
+    "/schedule/monthly": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/monthly",
+        "summary": "Get /schedule/monthly",
         "parameters": [],
         "responses": {
           "200": {
@@ -4413,7 +4413,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4427,12 +4427,12 @@
         }
       }
     },
-    "/Root/delete/{id}": {
+    "/schedule/delete/{id}": {
       "delete": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Delete /Root/delete/{id}",
+        "summary": "Delete /schedule/delete/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4441,7 +4441,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4450,7 +4450,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4464,19 +4464,19 @@
         }
       }
     },
-    "/Root/auto-schedule": {
+    "/schedule/auto-schedule": {
       "post": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Post /Root/auto-schedule",
+        "summary": "Post /schedule/auto-schedule",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4487,7 +4487,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4501,12 +4501,12 @@
         }
       }
     },
-    "/Root/my-assignments": {
+    "/schedule/my-assignments": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/my-assignments",
+        "summary": "Get /schedule/my-assignments",
         "parameters": [],
         "responses": {
           "200": {
@@ -4514,7 +4514,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4528,12 +4528,12 @@
         }
       }
     },
-    "/Root/assignments/{id}/respond": {
+    "/schedule/assignments/{id}/respond": {
       "patch": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Patch /Root/assignments/{id}/respond",
+        "summary": "Patch /schedule/assignments/{id}/respond",
         "parameters": [
           {
             "name": "id",
@@ -4542,7 +4542,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "requestBody": {
@@ -4550,7 +4550,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4561,7 +4561,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4575,19 +4575,19 @@
         }
       }
     },
-    "/Root/availability/block": {
+    "/schedule/availability/block": {
       "post": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Post /Root/availability/block",
+        "summary": "Post /schedule/availability/block",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/schedule"
               }
             }
           }
@@ -4598,7 +4598,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4612,12 +4612,12 @@
         }
       }
     },
-    "/Root/availability/blocks": {
+    "/schedule/availability/blocks": {
       "get": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Get /Root/availability/blocks",
+        "summary": "Get /schedule/availability/blocks",
         "parameters": [],
         "responses": {
           "200": {
@@ -4625,7 +4625,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -4639,12 +4639,12 @@
         }
       }
     },
-    "/Root/availability/blocks/{id}": {
+    "/schedule/availability/blocks/{id}": {
       "delete": {
         "tags": [
-          "Root"
+          "schedule"
         ],
-        "summary": "Delete /Root/availability/blocks/{id}",
+        "summary": "Delete /schedule/availability/blocks/{id}",
         "parameters": [
           {
             "name": "id",
@@ -4653,7 +4653,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "ID of the referenced Root"
+            "description": "ID of the referenced schedule"
           }
         ],
         "responses": {
@@ -4662,7 +4662,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/schedule"
                 }
               }
             }
@@ -5729,130 +5729,19 @@
         }
       }
     },
-    "/Root/find/{id}": {
-      "get": {
+    "/venues/create": {
+      "post": {
         "tags": [
-          "Root"
+          "venues"
         ],
-        "summary": "Get /Root/find/{id}",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Root"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Root"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Root/list": {
-      "get": {
-        "tags": [
-          "Root"
-        ],
-        "summary": "Get /Root/list",
+        "summary": "Post /venues/create",
         "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Root"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Root/find/{churchId}": {
-      "get": {
-        "tags": [
-          "Root"
-        ],
-        "summary": "Get /Root/find/{churchId}",
-        "parameters": [
-          {
-            "name": "churchId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Root"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Root"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
-      }
-    },
-    "/Root/status/{churchId}": {
-      "patch": {
-        "tags": [
-          "Root"
-        ],
-        "summary": "Patch /Root/status/{churchId}",
-        "parameters": [
-          {
-            "name": "churchId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "ID of the referenced Root"
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Root"
+                "$ref": "#/components/schemas/venues"
               }
             }
           }
@@ -5863,7 +5752,303 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/venues"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/venues/find/{id}": {
+      "get": {
+        "tags": [
+          "venues"
+        ],
+        "summary": "Get /venues/find/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced venues"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/venues"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/venues/update/{id}": {
+      "patch": {
+        "tags": [
+          "venues"
+        ],
+        "summary": "Patch /venues/update/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced venues"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/venues"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/venues"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/venues/list": {
+      "get": {
+        "tags": [
+          "venues"
+        ],
+        "summary": "Get /venues/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/venues"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/venues/delete/{id}": {
+      "delete": {
+        "tags": [
+          "venues"
+        ],
+        "summary": "Delete /venues/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced venues"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/venues"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/verify/find/{churchId}": {
+      "get": {
+        "tags": [
+          "verify"
+        ],
+        "summary": "Get /verify/find/{churchId}",
+        "parameters": [
+          {
+            "name": "churchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced verify"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/verify"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/verify/status/{churchId}": {
+      "patch": {
+        "tags": [
+          "verify"
+        ],
+        "summary": "Patch /verify/status/{churchId}",
+        "parameters": [
+          {
+            "name": "churchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced verify"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/verify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/verify"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/verify/list": {
+      "get": {
+        "tags": [
+          "verify"
+        ],
+        "summary": "Get /verify/list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/verify"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/verify/delete/{id}": {
+      "delete": {
+        "tags": [
+          "verify"
+        ],
+        "summary": "Delete /verify/delete/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced verify"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/verify"
                 }
               }
             }
