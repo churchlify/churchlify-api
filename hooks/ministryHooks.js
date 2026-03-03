@@ -9,6 +9,51 @@ function getAssignmentModel() {
 
 
 function applyMinistryHooks(schema) {
+  // Update assignment role when leader is set
+  schema.post('save', async function (doc) {
+    if (!doc.leaderId) {return;}
+
+    try {
+      const AssignmentModel = getAssignmentModel();
+
+      // Find existing assignment for the leader
+      const assignment = await AssignmentModel.findOne({
+        ministryId: doc._id,
+        userId: doc.leaderId
+      });
+
+      if (assignment && assignment.role !== 'leader') {
+        assignment.role = 'leader';
+        await assignment.save();
+        console.log(`👑 [Hook:Ministry:save] Updated ${doc.leaderId} role to leader in ministry ${doc._id}`);
+      }
+    } catch (err) {
+      console.error('[Hook:Ministry:save] Leader role update failed:', err.message);
+    }
+  });
+
+  schema.post('findOneAndUpdate', async function (doc) {
+    if (!doc || !doc.leaderId) {return;}
+
+    try {
+      const AssignmentModel = getAssignmentModel();
+
+      // Find existing assignment for the leader
+      const assignment = await AssignmentModel.findOne({
+        ministryId: doc._id,
+        userId: doc.leaderId
+      });
+
+      if (assignment && assignment.role !== 'leader') {
+        assignment.role = 'leader';
+        await assignment.save();
+        console.log(`👑 [Hook:Ministry:update] Updated ${doc.leaderId} role to leader in ministry ${doc._id}`);
+      }
+    } catch (err) {
+      console.error('[Hook:Ministry:update] Leader role update failed:', err.message);
+    }
+  });
+
   schema.post('findOneAndDelete', async function (doc) {
     if (!doc) {return;}
 
