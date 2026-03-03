@@ -2948,12 +2948,12 @@
         }
       }
     },
-    "/Root/feed": {
+    "/livestream/feed": {
       "get": {
         "tags": [
-          "Root"
+          "livestream"
         ],
-        "summary": "Get /Root/feed",
+        "summary": "Get /livestream/feed",
         "parameters": [],
         "responses": {
           "200": {
@@ -2961,7 +2961,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Root"
+                  "$ref": "#/components/schemas/livestream"
                 }
               }
             }

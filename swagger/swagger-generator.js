@@ -264,6 +264,7 @@ const routeDefinitionMap = {
   "eventInstance.js": "eventInstance",
   "fellowship.js": "fellowship",
   "kid.js": "kid",
+  "livestream.js": "livestream",
   "ministry.js": "ministry",
   "module.js": "module",
   "notifications.js": "notifications",
