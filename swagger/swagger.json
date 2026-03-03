@@ -3123,6 +3123,43 @@
         }
       }
     },
+    "/ministry/{id}/members": {
+      "get": {
+        "tags": [
+          "ministry"
+        ],
+        "summary": "Get /ministry/{id}/members",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the referenced ministry"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ministry"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/ministry/delete/{id}": {
       "delete": {
         "tags": [

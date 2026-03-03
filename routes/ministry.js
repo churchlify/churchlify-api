@@ -4,8 +4,9 @@
 // routes/ministry.js
 const express = require('express');
 const Ministry = require('../models/ministry');
+const Assignment = require('../models/assignment');
 const {validateMinistry} = require('../middlewares/validators');
-const { requireSuperOrAdmin, requireSuperOrAdminOrResourceMinistryLeader } = require('../middlewares/permissions');
+const { requireSuperOrAdmin, requireSuperOrAdminOrResourceMinistryLeader, requireMinistryAccess } = require('../middlewares/permissions');
 const router = express.Router();
 router.use(express.json());
 /*
@@ -56,6 +57,48 @@ router.get('/list', async(req, res) => {
         if(church) { filter.church = church._id; }
         const ministries = await Ministry.find(filter).select('name description leaderId church').lean();
         res.status(200).json({ ministries });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/*
+#swagger.tags = ['Ministry']
+*/
+router.get('/:id/members', requireMinistryAccess, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const church = req.church;
+
+        const ministryFilter = { _id: id };
+        if (church?._id) {
+            ministryFilter.church = church._id;
+        }
+
+        const ministry = await Ministry.findOne(ministryFilter)
+            .select('name church leaderId')
+            .lean();
+
+        if (!ministry) {
+            return res.status(404).json({ message: 'Ministry not found for this church' });
+        }
+
+        const assignments = await Assignment.find({ ministryId: id })
+            .populate('userId', 'firstName lastName emailAddress phoneNumber photoUrl firebaseId church role')
+            .populate('scheduleRoleId', 'name ministryId')
+            .select('userId ministryId scheduleRoleId role status dateAssigned skills')
+            .sort({ dateAssigned: -1 })
+            .lean();
+
+        res.status(200).json({
+            ministry,
+            members: assignments,
+            total: assignments.length,
+            counts: {
+                approved: assignments.filter((item) => item.status === 'approved').length,
+                pending: assignments.filter((item) => item.status === 'pending').length
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

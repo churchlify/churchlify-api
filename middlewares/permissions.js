@@ -297,7 +297,7 @@ const requireMinistryAccess = async (req, res, next) => {
       return next();
     }
     
-    const ministryId = req.params.ministryId || req.query.ministryId;
+    const ministryId = req.params.ministryId || req.params.id || req.query.ministryId;
     
     if (ministryId) {
       // Check if user is leader
