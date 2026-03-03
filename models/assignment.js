@@ -18,9 +18,28 @@ const AssignmentSchema = new mongoose.Schema({
 
 // Compound indexes for common queries
 AssignmentSchema.index({ userId: 1, status: 1 });
-AssignmentSchema.index({ userId: 1, ministryId: 1 });
-AssignmentSchema.index({ userId: 1, fellowshipId: 1 });
 AssignmentSchema.index({ ministryId: 1, scheduleRoleId: 1, status: 1 });
+
+// Unique compound indexes to prevent duplicate assignments
+// A user can only have one role per ministry
+AssignmentSchema.index(
+  { userId: 1, ministryId: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { ministryId: { $exists: true, $ne: null } },
+    name: 'unique_user_ministry'
+  }
+);
+
+// A user can only have one role per fellowship
+AssignmentSchema.index(
+  { userId: 1, fellowshipId: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { fellowshipId: { $exists: true, $ne: null } },
+    name: 'unique_user_fellowship'
+  }
+);
 
 AssignmentSchema.pre('validate', async function (next) {
   if (!this.ministryId && !this.fellowshipId) {

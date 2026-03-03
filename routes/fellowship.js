@@ -5,12 +5,13 @@
 const express = require('express');
 const Fellowship = require('../models/fellowship');
 const {validateFellowship} = require('../middlewares/validators');
+const { requireSuperOrAdmin, requireSuperOrAdminOrResourceFellowshipLeader } = require('../middlewares/permissions');
 const router = express.Router();
 router.use(express.json());
 /*
 #swagger.tags = ['Fellowship']
 */
-router.post('/create', validateFellowship(), async(req, res) => {
+router.post('/create', requireSuperOrAdmin, validateFellowship(), async(req, res) => {
     const { church, name, description, leaderId, address, dayOfWeek, meetingTime } = req.body;
     const newItem = new Fellowship({ church, name, description, leaderId, address  , dayOfWeek, meetingTime });
     try {
@@ -34,7 +35,7 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-router.patch('/update/:id', async(req, res) => {
+router.patch('/update/:id', requireSuperOrAdminOrResourceFellowshipLeader(Fellowship), async(req, res) => {
     const { id } = req.params;
     const updates = req.body;
     try {
@@ -84,7 +85,7 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Fellowship']
 */
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', requireSuperOrAdminOrResourceFellowshipLeader(Fellowship), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedFellowship = await Fellowship.findByIdAndDelete(id);

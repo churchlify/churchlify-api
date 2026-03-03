@@ -4,12 +4,13 @@ const Ministry = require("../models/ministry");
 const Fellowship = require("../models/fellowship");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
+const { requireSuperOrAdminOrMinistryLeader } = require("../middlewares/permissions");
 
 const { validateAssignment } = require("../middlewares/validators");
 const router = express.Router();
 router.use(express.json());
 
-router.post("/create", validateAssignment(), async (req, res) => {
+router.post("/create", requireSuperOrAdminOrMinistryLeader, validateAssignment(), async (req, res) => {
   const {
     userId,
     ministryId,
@@ -21,18 +22,48 @@ router.post("/create", validateAssignment(), async (req, res) => {
     status,
     dateAssigned,
   } = req.body;
-  const newItem = new Assignment({
-    userId,
-    ministryId,
-    scheduleRoleId,
-    fellowshipId,
-    role,
-    availability,
-    skills,
-    status,
-    dateAssigned,
-  });
+  
   try {
+    // Check for duplicate assignment: user can only have one role per ministry/fellowship
+    const duplicateFilter = { userId };
+    
+    if (ministryId) {
+      duplicateFilter.ministryId = ministryId;
+      const existingAssignment = await Assignment.findOne(duplicateFilter).populate("scheduleRoleId", "name");
+      
+      if (existingAssignment) {
+        const roleName = existingAssignment.scheduleRoleId?.name || existingAssignment.role || "a role";
+        return res.status(409).json({
+          error: "Duplicate assignment",
+          message: "User already has an assignment in this ministry with " + roleName + " role (status: " + existingAssignment.status + "). A user can only have one role per ministry."
+        });
+      }
+    }
+    
+    if (fellowshipId) {
+      duplicateFilter.fellowshipId = fellowshipId;
+      const existingAssignment = await Assignment.findOne(duplicateFilter);
+      
+      if (existingAssignment) {
+        return res.status(409).json({
+          error: "Duplicate assignment",
+          message: "User already has an assignment in this fellowship with " + existingAssignment.role + " role (status: " + existingAssignment.status + "). A user can only have one role per fellowship."
+        });
+      }
+    }
+    
+    const newItem = new Assignment({
+      userId,
+      ministryId,
+      scheduleRoleId,
+      fellowshipId,
+      role,
+      availability,
+      skills,
+      status,
+      dateAssigned,
+    });
+    
     await newItem.save();
     res.status(201).json({
       message: "Assignment registered successfully",
@@ -57,16 +88,64 @@ router.get("/find/:id", async (req, res) => {
 router.patch("/update/:id", async (req, res) => {
   const { id } = req.params;
   try {
+    // Get the existing assignment first
+    const existingAssignment = await Assignment.findById(id);
+    if (!existingAssignment) {
+      return res
+        .status(404)
+        .json({ message: `Assignment with id ${id} not found` });
+    }
+    
+    // If userId, ministryId, or fellowshipId is being changed, check for duplicates
+    const updatedUserId = req.body.userId || existingAssignment.userId;
+    const updatedMinistryId = req.body.ministryId !== undefined ? req.body.ministryId : existingAssignment.ministryId;
+    const updatedFellowshipId = req.body.fellowshipId !== undefined ? req.body.fellowshipId : existingAssignment.fellowshipId;
+    
+    // Check if the combination of userId + ministryId/fellowshipId is changing
+    const isChangingKey = 
+      (req.body.userId && String(req.body.userId) !== String(existingAssignment.userId)) ||
+      (req.body.ministryId !== undefined && String(req.body.ministryId) !== String(existingAssignment.ministryId)) ||
+      (req.body.fellowshipId !== undefined && String(req.body.fellowshipId) !== String(existingAssignment.fellowshipId));
+    
+    if (isChangingKey) {
+      // Check for duplicate assignment
+      const duplicateFilter = { 
+        userId: updatedUserId,
+        _id: { $ne: id } // Exclude the current assignment being updated
+      };
+      
+      if (updatedMinistryId) {
+        duplicateFilter.ministryId = updatedMinistryId;
+        const duplicate = await Assignment.findOne(duplicateFilter).populate("scheduleRoleId", "name");
+        
+        if (duplicate) {
+          const roleName = duplicate.scheduleRoleId?.name || duplicate.role || "a role";
+          return res.status(409).json({
+            error: "Duplicate assignment",
+            message: "User already has an assignment in this ministry with " + roleName + " role (status: " + duplicate.status + "). A user can only have one role per ministry."
+          });
+        }
+      }
+      
+      if (updatedFellowshipId) {
+        duplicateFilter.fellowshipId = updatedFellowshipId;
+        const duplicate = await Assignment.findOne(duplicateFilter);
+        
+        if (duplicate) {
+          return res.status(409).json({
+            error: "Duplicate assignment",
+            message: "User already has an assignment in this fellowship with " + duplicate.role + " role (status: " + duplicate.status + "). A user can only have one role per fellowship."
+          });
+        }
+      }
+    }
+    
     const updatedAssignment = await Assignment.findByIdAndUpdate(
       id,
       { $set: req.body },
       { new: true, runValidators: true }
     );
-    if (!updatedAssignment) {
-      return res
-        .status(404)
-        .json({ message: `Assignment with id ${id} not found` });
-    }
+    
     res.status(200).json({
       message: "Record updated successfully",
       setting: updatedAssignment,

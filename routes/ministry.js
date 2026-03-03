@@ -5,12 +5,13 @@
 const express = require('express');
 const Ministry = require('../models/ministry');
 const {validateMinistry} = require('../middlewares/validators');
+const { requireSuperOrAdmin, requireSuperOrAdminOrResourceMinistryLeader } = require('../middlewares/permissions');
 const router = express.Router();
 router.use(express.json());
 /*
 #swagger.tags = ['Ministry']
 */
-router.post('/create', validateMinistry(), async(req, res) => {
+router.post('/create', requireSuperOrAdmin, validateMinistry(), async(req, res) => {
     const { church, name, description, leaderId } = req.body;
     const newItem = new Ministry({ church, name, description, leaderId });
     try {
@@ -32,7 +33,7 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-router.patch('/update/:id', async(req, res) => {
+router.patch('/update/:id', requireSuperOrAdminOrResourceMinistryLeader(Ministry), async(req, res) => {
     const { id } = req.params;
     const updates = req.body;
     try {
@@ -62,7 +63,7 @@ router.get('/list', async(req, res) => {
 /*
 #swagger.tags = ['Ministry']
 */
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', requireSuperOrAdminOrResourceMinistryLeader(Ministry), async (req, res) => {
     try {
         const { id } = req.params;
         const deletedMinistry = await Ministry.findByIdAndDelete(id);

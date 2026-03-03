@@ -12,6 +12,11 @@ const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
 const { getMonthBoundaries, parseChurchDate } = require('../common/timezone.helper');
+const { 
+  requireSuperOrAdminOrMinistryLeader, 
+  requireSuperOrAdminOrResourceMinistryLeader,
+  requireMinistryAccess 
+} = require('../middlewares/permissions');
 
 const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule, validateAvailabilityBlock, validateAssignmentResponse } = require('../middlewares/validators');
 
@@ -156,7 +161,7 @@ function aggregateEventTemplateRows(templates = []) {
   }
 }
 */
-router.post('/templates/create', validateScheduleTemplate(), async (req, res) => {
+router.post('/templates/create', requireSuperOrAdminOrMinistryLeader, validateScheduleTemplate(), async (req, res) => {
   try {
     const church = req.church;
     const currentUser = await getCurrentUser(req);
@@ -330,7 +335,7 @@ router.get('/templates/event-instance/:eventInstanceId', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Update event-level staffing template'
 */
-router.patch('/templates/update/:id', async (req, res) => {
+router.patch('/templates/update/:id', requireSuperOrAdminOrResourceMinistryLeader(EventScheduleTemplate, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -381,7 +386,7 @@ router.patch('/templates/update/:id', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Delete event-level staffing template'
 */
-router.delete('/templates/delete/:id', async (req, res) => {
+router.delete('/templates/delete/:id', requireSuperOrAdminOrResourceMinistryLeader(EventScheduleTemplate, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -420,7 +425,7 @@ router.delete('/templates/delete/:id', async (req, res) => {
 #swagger.summary = 'Create ministry role definition'
 #swagger.description = 'Creates a reusable role (e.g., Lead Singer, Pianist) for a ministry.'
 */
-router.post('/roles/create', validateScheduleRole(), async (req, res) => {
+router.post('/roles/create', requireSuperOrAdminOrMinistryLeader, validateScheduleRole(), async (req, res) => {
   try {
     const church = req.church;
     const currentUser = await getCurrentUser(req);
@@ -455,7 +460,7 @@ router.post('/roles/create', validateScheduleRole(), async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'List roles for ministry'
 */
-router.get('/roles/list/:ministryId', async (req, res) => {
+router.get('/roles/list/:ministryId', requireMinistryAccess, async (req, res) => {
   try {
     const { ministryId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(ministryId)) {
@@ -487,7 +492,7 @@ router.get('/roles/list/:ministryId', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Update ministry role definition'
 */
-router.patch('/roles/update/:id', async (req, res) => {
+router.patch('/roles/update/:id', requireSuperOrAdminOrResourceMinistryLeader(ScheduleRole, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -530,7 +535,7 @@ router.patch('/roles/update/:id', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Delete ministry role definition'
 */
-router.delete('/roles/delete/:id', async (req, res) => {
+router.delete('/roles/delete/:id', requireSuperOrAdminOrResourceMinistryLeader(ScheduleRole, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -582,7 +587,7 @@ router.delete('/roles/delete/:id', async (req, res) => {
   }
 }
 */
-router.post('/create', validateScheduleAssignment(), async (req, res) => {
+router.post('/create', requireSuperOrAdminOrMinistryLeader, validateScheduleAssignment(), async (req, res) => {
   try {
     const church = req.church;
     const currentUser = await getCurrentUser(req);
@@ -700,7 +705,7 @@ router.post('/create', validateScheduleAssignment(), async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Update a schedule assignment'
 */
-router.patch('/update/:id', async (req, res) => {
+router.patch('/update/:id', requireSuperOrAdminOrResourceMinistryLeader(Schedule, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -838,7 +843,7 @@ router.patch('/update/:id', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'List schedules for an event instance and ministry'
 */
-router.get('/event-instance/:eventInstanceId/:ministryId', async (req, res) => {
+router.get('/event-instance/:eventInstanceId/:ministryId', requireMinistryAccess, async (req, res) => {
   try {
     const { eventInstanceId, ministryId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(eventInstanceId) || !mongoose.Types.ObjectId.isValid(ministryId)) {
@@ -874,7 +879,7 @@ router.get('/event-instance/:eventInstanceId/:ministryId', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'List monthly schedule assignments for a ministry'
 */
-router.get('/monthly', async (req, res) => {
+router.get('/monthly', requireMinistryAccess, async (req, res) => {
   try {
     const { ministryId } = req.query;
     const month = Number(req.query.month);
@@ -921,7 +926,7 @@ router.get('/monthly', async (req, res) => {
 #swagger.tags = ['Schedule']
 #swagger.summary = 'Delete a schedule assignment'
 */
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', requireSuperOrAdminOrResourceMinistryLeader(Schedule, 'id'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -967,7 +972,7 @@ router.delete('/delete/:id', async (req, res) => {
   }
 }
 */
-router.post('/auto-schedule', validateAutoSchedule(), async (req, res) => {
+router.post('/auto-schedule', requireSuperOrAdminOrMinistryLeader, validateAutoSchedule(), async (req, res) => {
   try {
     const church = req.church;
     const currentUser = await getCurrentUser(req);
