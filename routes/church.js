@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const express = require('express');
 const Church = require('../models/church');
 const User = require('../models/user');
+const { normalizeAddressPayload } = require('../middlewares/addressNormalizer');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
 const { cleanupChurchData } = require('../common/church.cleanup.service');
 const router = express.Router();
@@ -17,12 +18,6 @@ const uploadChurchImageStrict = (req, res, next) => {
         if (err) {
             return res.status(422).json({
                 errors: [{ msg: err.message || 'Invalid image upload payload.' }]
-            });
-        }
-
-        if (req.body && (typeof req.body.image !== 'undefined' || typeof req.body.logo !== 'undefined') && !req.file) {
-            return res.status(422).json({
-                errors: [{ msg: 'Invalid image payload. Send a supported file using multipart/form-data under field name "image".' }]
             });
         }
 
@@ -79,7 +74,7 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
 /*
 #swagger.tags = ['Church']
 */
-router.post('/create', uploadChurchImageStrict, validateChurch(), async (req, res) => {
+router.post('/create', uploadChurchImageStrict, normalizeAddressPayload, validateChurch(), async (req, res) => {
     let logoUrl = null;
   try {
     const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
@@ -127,7 +122,7 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Church']
 */
-router.patch('/update/:churchId', uploadChurchImageStrict, async (req, res) => {
+router.patch('/update/:churchId', uploadChurchImageStrict, normalizeAddressPayload, async (req, res) => {
     let newLogoUrl = null;
     let oldLogoUrl = null;
     let session;

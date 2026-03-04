@@ -6,6 +6,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const { validateUser } = require('../middlewares/validators');
+const { normalizeAddressPayload } = require('../middlewares/addressNormalizer');
 const { cacheRoute } = require('../middlewares/tenantCache');
 const { uploadImage, deleteFile, uploadToMinio } = require('../common/upload');
 const { del: delCache } = require('../common/cache');
@@ -18,7 +19,7 @@ function escapeRegExp(string) {
 /*
 #swagger.tags = ['User']
 */
-router.post('/create', uploadImage, validateUser(), async (req, res) => {
+router.post('/create', uploadImage, normalizeAddressPayload, validateUser(), async (req, res) => {
     const {
         church, firstName, lastName, emailAddress, phoneNumber, address, gender, 
         dateOfBirth, isMarried, anniversaryDate, firebaseId, pushToken, role,
@@ -184,7 +185,7 @@ router.get('/findByUid/:firebaseId', async (req, res) => {
 /*
 #swagger.tags = ['User']
 */
-router.patch('/update/:id', uploadImage, async (req, res) => {
+router.patch('/update/:id', uploadImage, normalizeAddressPayload, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
   const updateObject = {};
