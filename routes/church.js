@@ -11,6 +11,24 @@ const User = require('../models/user');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
 const { cleanupChurchData } = require('../common/church.cleanup.service');
 const router = express.Router();
+
+const uploadChurchImageStrict = (req, res, next) => {
+    uploadImage(req, res, (err) => {
+        if (err) {
+            return res.status(422).json({
+                errors: [{ msg: err.message || 'Invalid image upload payload.' }]
+            });
+        }
+
+        if (req.body && (typeof req.body.image !== 'undefined' || typeof req.body.logo !== 'undefined') && !req.file) {
+            return res.status(422).json({
+                errors: [{ msg: 'Invalid image payload. Send a supported file using multipart/form-data under field name "image".' }]
+            });
+        }
+
+        return next();
+    });
+};
 /*
 #swagger.tags = ['Church']
 */
@@ -61,7 +79,7 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
 /*
 #swagger.tags = ['Church']
 */
-router.post('/create', uploadImage, validateChurch(), async (req, res) => {
+router.post('/create', uploadChurchImageStrict, validateChurch(), async (req, res) => {
     let logoUrl = null;
   try {
     const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
@@ -109,7 +127,7 @@ router.get('/find/:id', async(req, res) => {
 /*
 #swagger.tags = ['Church']
 */
-router.patch('/update/:churchId', uploadImage, async (req, res) => {
+router.patch('/update/:churchId', uploadChurchImageStrict, async (req, res) => {
     let newLogoUrl = null;
     let oldLogoUrl = null;
     let session;
