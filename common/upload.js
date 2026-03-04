@@ -21,7 +21,7 @@ function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png|gif|pdf/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
-  return mimetype && extname ? cb(null, true) : cb(new Error('Error: Images/PDF Only!'));
+  return mimetype && extname ? cb(null, true) : cb(new Error('Error: Unsupported file type uploaded!'));
 }
 
 // Single Image Helper
