@@ -54,7 +54,8 @@ const uploadToMinio = async (file) => {
   return `https://s3.churchlify.com/${BUCKET_NAME}/${fileName}`;
 };
 
-const deleteFile = async (fileUrl) => {
+const deleteFile = async (fileUrl, options = {}) => {
+  const { throwOnError = false } = options;
   try {
     const fileName = fileUrl.split('/').pop();
     await s3Client.send(new DeleteObjectCommand({
@@ -63,6 +64,9 @@ const deleteFile = async (fileUrl) => {
     }));
   } catch (error) {
     console.error(`MinIO Delete Error:`, error.message);
+    if (throwOnError) {
+      throw error;
+    }
   }
 };
 

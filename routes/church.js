@@ -44,7 +44,11 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
             session.endSession();
         }
         if (uploadedLogoUrl) {
-            await deleteFile(uploadedLogoUrl);
+            try {
+                await deleteFile(uploadedLogoUrl, { throwOnError: true });
+            } catch (cleanupError) {
+                console.error('Failed to cleanup uploaded church logo after transaction abort:', cleanupError);
+            }
         }
         console.error('Transaction aborted:', error);
         if (error.code === 11000) { 
@@ -83,7 +87,11 @@ router.post('/create', uploadImage, validateChurch(), async (req, res) => {
 
     } catch (err) {
         if (logoUrl) {
-            await deleteFile(logoUrl);
+            try {
+                await deleteFile(logoUrl, { throwOnError: true });
+            } catch (cleanupErr) {
+                console.error('Failed to cleanup uploaded church logo after create failure:', cleanupErr);
+            }
         }
     res.status(400).json({ error: err.message });
   }
@@ -104,6 +112,7 @@ router.get('/find/:id', async(req, res) => {
 router.patch('/update/:churchId', uploadImage, async (req, res) => {
     let newLogoUrl = null;
     let oldLogoUrl = null;
+    let session;
     try {
         const { churchId } = req.params;
         const updates = req.body;
@@ -140,15 +149,37 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
             });
             if (duplicate) {
                 const field = duplicate.emailAddress === updateObject.emailAddress ? 'Email' : 'Phone';
+                if (newLogoUrl) {
+                    try {
+                        await deleteFile(newLogoUrl, { throwOnError: true });
+                    } catch (cleanupErr) {
+                        console.error('Failed to cleanup uploaded church logo after duplicate check:', cleanupErr);
+                    }
+                }
                 return res.status(422).json({ errors: [{ msg: `${field} already exists with another church.` }] });
             }
         }
 
-        const updatedChurch = await Church.findByIdAndUpdate(churchId, { $set: updateObject }, { new: true, runValidators: true } );
+        session = await mongoose.startSession();
+        session.startTransaction();
+
+        const updatedChurch = await Church.findByIdAndUpdate(
+            churchId,
+            { $set: updateObject },
+            { new: true, runValidators: true, session }
+        );
+
+        if (!updatedChurch) {
+            throw new Error('Church not found during update transaction.');
+        }
 
         if (newLogoUrl && oldLogoUrl && oldLogoUrl !== newLogoUrl) {
-            await deleteFile(oldLogoUrl);
+            await deleteFile(oldLogoUrl, { throwOnError: true });
         }
+
+        await session.commitTransaction();
+        session.endSession();
+        session = null;
         
         return res.status(200).json({
             message: 'Church updated successfully',
@@ -156,8 +187,16 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
         });
 
     } catch (err) {
+        if (session) {
+            await session.abortTransaction();
+            session.endSession();
+        }
         if (newLogoUrl) {
-            await deleteFile(newLogoUrl);
+            try {
+                await deleteFile(newLogoUrl, { throwOnError: true });
+            } catch (cleanupErr) {
+                console.error('Failed to cleanup newly uploaded church logo after rollback:', cleanupErr);
+            }
         }
         console.error(err);
         res.status(500).json({ error: 'Server error during church update.' });

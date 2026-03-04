@@ -3,6 +3,7 @@
 */
 // routes/user.js
 const express = require('express');
+const mongoose = require('mongoose');
 const User = require('../models/user');
 const { validateUser } = require('../middlewares/validators');
 const { cacheRoute } = require('../middlewares/tenantCache');
@@ -68,7 +69,11 @@ router.post('/create', uploadImage, validateUser(), async (req, res) => {
 
     } catch (err) {
       if (uploadedPhotoUrl) {
-        await deleteFile(uploadedPhotoUrl);
+        try {
+          await deleteFile(uploadedPhotoUrl, { throwOnError: true });
+        } catch (cleanupErr) {
+          console.error('Failed to cleanup uploaded user photo after create failure:', cleanupErr);
+        }
       }
         if (err.name === 'ValidationError') {
             return res.status(422).json({ errors: [{ msg: err.message }] });
@@ -182,9 +187,10 @@ router.get('/findByUid/:firebaseId', async (req, res) => {
 router.patch('/update/:id', uploadImage, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
-    const updateObject = {}; 
+  const updateObject = {};
   let newPhotoUrl = null;
   let oldPhotoUrl = null;
+  let session;
 
     try {
         const existingUser = await User.findById(id);
@@ -218,28 +224,54 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
                 _id: { $ne: id } 
             });
             if (emailExists) {
+            if (newPhotoUrl) {
+              try {
+                await deleteFile(newPhotoUrl, { throwOnError: true });
+              } catch (cleanupErr) {
+                console.error('Failed to cleanup uploaded user photo after duplicate email check:', cleanupErr);
+              }
+            }
                 return res.status(422).json({ errors: [{ msg: `Email ${updateObject.emailAddress} is already in use.` }] });
             }
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
+        session = await mongoose.startSession();
+        session.startTransaction();
+
+        const transactionalUpdatedUser = await User.findByIdAndUpdate(
             id,
             { $set: updateObject },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true, session }
         );
 
-        if (newPhotoUrl && oldPhotoUrl && oldPhotoUrl !== newPhotoUrl) {
-          await deleteFile(oldPhotoUrl);
+        if (!transactionalUpdatedUser) {
+            throw new Error('User not found during update transaction.');
         }
+
+        if (newPhotoUrl && oldPhotoUrl && oldPhotoUrl !== newPhotoUrl) {
+          await deleteFile(oldPhotoUrl, { throwOnError: true });
+        }
+
+        await session.commitTransaction();
+        session.endSession();
+        session = null;
         
         res.status(200).json({
             message: 'User record updated successfully',
-            user: updatedUser
+            user: transactionalUpdatedUser
         });
 
     } catch (err) {
+      if (session) {
+        await session.abortTransaction();
+        session.endSession();
+      }
       if (newPhotoUrl) {
-        await deleteFile(newPhotoUrl);
+        try {
+          await deleteFile(newPhotoUrl, { throwOnError: true });
+        } catch (cleanupErr) {
+          console.error('Failed to cleanup newly uploaded user photo after rollback:', cleanupErr);
+        }
       }
         if (err.name === 'ValidationError') {
             return res.status(422).json({ errors: [{ msg: err.message }] });
