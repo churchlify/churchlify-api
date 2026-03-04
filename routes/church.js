@@ -15,7 +15,7 @@ const router = express.Router();
 #swagger.tags = ['Church']
 */
 
-async function createChurchRecord(churchData, res) {
+async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
     let session;
     try {
         session = await mongoose.startSession();
@@ -42,10 +42,11 @@ async function createChurchRecord(churchData, res) {
         if (session) {
             await session.abortTransaction();
             session.endSession();
-        }     
+        }
+        if (uploadedLogoUrl) {
+            await deleteFile(uploadedLogoUrl);
+        }
         console.error('Transaction aborted:', error);
-        // If the transaction fails, we might have an orphan file in MinIO. 
-        // In a production app, you'd trigger a cleanup here.
         if (error.code === 11000) { 
             return res.status(409).json({ message: 'A record with this email or phone already exists.' });
         }
@@ -57,6 +58,7 @@ async function createChurchRecord(churchData, res) {
 #swagger.tags = ['Church']
 */
 router.post('/create', uploadImage, validateChurch(), async (req, res) => {
+    let logoUrl = null;
   try {
     const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
     const address = req.body.address || null;
@@ -71,16 +73,18 @@ router.post('/create', uploadImage, validateChurch(), async (req, res) => {
     if (existingUser) {return res.status(422).json({ errors: [{ msg: 'User already affiliated' }] });}
 
     // --- REFACTORED FOR MINIO ---
-    let logoUrl = null;
     if (req.file) {
       logoUrl = await uploadToMinio(req.file);
     }
 
     await createChurchRecord({ 
         name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone 
-    }, res);
+        }, res, logoUrl);
 
-  } catch (err) {
+    } catch (err) {
+        if (logoUrl) {
+            await deleteFile(logoUrl);
+        }
     res.status(400).json({ error: err.message });
   }
 });
@@ -98,6 +102,8 @@ router.get('/find/:id', async(req, res) => {
 #swagger.tags = ['Church']
 */
 router.patch('/update/:churchId', uploadImage, async (req, res) => {
+    let newLogoUrl = null;
+    let oldLogoUrl = null;
     try {
         const { churchId } = req.params;
         const updates = req.body;
@@ -115,12 +121,9 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
         }
 
         if (req.file) {
-            const newLogoUrl = await uploadToMinio(req.file);
+            newLogoUrl = await uploadToMinio(req.file);
             updateObject.logo = newLogoUrl;
-
-            if (existingChurch.logo) {
-                await deleteFile(existingChurch.logo); 
-            }
+            oldLogoUrl = existingChurch.logo || null;
         }
 
         if (Object.keys(updateObject).length === 0) {
@@ -142,6 +145,10 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
         }
 
         const updatedChurch = await Church.findByIdAndUpdate(churchId, { $set: updateObject }, { new: true, runValidators: true } );
+
+        if (newLogoUrl && oldLogoUrl && oldLogoUrl !== newLogoUrl) {
+            await deleteFile(oldLogoUrl);
+        }
         
         return res.status(200).json({
             message: 'Church updated successfully',
@@ -149,6 +156,9 @@ router.patch('/update/:churchId', uploadImage, async (req, res) => {
         });
 
     } catch (err) {
+        if (newLogoUrl) {
+            await deleteFile(newLogoUrl);
+        }
         console.error(err);
         res.status(500).json({ error: 'Server error during church update.' });
     }

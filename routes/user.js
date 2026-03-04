@@ -27,6 +27,7 @@ router.post('/create', uploadImage, validateUser(), async (req, res) => {
         church, firstName, lastName, emailAddress, phoneNumber, address, gender, 
         dateOfBirth, isMarried, anniversaryDate, firebaseId, pushToken, role,
     };
+    let uploadedPhotoUrl = null;
     
     try {
         const existingEmail = await User.findOne({ emailAddress });
@@ -51,7 +52,8 @@ router.post('/create', uploadImage, validateUser(), async (req, res) => {
 
         // --- REFACTORED FOR MINIO ---
         if (req.file) {
-            newUser.photoUrl = await uploadToMinio(req.file);
+          uploadedPhotoUrl = await uploadToMinio(req.file);
+          newUser.photoUrl = uploadedPhotoUrl;
         } else if (req.body.photoUrl) {
             newUser.photoUrl = req.body.photoUrl;
         }
@@ -65,6 +67,9 @@ router.post('/create', uploadImage, validateUser(), async (req, res) => {
         });
 
     } catch (err) {
+      if (uploadedPhotoUrl) {
+        await deleteFile(uploadedPhotoUrl);
+      }
         if (err.name === 'ValidationError') {
             return res.status(422).json({ errors: [{ msg: err.message }] });
         }
@@ -178,6 +183,8 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     const updateObject = {}; 
+  let newPhotoUrl = null;
+  let oldPhotoUrl = null;
 
     try {
         const existingUser = await User.findById(id);
@@ -195,13 +202,9 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
         // --- REFACTORED FOR MINIO ---
         if (req.file) {
             // Upload new image
-            const newPhotoUrl = await uploadToMinio(req.file);
+          newPhotoUrl = await uploadToMinio(req.file);
             updateObject.photoUrl = newPhotoUrl;
-          
-            // Delete old photo from Minio bucket
-            if (existingUser.photoUrl) {
-                await deleteFile(existingUser.photoUrl); 
-            }
+          oldPhotoUrl = existingUser.photoUrl || null;
         }
 
         if (Object.keys(updateObject).length === 0) {
@@ -224,6 +227,10 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
             { $set: updateObject },
             { new: true, runValidators: true }
         );
+
+        if (newPhotoUrl && oldPhotoUrl && oldPhotoUrl !== newPhotoUrl) {
+          await deleteFile(oldPhotoUrl);
+        }
         
         res.status(200).json({
             message: 'User record updated successfully',
@@ -231,6 +238,9 @@ router.patch('/update/:id', uploadImage, async (req, res) => {
         });
 
     } catch (err) {
+      if (newPhotoUrl) {
+        await deleteFile(newPhotoUrl);
+      }
         if (err.name === 'ValidationError') {
             return res.status(422).json({ errors: [{ msg: err.message }] });
         }
