@@ -23,8 +23,8 @@ services:
       - TURN_URL=${REMOTE_HOST}
       - TURN_SHARED_SECRET=${TURN_SECRET}
       - TURN_USER_EXPIRY_SEC=600
-      - MEDIASOUP_MIN_PORT=40000
-      - MEDIASOUP_MAX_PORT=40100
+      - MEDIASOUP_MIN_PORT=42000
+      - MEDIASOUP_MAX_PORT=42100
       - PUBLIC_IP=${REMOTE_HOST}
     networks:
       - db_network
@@ -42,10 +42,10 @@ services:
     container_name: mediasoup
     restart: unless-stopped
     environment:
-      - MEDIASOUP_MIN_PORT=40000
-      - MEDIASOUP_MAX_PORT=40100
+      - MEDIASOUP_MIN_PORT=42000
+      - MEDIASOUP_MAX_PORT=42100
     ports:
-      - "40000-40100:40000-40100/udp"
+      - "42000-42100:42000-42100/udp"
     cap_add:
       - NET_ADMIN
     networks:

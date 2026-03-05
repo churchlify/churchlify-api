@@ -25,6 +25,6 @@ RUN npm install --omit=dev
 COPY . .
 
 EXPOSE 3000/tcp
-EXPOSE 40000-40100/udp
+EXPOSE 42000-42100/udp
 
 CMD ["node", "mediasoup-worker.js"]

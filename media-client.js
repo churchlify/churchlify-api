@@ -10,8 +10,8 @@ async function startWorker(io) {
     }
   const worker = await createWorker({
     logLevel: 'warn',
-    rtcMinPort: 40000,
-    rtcMaxPort: 40100,
+    rtcMinPort: 42000,
+    rtcMaxPort: 42100,
   });
 
   worker.on('died', () => {
