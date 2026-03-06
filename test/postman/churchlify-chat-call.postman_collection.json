@@ -1,0 +1,208 @@
+{
+  "info": {
+    "name": "Churchlify Chat + Call Smoke",
+    "_postman_id": "4f4d9c7a-3e9f-4a2d-8d7b-2f9f24a0ff01",
+    "description": "REST-only smoke flow for chat and call lifecycle without UI. Set collection variables first.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "REPLACE_WITH_FIREBASE_ID_TOKEN" },
+    { "key": "churchId", "value": "REPLACE_WITH_CHURCH_OBJECT_ID" },
+    { "key": "roomId", "value": "room-webrtc-1001" },
+    { "key": "participantUserId", "value": "REPLACE_WITH_OTHER_USER_OBJECT_ID" },
+    { "key": "callId", "value": "" },
+    { "key": "messageId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "WebRTC Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" }
+        ],
+        "url": "{{baseUrl}}/chat/webrtc/config"
+      }
+    },
+    {
+      "name": "TURN Credentials",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" }
+        ],
+        "url": "{{baseUrl}}/chat/turn-credentials"
+      }
+    },
+    {
+      "name": "Create Room",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{roomId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/rooms"
+      }
+    },
+    {
+      "name": "Join Room (Current User)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{roomId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/rooms/join"
+      }
+    },
+    {
+      "name": "Join Room (Other Participant)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{roomId}}\",\n  \"userId\": \"{{participantUserId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/rooms/join"
+      }
+    },
+    {
+      "name": "Send Message",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body && body.message && body.message.id) {",
+              "  pm.collectionVariables.set('messageId', body.message.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{roomId}}\",\n  \"text\": \"Hello from Postman smoke flow\",\n  \"participants\": [\"{{participantUserId}}\"],\n  \"messageType\": \"text\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/messages"
+      }
+    },
+    {
+      "name": "Mark Message Read",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": "{{baseUrl}}/chat/messages/{{messageId}}/read"
+      }
+    },
+    {
+      "name": "Start Call",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body && body.call && body.call.id) {",
+              "  pm.collectionVariables.set('callId', body.call.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"roomId\": \"{{roomId}}\",\n  \"participants\": [\"{{participantUserId}}\"],\n  \"mediaType\": \"video\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/calls/start"
+      }
+    },
+    {
+      "name": "Accept Call",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": "{{baseUrl}}/chat/calls/{{callId}}/accept"
+      }
+    },
+    {
+      "name": "End Call",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"postman-smoke-complete\"\n}"
+        },
+        "url": "{{baseUrl}}/chat/calls/{{callId}}/end"
+      }
+    },
+    {
+      "name": "Call History",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "x-church", "value": "{{churchId}}" }
+        ],
+        "url": "{{baseUrl}}/chat/calls/history?roomId={{roomId}}&limit=20&skip=0"
+      }
+    }
+  ]
+}

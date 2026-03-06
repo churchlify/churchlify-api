@@ -1,0 +1,114 @@
+@baseUrl = http://localhost:3000
+@token = REPLACE_WITH_FIREBASE_ID_TOKEN
+@churchId = REPLACE_WITH_CHURCH_OBJECT_ID
+@roomId = room-webrtc-1001
+@participantUserId = REPLACE_WITH_OTHER_USER_OBJECT_ID
+
+### 1) WebRTC topology config
+GET {{baseUrl}}/chat/webrtc/config
+Authorization: Bearer {{token}}
+x-church: {{churchId}}
+
+### 2) TURN credentials
+GET {{baseUrl}}/chat/turn-credentials
+Authorization: Bearer {{token}}
+x-church: {{churchId}}
+
+### 3) Create room key
+POST {{baseUrl}}/chat/rooms
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "roomId": "{{roomId}}"
+}
+
+### 4) Join room as current authenticated user
+POST {{baseUrl}}/chat/rooms/join
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "roomId": "{{roomId}}"
+}
+
+### 5) Optional: add another participant user id to room member set
+POST {{baseUrl}}/chat/rooms/join
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "roomId": "{{roomId}}",
+  "userId": "{{participantUserId}}"
+}
+
+### 6) List room members
+GET {{baseUrl}}/chat/rooms/{{roomId}}/members
+Authorization: Bearer {{token}}
+x-church: {{churchId}}
+
+### 7) Send chat message
+# @name sendMessage
+POST {{baseUrl}}/chat/messages
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "roomId": "{{roomId}}",
+  "text": "Hello from REST smoke test",
+  "participants": ["{{participantUserId}}"],
+  "messageType": "text"
+}
+
+### 8) Fetch message history
+GET {{baseUrl}}/chat/messages?roomId={{roomId}}&limit=20
+Authorization: Bearer {{token}}
+x-church: {{churchId}}
+
+### 9) Mark message as read
+PATCH {{baseUrl}}/chat/messages/{{sendMessage.response.body.message.id}}/read
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{}
+
+### 10) Start a voice/video call
+# @name startCall
+POST {{baseUrl}}/chat/calls/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "roomId": "{{roomId}}",
+  "participants": ["{{participantUserId}}"],
+  "mediaType": "video"
+}
+
+### 11) Accept call (run this using the other participant token in a second client for realistic flow)
+POST {{baseUrl}}/chat/calls/{{startCall.response.body.call.id}}/accept
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{}
+
+### 12) End call
+POST {{baseUrl}}/chat/calls/{{startCall.response.body.call.id}}/end
+Authorization: Bearer {{token}}
+Content-Type: application/json
+x-church: {{churchId}}
+
+{
+  "reason": "smoke-test-complete"
+}
+
+### 13) Fetch call history
+GET {{baseUrl}}/chat/calls/history?roomId={{roomId}}&limit=20&skip=0
+Authorization: Bearer {{token}}
+x-church: {{churchId}}

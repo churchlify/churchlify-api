@@ -112,7 +112,7 @@ function normalizeHost(value) {
 function buildTurnCredentials() {
   const ttlSec = Number(process.env.TURN_USER_EXPIRY_SEC || 600);
   const turnHost = normalizeHost(process.env.TURN_URL || process.env.TURN_HOST || process.env.REMOTE_HOST);
-  const secret = process.env.TURN_SHARED_SECRET;
+  const secret = process.env.TURN_SHARED_SECRET || process.env.TURN_SECRET;
 
   if (!turnHost || !secret) {
     throw new Error('TURN_URL/TURN_HOST and TURN_SHARED_SECRET are required');
