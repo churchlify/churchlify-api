@@ -4,9 +4,16 @@
   "type": "module",
   "main": "mediasoup-worker.mjs",
   "scripts": {
-    "start": "node mediasoup-worker.js"
+    "start": "node mediasoup-worker.js",
+    "smoke:signaling": "node smoke-signaling.mjs",
+    "e2e:two-peer": "node two-peer-e2e.mjs"
   },
   "dependencies": {
-    "mediasoup": "^3.14.8"
+    "mediasoup": "^3.14.8",
+    "mediasoup-client": "^3.14.8"
+  },
+  "optionalDependencies": {
+    "wrtc": "^0.4.7",
+    "@roamhq/wrtc": "^0.8.0"
   }
 }

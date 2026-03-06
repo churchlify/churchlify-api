@@ -4,6 +4,9 @@
   "main": "index.js",
   "scripts": {
     "api": "node server.js",
+    "mediasoup:start": "node mediasoup/mediasoup-worker.js",
+    "mediasoup:smoke": "npm --prefix mediasoup run smoke:signaling",
+    "mediasoup:e2e": "npm --prefix mediasoup run e2e:two-peer",
     "gen-doc": "node swagger/generate-swagger.js",
     "loadtest": "artillery run test/load-test.yml",
     "lint": "jshint .",

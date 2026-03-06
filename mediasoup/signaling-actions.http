@@ -1,0 +1,248 @@
+@baseUrl = http://localhost:3000
+@actionPath = /v1/signaling/actions
+@apiKey =
+@roomId = room-1001
+@peerA = peer-a
+@peerB = peer-b
+
+### Health
+GET {{baseUrl}}/health
+
+### Join peer A
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "joinPeer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "socketId": "socket-a"
+  }
+}
+
+### Join peer B
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "joinPeer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "socketId": "socket-b"
+  }
+}
+
+### Router RTP capabilities
+# @name getCaps
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "getRouterRtpCapabilities",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "socketId": "socket-a"
+  }
+}
+
+### Create send transport for peer A
+# @name createSendTransport
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "createWebRtcTransport",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "socketId": "socket-a",
+    "direction": "send"
+  }
+}
+
+### Create recv transport for peer B
+# @name createRecvTransport
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "createWebRtcTransport",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "socketId": "socket-b",
+    "direction": "recv"
+  }
+}
+
+### Connect send transport (replace dtlsParameters from real client offer)
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "connectWebRtcTransport",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "transportId": "{{createSendTransport.response.body.transportId}}",
+    "dtlsParameters": {
+      "role": "auto",
+      "fingerprints": [
+        { "algorithm": "sha-256", "value": "REPLACE_WITH_REAL_FINGERPRINT" }
+      ]
+    }
+  }
+}
+
+### Connect recv transport (replace dtlsParameters from real client offer)
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "connectWebRtcTransport",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "transportId": "{{createRecvTransport.response.body.transportId}}",
+    "dtlsParameters": {
+      "role": "auto",
+      "fingerprints": [
+        { "algorithm": "sha-256", "value": "REPLACE_WITH_REAL_FINGERPRINT" }
+      ]
+    }
+  }
+}
+
+### Produce audio from peer A (replace rtpParameters from real client)
+# @name produceAudio
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "produce",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "transportId": "{{createSendTransport.response.body.transportId}}",
+    "kind": "audio",
+    "rtpParameters": {
+      "codecs": [],
+      "headerExtensions": [],
+      "encodings": [],
+      "rtcp": {}
+    },
+    "appData": {
+      "track": "mic"
+    }
+  }
+}
+
+### List producers visible to peer B
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "listProducers",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}"
+  }
+}
+
+### Consume produced track on peer B (replace rtpCapabilities from peer B device)
+# @name consumeAudio
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "consume",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "transportId": "{{createRecvTransport.response.body.transportId}}",
+    "producerId": "{{produceAudio.response.body.producerId}}",
+    "rtpCapabilities": {{getCaps.response.body.routerRtpCapabilities}}
+  }
+}
+
+### Resume consumer
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "resumeConsumer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "consumerId": "{{consumeAudio.response.body.consumerId}}"
+  }
+}
+
+### Close consumer
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "closeConsumer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerB}}",
+    "consumerId": "{{consumeAudio.response.body.consumerId}}"
+  }
+}
+
+### Close producer
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "closeProducer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}",
+    "producerId": "{{produceAudio.response.body.producerId}}"
+  }
+}
+
+### Leave peer A
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "leavePeer",
+  "payload": {
+    "roomId": "{{roomId}}",
+    "peerId": "{{peerA}}"
+  }
+}
+
+### Disconnect peer B
+POST {{baseUrl}}{{actionPath}}
+Content-Type: application/json
+x-media-api-key: {{apiKey}}
+
+{
+  "action": "disconnectPeer",
+  "payload": {
+    "peerId": "{{peerB}}",
+    "roomIds": ["{{roomId}}"],
+    "socketId": "socket-b"
+  }
+}
