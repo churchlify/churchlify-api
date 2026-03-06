@@ -5,7 +5,7 @@ const IORedis = require('ioredis');
 // Supports: redis, redis.platform, redis.platform.svc.cluster.local, or custom IP
 const redisHost = process.env.REDIS_HOST || (() => {
     // Default fallback chain for K8s
-    const namespace = process.env.K8S_NAMESPACE || 'default';
+    const namespace = process.env.K8S_NAMESPACE || 'platform';
     return `redis.${namespace}.svc.cluster.local`;
 })();
 
