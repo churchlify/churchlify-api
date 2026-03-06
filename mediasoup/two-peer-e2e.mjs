@@ -342,7 +342,11 @@ async function run() {
   await withTimeout('runInternal', runInternal(), RUN_TIMEOUT_MS);
 }
 
-run().catch((error) => {
-  console.error(error.stack || error.message);
-  process.exit(1);
-});
+run()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error(error.stack || error.message);
+    process.exit(1);
+  });
