@@ -303,7 +303,7 @@ const validateAssignment = () => [
                 }
                 return true;
             }),
-        body('ministryId').optional().notEmpty().withMessage('Ministry ID is required').custom((value) => {
+        body('ministryId').optional({ values: 'falsy' }).custom((value) => {
             if (!mongoose.Types.ObjectId.isValid(value)) {
                 throw new Error('Invalid Ministry ID');
             }
@@ -315,14 +315,25 @@ const validateAssignment = () => [
             }
             return true;
         }),
-        body('fellowshipId').optional().notEmpty().withMessage('Fellowship ID is required').custom((value) => {
+        body('fellowshipId').optional({ values: 'falsy' }).custom((value) => {
             if (!mongoose.Types.ObjectId.isValid(value)) {
                 throw new Error('Invalid Fellowship ID');
             }
             return true;
         }),
         body().custom((value) => {
+            const hasMinistryId = !!value.ministryId;
+            const hasFellowshipId = !!value.fellowshipId;
             const status = value.status || 'pending';
+
+            if (!hasMinistryId && !hasFellowshipId) {
+                throw new Error('Either ministryId or fellowshipId is required');
+            }
+
+            if (hasMinistryId && hasFellowshipId) {
+                throw new Error('Provide either ministryId or fellowshipId, not both');
+            }
+
             if (value.ministryId && status === 'approved' && !value.scheduleRoleId) {
                 throw new Error('scheduleRoleId is required when approving ministry assignment');
             }

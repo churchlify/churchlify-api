@@ -137,6 +137,11 @@ function buildTurnCredentials() {
   };
 }
 
+/**
+ * GET /chat/webrtc/config
+ * Purpose: Returns signaling configuration for the current media topology.
+ * Basic usage: GET /chat/webrtc/config
+ */
 router.get('/webrtc/config', (req, res) => {
   const signalingBaseUrl = (process.env.MEDIASOUP_SIGNALING_BASE_URL || '').replace(/\/$/, '');
   const signalingActionPath = process.env.MEDIASOUP_SIGNALING_ACTION_PATH || '/v1/signaling/actions';
@@ -154,6 +159,11 @@ router.get('/webrtc/config', (req, res) => {
   });
 });
 
+/**
+ * GET /chat/turn-credentials
+ * Purpose: Returns temporary TURN credentials for WebRTC ICE negotiation.
+ * Basic usage: GET /chat/turn-credentials
+ */
 router.get('/turn-credentials', (req, res) => {
   try {
     res.json(buildTurnCredentials());
@@ -162,6 +172,11 @@ router.get('/turn-credentials', (req, res) => {
   }
 });
 
+/**
+ * GET /chat/rooms/:roomId/members
+ * Purpose: Lists active member IDs in a room (from Redis or in-memory fallback).
+ * Basic usage: GET /chat/rooms/group:fellowship:69ab635ed10f494f98eba7d2/members
+ */
 router.get('/rooms/:roomId/members', async (req, res) => {
   try {
     const { roomId } = req.params;
@@ -180,6 +195,18 @@ router.get('/rooms/:roomId/members', async (req, res) => {
   }
 });
 
+/**
+ * POST /chat/messages
+ * Purpose: Creates and broadcasts a chat message to a room.
+ * Basic usage:
+ * {
+ *   "roomId": "group:fellowship:69ab635ed10f494f98eba7d2",
+ *   "text": "hello",
+ *   "participants": ["69a7ed1d917c61e08cb62ad9"],
+ *   "messageType": "text",
+ *   "metadata": { "groupType": "fellowship" }
+ * }
+ */
 router.post('/messages', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -229,6 +256,12 @@ router.post('/messages', async (req, res) => {
   }
 });
 
+/**
+ * GET /chat/messages
+ * Purpose: Retrieves room messages visible to the current user with cursor pagination.
+ * Query params: roomId (required), limit (optional), before (optional ISO date).
+ * Basic usage: GET /chat/messages?roomId=group:fellowship:69ab635ed10f494f98eba7d2&limit=30
+ */
 router.get('/messages', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -276,6 +309,11 @@ router.get('/messages', async (req, res) => {
   }
 });
 
+/**
+ * PATCH /chat/messages/:id/read
+ * Purpose: Marks a message as read for the authenticated user.
+ * Basic usage: PATCH /chat/messages/66f1b4a91f0a8f0e5edfd0a1/read
+ */
 router.patch('/messages/:id/read', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -318,6 +356,17 @@ router.patch('/messages/:id/read', async (req, res) => {
   }
 });
 
+/**
+ * POST /chat/calls/start
+ * Purpose: Starts a call session and notifies room members.
+ * Basic usage:
+ * {
+ *   "roomId": "group:ministry:69ab62e5e59978eb6cbb62f8",
+ *   "participants": ["69a7ed1d917c61e08cb62ad9"],
+ *   "mediaType": "voice",
+ *   "metadata": { "source": "chat" }
+ * }
+ */
 router.post('/calls/start', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -364,6 +413,11 @@ router.post('/calls/start', async (req, res) => {
   }
 });
 
+/**
+ * POST /chat/calls/:id/accept
+ * Purpose: Accepts a ringing call and transitions it to active.
+ * Basic usage: POST /chat/calls/66f1b4a91f0a8f0e5edfd0a1/accept
+ */
 router.post('/calls/:id/accept', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -409,6 +463,14 @@ router.post('/calls/:id/accept', async (req, res) => {
   }
 });
 
+/**
+ * POST /chat/calls/:id/reject
+ * Purpose: Rejects a ringing call and records the rejection reason.
+ * Basic usage:
+ * {
+ *   "reason": "busy"
+ * }
+ */
 router.post('/calls/:id/reject', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -453,6 +515,14 @@ router.post('/calls/:id/reject', async (req, res) => {
   }
 });
 
+/**
+ * POST /chat/calls/:id/end
+ * Purpose: Ends an active call, or cancels a ringing call.
+ * Basic usage:
+ * {
+ *   "reason": "user_left"
+ * }
+ */
 router.post('/calls/:id/end', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -497,6 +567,12 @@ router.post('/calls/:id/end', async (req, res) => {
   }
 });
 
+/**
+ * GET /chat/calls/history
+ * Purpose: Returns paginated call history for the current user.
+ * Query params: roomId (optional), status (optional), limit (optional), skip (optional).
+ * Basic usage: GET /chat/calls/history?roomId=group:ministry:69ab62e5e59978eb6cbb62f8&limit=20&skip=0
+ */
 router.get('/calls/history', async (req, res) => {
   try {
     const currentUser = await resolveCurrentUser(req);
@@ -546,6 +622,14 @@ router.get('/calls/history', async (req, res) => {
 });
 
 
+/**
+ * POST /chat/rooms
+ * Purpose: Creates a room record for presence tracking.
+ * Basic usage:
+ * {
+ *   "roomId": "group:fellowship:69ab635ed10f494f98eba7d2"
+ * }
+ */
 router.post('/rooms', async (req, res) => {
   const { roomId } = req.body;
   if (!roomId) {return res.status(400).json({ error: 'roomId required' });}
@@ -562,6 +646,15 @@ router.post('/rooms', async (req, res) => {
 });
 
 
+/**
+ * POST /chat/rooms/join
+ * Purpose: Adds a user to a room membership list and broadcasts join event.
+ * Basic usage:
+ * {
+ *   "roomId": "group:fellowship:69ab635ed10f494f98eba7d2",
+ *   "userId": "69a7ed1d917c61e08cb62ad9"
+ * }
+ */
 router.post('/rooms/join', async (req, res) => {
   const currentUser = await resolveCurrentUser(req);
   if (!currentUser) {
