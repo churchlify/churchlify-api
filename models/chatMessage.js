@@ -30,7 +30,7 @@ const chatMessageSchema = new mongoose.Schema(
     ],
     messageType: {
       type: String,
-      enum: ['text', 'system'],
+      enum: ['text', 'system', 'announcement'],
       default: 'text',
       index: true,
     },
