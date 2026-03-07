@@ -13,8 +13,6 @@ async function ensureLeaderMembership({ leaderId, ministryId, fellowshipId }) {
   const assignmentToInsert = {
     userId: leaderId,
     role: 'member',
-    status: 'approved',
-    note: 'pending',
     dateAssigned: new Date()
   };
 

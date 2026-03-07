@@ -7,6 +7,103 @@ const moment = require('moment-timezone');
 
 class EventService {
 
+getInstanceDateKey(date) {
+  return new Date(date).toISOString();
+}
+
+async buildRecurringInstances(event) {
+  // Get church timezone for proper date calculations
+  const timezone = await getChurchTimezone(event.church);
+  const now = nowInChurchTz(timezone);
+  const futureLimit = now.clone().add(365, 'days').toDate();
+
+  const { recurrence, startDate, startTime, endTime } = event;
+  let occurrences = [];
+  let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || [], timezone);
+
+  while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
+    const currentMoment = moment.tz(current, timezone);
+    const weekday = currentMoment.day();
+
+    if (recurrence.frequency === 'DAILY') {
+      occurrences.push(new Date(current));
+      current = addTimeInChurchTz(current, recurrence.interval, 'days', timezone);
+    } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
+      occurrences.push(new Date(current));
+      current = addTimeInChurchTz(current, recurrence.interval * 7, 'days', timezone);
+    } else if (recurrence.frequency === 'MONTHLY') {
+      occurrences.push(new Date(current));
+      current = addTimeInChurchTz(current, recurrence.interval, 'months', timezone);
+    } else if (recurrence.frequency === 'YEARLY') {
+      occurrences.push(new Date(current));
+      current = addTimeInChurchTz(current, recurrence.interval, 'years', timezone);
+    } else {
+      current = addTimeInChurchTz(current, 1, 'days', timezone);
+    }
+  }
+
+  const existingInstances = await EventInstance.find({ eventId: event._id })
+    .select('date isCheckinOpen')
+    .lean();
+
+  const checkinByDate = new Map(
+    existingInstances.map((instance) => [this.getInstanceDateKey(instance.date), !!instance.isCheckinOpen])
+  );
+
+  return occurrences.map((date) => ({
+    eventId: event._id,
+    church: event.church,
+    title: event.title,
+    description: event.description,
+    location: event.location,
+    flier: event.flier,
+    date,
+    startTime,
+    endTime,
+    isCheckinOpen: checkinByDate.get(this.getInstanceDateKey(date)) || false
+  }));
+}
+
+async syncEventInstancesForEvent(eventOrId) {
+  const isEventId = typeof eventOrId === 'string' || eventOrId?.constructor?.name === 'ObjectId';
+  let event = eventOrId;
+
+  if (isEventId) {
+    event = await Event.findById(eventOrId).populate('church');
+  }
+
+  if (!event) {
+    throw new Error('Event not found while syncing event instances.');
+  }
+
+  if (event.isRecurring) {
+    const instances = await this.buildRecurringInstances(event);
+    await EventInstance.deleteMany({ eventId: event._id });
+    if (instances.length > 0) {
+      await EventInstance.insertMany(instances);
+    }
+    return;
+  }
+
+  const existingInstance = await EventInstance.findOne({ eventId: event._id })
+    .select('isCheckinOpen')
+    .lean();
+
+  await EventInstance.deleteMany({ eventId: event._id });
+  await EventInstance.create({
+    eventId: event._id,
+    church: event.church,
+    title: event.title,
+    description: event.description,
+    location: event.location,
+    flier: event.flier,
+    date: event.startDate,
+    startTime: event.startTime,
+    endTime: event.endTime,
+    isCheckinOpen: !!existingInstance?.isCheckinOpen
+  });
+}
+
 flattenObject(obj, prefix = '', result = {}) {
   for (const key in obj) {
     const value = obj[key];
@@ -42,53 +139,7 @@ async expandRecurringEvents() {
   const events = await Event.find({ isRecurring: true }).populate('church');
 
   for (const event of events) {
-    // Get church timezone for proper date calculations
-    const timezone = await getChurchTimezone(event.church);
-    const now = nowInChurchTz(timezone);
-    const futureLimit = now.clone().add(365, 'days').toDate();
-    
-    const { recurrence, startDate, startTime, endTime } = event;
-    //console.log(`Expanding event ${event._id} (${event.title}) with recurrence:`, recurrence);
-    let occurrences = [];
-    //let current = new Date(startDate);
-    let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || [], timezone);
-    console.log({current});
-    while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
-      const currentMoment = moment.tz(current, timezone);
-      const weekday = currentMoment.day();
-
-      if (recurrence.frequency === 'DAILY') {
-        occurrences.push(new Date(current));
-        current = addTimeInChurchTz(current, recurrence.interval, 'days', timezone);
-      } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
-        occurrences.push(new Date(current));
-        current = addTimeInChurchTz(current, recurrence.interval * 7, 'days', timezone);
-      } else if (recurrence.frequency === 'MONTHLY') {
-        occurrences.push(new Date(current));
-        current = addTimeInChurchTz(current, recurrence.interval, 'months', timezone);
-      } else if (recurrence.frequency === 'YEARLY') {
-        occurrences.push(new Date(current));
-        current = addTimeInChurchTz(current, recurrence.interval, 'years', timezone);
-      } else {
-        current = addTimeInChurchTz(current, 1, 'days', timezone);
-      }
-    }
-
-    const instances = occurrences.map(date => ({
-      eventId: event._id,
-      church: event.church,
-      title: event.title,
-      description: event.description,
-      location: event.location,
-      date,
-      startTime,
-      endTime,
-    }));
-    console.log(`Generated ${instances.length} instances for event ${event._id} (${event.title})`);
-
-    // Remove old instances and insert new ones
-    await EventInstance.deleteMany({ eventId: event._id });
-    await EventInstance.insertMany(instances);
+    await this.syncEventInstancesForEvent(event);
   }
 }
 
@@ -97,7 +148,7 @@ async expandRecurringEvents() {
    const  event = await Event.create(eventData);
    console.log('Created Event:', event);
     if (event.isRecurring) {
-         await this.expandRecurringEvents(); // cache future instances
+       await this.syncEventInstancesForEvent(event); // cache future instances
          return event; // Return the base event object for recurring events
       } else {
           // Insert one instance directly

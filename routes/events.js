@@ -150,10 +150,9 @@ router.patch('/update/:id', uploadImage, validateEvent(), async (req, res) => {
       }
     }
 
-    const updatedEvent = await Event.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true }).lean();
-    if ('recurrence' in updateFields) {
-      await EventService.expandRecurringEvents(); // re-cache
-    }
+        const updatedEvent = await Event.findByIdAndUpdate(id, { $set: updateFields }, { new: true, runValidators: true }).lean();
+        await EventService.syncEventInstancesForEvent(id);
+
     res.status(200).json({ message: 'Record updated successfully', event: updatedEvent });
   } catch (err) {
     res.status(500).json({ error: err.message });
