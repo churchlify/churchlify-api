@@ -12,6 +12,7 @@ const AssignmentSchema = new mongoose.Schema({
   // @deprecated Use AvailabilityBlock model instead for structured time-based availability management
   availability: { type: Object, deprecated: true },
   skills: [String],
+  note: { type: String },
   status: { type: String,required: true, enum: ['pending', 'approved'], default: 'pending' },
   dateAssigned: { type: Date, required: true }
 });
@@ -51,9 +52,10 @@ AssignmentSchema.pre('validate', async function (next) {
 
   if (this.ministryId) {
     const status = this.status || 'pending';
+    const role = this.role || 'member';
 
-    if (status === 'approved' && !this.scheduleRoleId) {
-      return next(new Error('Approved ministry assignment must include scheduleRoleId.'));
+    if (status === 'approved' && role !== 'member' && !this.scheduleRoleId) {
+      return next(new Error('Approved non-member ministry assignment must include scheduleRoleId.'));
     }
 
     if (this.scheduleRoleId) {
@@ -95,6 +97,7 @@ AssignmentSchema.pre('findOneAndUpdate', async function (next) {
     const fellowshipId = updateSet.fellowshipId ?? update.fellowshipId ?? existing.fellowshipId;
     const scheduleRoleId = updateSet.scheduleRoleId ?? update.scheduleRoleId ?? existing.scheduleRoleId;
     const status = updateSet.status ?? update.status ?? existing.status ?? 'pending';
+    const role = updateSet.role ?? update.role ?? existing.role ?? 'member';
 
     if (!ministryId && !fellowshipId) {
       return next(new Error('Assignment must have either a ministryId or fellowshipId.'));
@@ -105,8 +108,8 @@ AssignmentSchema.pre('findOneAndUpdate', async function (next) {
     }
 
     if (ministryId) {
-      if (status === 'approved' && !scheduleRoleId) {
-        return next(new Error('Approved ministry assignment must include scheduleRoleId.'));
+      if (status === 'approved' && role !== 'member' && !scheduleRoleId) {
+        return next(new Error('Approved non-member ministry assignment must include scheduleRoleId.'));
       }
 
       if (scheduleRoleId) {

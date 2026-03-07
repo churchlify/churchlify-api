@@ -6,6 +6,7 @@ const express = require('express');
 const Fellowship = require('../models/fellowship');
 const {validateFellowship} = require('../middlewares/validators');
 const { requireSuperOrAdmin, requireSuperOrAdminOrResourceFellowshipLeader } = require('../middlewares/permissions');
+const { ensureLeaderMembership } = require('../common/groupLeaderMembership.service');
 const router = express.Router();
 router.use(express.json());
 /*
@@ -14,12 +15,27 @@ router.use(express.json());
 router.post('/create', requireSuperOrAdmin, validateFellowship(), async(req, res) => {
     const { church, name, description, leaderId, address, dayOfWeek, meetingTime } = req.body;
     const newItem = new Fellowship({ church, name, description, leaderId, address  , dayOfWeek, meetingTime });
+    let saved = false;
+    let shouldRollback = false;
     try {
-      await newItem.save();
-      // invalidate cache for this church
-      await require('../common/cache').del(church, 'fellowships:list');
-      res.status(201).json({ message: 'Fellowship registered successfully', fellowship: newItem });
+        await newItem.save();
+        saved = true;
+        shouldRollback = true;
+
+        await ensureLeaderMembership({
+            leaderId: newItem.leaderId,
+            fellowshipId: newItem._id
+        });
+
+        shouldRollback = false;
+
+        // invalidate cache for this church
+        await require('../common/cache').del(church, 'fellowships:list');
+        res.status(201).json({ message: 'Fellowship registered successfully', fellowship: newItem });
     } catch (err) {
+        if (saved && shouldRollback) {
+            await Fellowship.findByIdAndDelete(newItem._id).catch(() => null);
+        }
         res.status(500).json({ error: err.message });
     }
 });
@@ -39,6 +55,19 @@ router.patch('/update/:id', requireSuperOrAdminOrResourceFellowshipLeader(Fellow
     const { id } = req.params;
     const updates = req.body;
     try {
+        const existingFellowship = await Fellowship.findById(id).select('leaderId').lean();
+        if (!existingFellowship) {
+            return res.status(404).json({ message: `Fellowship with id ${id} not found` });
+        }
+
+        const hasLeaderIdUpdate = Object.prototype.hasOwnProperty.call(updates, 'leaderId');
+        const effectiveLeaderId = hasLeaderIdUpdate ? updates.leaderId : existingFellowship.leaderId;
+
+        await ensureLeaderMembership({
+            leaderId: effectiveLeaderId,
+            fellowshipId: id
+        });
+
         const updatedFellowship = await Fellowship.findByIdAndUpdate(id, {$set:updates}, { new: true, runValidators: true });
         if (!updatedFellowship) {
             return res.status(404).json({ message: `Fellowship with id ${id} not found` });
