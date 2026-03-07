@@ -2,6 +2,7 @@
 const User = require("../models/user");
 const Ministry = require("../models/ministry");
 const Fellowship = require("../models/fellowship");
+const Assignment = require("../models/assignment");
 
 /**
  * Get current user from Firebase UID
@@ -43,6 +44,22 @@ async function isFellowshipLeader(userId, fellowshipId) {
   
   const fellowship = await Fellowship.findById(fellowshipId).select("leaderId").lean();
   return fellowship && String(fellowship.leaderId) === String(userId);
+}
+
+async function canManageApprovalForGroup(currentUser, { ministryId, fellowshipId }) {
+  if (isSuperOrAdmin(currentUser)) {
+    return true;
+  }
+
+  if (ministryId) {
+    return isMinistryLeader(currentUser._id, ministryId);
+  }
+
+  if (fellowshipId) {
+    return isFellowshipLeader(currentUser._id, fellowshipId);
+  }
+
+  return false;
 }
 
 /**
@@ -336,6 +353,105 @@ const requireMinistryAccess = async (req, res, next) => {
   }
 };
 
+/**
+ * Middleware: Allow any authenticated user to create pending assignments.
+ * Creating a non-pending assignment requires super/admin or group leader privileges.
+ */
+const requireAssignmentCreatePermission = async (req, res, next) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+
+    if (!currentUser) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    const status = req.body?.status || "pending";
+    if (status === "pending") {
+      req.currentUser = currentUser;
+      return next();
+    }
+
+    const allowed = await canManageApprovalForGroup(currentUser, {
+      ministryId: req.body?.ministryId,
+      fellowshipId: req.body?.fellowshipId,
+    });
+
+    if (!allowed) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "Only admin/super or the group leader can create non-pending assignments",
+      });
+    }
+
+    req.currentUser = currentUser;
+    return next();
+  } catch (error) {
+    console.error("Permission check error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Middleware: Allow any authenticated user to perform non-approval updates.
+ * Updating an assignment to approved requires super/admin or group leader privileges.
+ */
+const requireAssignmentUpdatePermission = async (req, res, next) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+
+    if (!currentUser) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+
+    if (req.body?.status !== "approved") {
+      req.currentUser = currentUser;
+      return next();
+    }
+
+    let ministryId = req.body?.ministryId;
+    let fellowshipId = req.body?.fellowshipId;
+
+    if (!ministryId && !fellowshipId) {
+      const assignmentId = req.params?.id;
+      if (!assignmentId) {
+        return res.status(400).json({
+          error: "Bad request",
+          message: "Assignment ID is required",
+        });
+      }
+
+      const assignment = await Assignment.findById(assignmentId)
+        .select("ministryId fellowshipId")
+        .lean();
+
+      if (!assignment) {
+        return res.status(404).json({ error: "Assignment not found" });
+      }
+
+      ministryId = assignment.ministryId;
+      fellowshipId = assignment.fellowshipId;
+    }
+
+    const allowed = await canManageApprovalForGroup(currentUser, {
+      ministryId,
+      fellowshipId,
+    });
+
+    if (!allowed) {
+      return res.status(403).json({
+        error: "Forbidden",
+        message: "Only admin/super or the group leader can approve assignments",
+      });
+    }
+
+    req.currentUser = currentUser;
+    return next();
+  } catch (error) {
+    console.error("Permission check error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   getCurrentUser,
   isSuperOrAdmin,
@@ -346,5 +462,7 @@ module.exports = {
   requireSuperOrAdminOrFellowshipLeader,
   requireSuperOrAdminOrResourceMinistryLeader,
   requireSuperOrAdminOrResourceFellowshipLeader,
-  requireMinistryAccess
+  requireMinistryAccess,
+  requireAssignmentCreatePermission,
+  requireAssignmentUpdatePermission
 };

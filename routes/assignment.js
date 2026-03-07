@@ -4,13 +4,16 @@ const Ministry = require("../models/ministry");
 const Fellowship = require("../models/fellowship");
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
-const { requireSuperOrAdminOrMinistryLeader } = require("../middlewares/permissions");
+const {
+  requireAssignmentCreatePermission,
+  requireAssignmentUpdatePermission,
+} = require("../middlewares/permissions");
 
 const { validateAssignment } = require("../middlewares/validators");
 const router = express.Router();
 router.use(express.json());
 
-router.post("/create", requireSuperOrAdminOrMinistryLeader, validateAssignment(), async (req, res) => {
+router.post("/create", requireAssignmentCreatePermission, validateAssignment(), async (req, res) => {
   const {
     userId,
     ministryId,
@@ -85,7 +88,7 @@ router.get("/find/:id", async (req, res) => {
   res.json({ setting });
 });
 
-router.patch("/update/:id", async (req, res) => {
+router.patch("/update/:id", requireAssignmentUpdatePermission, async (req, res) => {
   const { id } = req.params;
   try {
     // Get the existing assignment first
