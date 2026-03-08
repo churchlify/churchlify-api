@@ -15,6 +15,25 @@ const { getChurchTimezone, parseChurchDate, getMonthBoundaries, nowInChurchTz } 
 //const event = require('../models/event');
 const router = express.Router();
 router.use(express.json());
+
+function parseYearMonthFromDateInput(value) {
+    if (!value) {
+        return null;
+    }
+
+    const match = String(value).trim().match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
+    if (!match) {
+        return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        return null;
+    }
+
+    return { year, month };
+}
 /*
 #swagger.tags = ['Events']
 */
@@ -173,19 +192,19 @@ router.get('/list', async(req, res) => {
         // Get church timezone for proper month calculation
         const timezone = church.timeZone || 'UTC';
         const inputMoment = nowInChurchTz(timezone);
-        
-        if (req.query.date) {
-            const parsedDate = parseChurchDate(req.query.date, timezone);
-            inputMoment.year(parsedDate.getFullYear()).month(parsedDate.getMonth());
+
+        const parsedParts = parseYearMonthFromDateInput(req.query.date);
+        if (parsedParts) {
+            inputMoment.year(parsedParts.year).month(parsedParts.month - 1);
         }
         
-        const { startDate } = getMonthBoundaries(
+        const { startDate, endDate } = getMonthBoundaries(
             inputMoment.year(),
             inputMoment.month() + 1,
             timezone
         );
-        
-        const filter = {date: { $gte: startDate }};
+
+        const filter = { date: { $gte: startDate, $lte: endDate } };
         if (church?._id) {
             filter.church = church._id;
         }
@@ -195,7 +214,17 @@ router.get('/list', async(req, res) => {
             .select('title date location isCheckinOpen eventId')
             .sort({ date: 1 })
             .lean();
-        res.status(200).json({ events });
+
+        const appliedMonth = `${inputMoment.year()}-${String(inputMoment.month() + 1).padStart(2, '0')}`;
+        res.status(200).json({
+            events,
+            meta: {
+                appliedTimezone: timezone,
+                appliedMonth,
+                rangeStart: startDate.toISOString(),
+                rangeEnd: endDate.toISOString(),
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -260,14 +289,42 @@ router.get('/main/find/:id', async(req, res) => {
 router.get('/main/list', async(req, res) => {
     try {
         const church = req.church;
-        const inputDate = new Date(req.query.date || new Date());
-        const start = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1); //{date: { $gte: start }};
-        const filter = {endDate: { $gte: start }};
+        if (!church) {
+            return res.status(400).json({ message: 'Church context required' });
+        }
+
+        const timezone = church.timeZone || 'UTC';
+        const inputMoment = nowInChurchTz(timezone);
+        const parsedParts = parseYearMonthFromDateInput(req.query.date);
+        if (parsedParts) {
+            inputMoment.year(parsedParts.year).month(parsedParts.month - 1);
+        }
+
+        const { startDate, endDate } = getMonthBoundaries(
+            inputMoment.year(),
+            inputMoment.month() + 1,
+            timezone
+        );
+
+        const filter = {
+            endDate: { $gte: startDate },
+            startDate: { $lte: endDate },
+        };
         if (church?._id) {
             filter.church = church._id;
         }
-        const events = await Event.find(filter).sort({ date: 1 });
-        res.status(200).json({ events });
+        const events = await Event.find(filter).sort({ startDate: 1 }).lean();
+        const appliedMonth = `${inputMoment.year()}-${String(inputMoment.month() + 1).padStart(2, '0')}`;
+
+        res.status(200).json({
+            events,
+            meta: {
+                appliedTimezone: timezone,
+                appliedMonth,
+                rangeStart: startDate.toISOString(),
+                rangeEnd: endDate.toISOString(),
+            },
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
