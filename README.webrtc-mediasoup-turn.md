@@ -187,9 +187,61 @@ Response:
 ### `PATCH /chat/rooms/:roomId`
 Purpose: backward-compatible alias for moderation updates.
 
+### `POST /chat/messages/upload`
+Purpose: uploads a chat attachment/voice-note file and returns reusable file metadata.
+
+Request:
+
+- `Content-Type: multipart/form-data`
+- form field: `file`
+
+Response:
+
+```json
+{
+  "fileUrl": "https://s3.churchlify.com/churchlify-data/uuid-file.m4a",
+  "fileName": "voice-note.m4a",
+  "mimeType": "audio/mp4",
+  "sizeBytes": 245102,
+  "uploadedBy": "67ce9a...",
+  "uploadedAt": "2026-03-07T13:00:00.000Z"
+}
+```
+
+### `POST /chat/rooms/:roomId/typing`
+Purpose: updates current user's typing state and emits `chat:typing`.
+
+Request:
+
+```json
+{
+  "isTyping": true
+}
+```
+
+### `GET /chat/rooms/:roomId/typing`
+Purpose: returns active typers in the room.
+
+Example response:
+
+```json
+{
+  "roomId": "room-1001",
+  "typing": ["67ce8f..."],
+  "at": "2026-03-07T13:00:00.000Z"
+}
+```
+
 ### `POST /chat/messages`
 Purpose: creates and broadcasts a chat message.
 If room moderation has `chatEnabled=false`, this returns `403`.
+Supported `messageType` values: `text`, `system`, `announcement`, `attachment`, `voice_note`.
+
+Validation rules:
+
+- `text`: requires non-empty `text`
+- `attachment`: requires `metadata.fileUrl`
+- `voice_note`: requires `metadata.fileUrl` (and optional numeric `metadata.durationSec`)
 
 Request:
 
@@ -199,6 +251,38 @@ Request:
   "text": "Hello everyone",
   "participants": ["67ce8f...", "67ce9a..."],
   "messageType": "text"
+}
+```
+
+Attachment example:
+
+```json
+{
+  "roomId": "room-1001",
+  "participants": ["67ce8f...", "67ce9a..."],
+  "messageType": "attachment",
+  "text": "Sunday bulletin",
+  "metadata": {
+    "fileUrl": "https://api.churchlify.com/uploads/file-abc.pdf",
+    "fileName": "bulletin.pdf",
+    "mimeType": "application/pdf",
+    "sizeBytes": 932144
+  }
+}
+```
+
+Voice note example:
+
+```json
+{
+  "roomId": "room-1001",
+  "participants": ["67ce8f...", "67ce9a..."],
+  "messageType": "voice_note",
+  "metadata": {
+    "fileUrl": "https://api.churchlify.com/uploads/voice-123.m4a",
+    "mimeType": "audio/mp4",
+    "durationSec": 12.4
+  }
 }
 ```
 
@@ -266,6 +350,11 @@ Client emits with ack callback:
 - `listProducers` `{ roomId }`
 - `chatTyping` `{ roomId, isTyping }`
 - `call:signal` `{ roomId, type, payload, targetPeerId }`
+
+Optional REST fallback for typing indicators:
+
+- `POST /chat/rooms/:roomId/typing`
+- `GET /chat/rooms/:roomId/typing`
 
 Ack envelope from API:
 

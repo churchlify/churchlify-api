@@ -2,10 +2,12 @@
 const express = require('express');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const multer = require('multer');
 const router = express.Router();
 router.use(express.json());
 const { rooms, redisClient, mediaTopology } = require('../media-client');
 const { getIO } = require('../config/socket');
+const { uploadToMinio } = require('../common/upload');
 const User = require('../models/user');
 const ChatMessage = require('../models/chatMessage');
 const CallSession = require('../models/callSession');
@@ -18,7 +20,41 @@ const DEFAULT_ROOM_SETTINGS = Object.freeze({
   moderatedBy: null,
   updatedAt: null,
 });
+const ALLOWED_MESSAGE_TYPES = ['text', 'system', 'announcement', 'attachment', 'voice_note'];
+const CHAT_TYPING_TTL_SEC = Number(process.env.CHAT_TYPING_TTL_SEC || 6);
+const CHAT_UPLOAD_MAX_BYTES = Number(process.env.CHAT_UPLOAD_MAX_BYTES || 10 * 1024 * 1024);
+const ALLOWED_CHAT_UPLOAD_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'application/pdf',
+  'text/plain',
+  'audio/mpeg',
+  'audio/mp3',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/webm',
+  'audio/mp4',
+  'audio/x-m4a',
+  'audio/aac',
+  'audio/ogg',
+  'video/mp4',
+  'video/webm',
+]);
 const roomSettingsCache = new Map();
+const typingStateCache = new Map();
+
+const chatUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: CHAT_UPLOAD_MAX_BYTES },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_CHAT_UPLOAD_MIME_TYPES.has(file.mimetype)) {
+      return cb(null, true);
+    }
+    return cb(new Error('Unsupported chat file type'));
+  },
+}).single('file');
 
 function isRedisReady() {
   return Boolean(redisClient && redisClient.status === 'ready');
@@ -121,6 +157,133 @@ function resolveModerationPatchPayload(body = {}) {
   }
 
   return body;
+}
+
+function runSingleUpload(uploader, req, res) {
+  return new Promise((resolve, reject) => {
+    uploader(req, res, (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+function buildTypingKey(roomId) {
+  return `room:typing:${roomId}`;
+}
+
+function upsertTypingStateMemory(roomId, userId, expiresAtMs) {
+  if (!typingStateCache.has(roomId)) {
+    typingStateCache.set(roomId, new Map());
+  }
+  typingStateCache.get(roomId).set(String(userId), expiresAtMs);
+}
+
+function removeTypingStateMemory(roomId, userId) {
+  if (!typingStateCache.has(roomId)) {
+    return;
+  }
+
+  const roomState = typingStateCache.get(roomId);
+  roomState.delete(String(userId));
+  if (roomState.size === 0) {
+    typingStateCache.delete(roomId);
+  }
+}
+
+function pruneTypingStateMemory(roomId) {
+  if (!typingStateCache.has(roomId)) {
+    return [];
+  }
+
+  const now = Date.now();
+  const roomState = typingStateCache.get(roomId);
+  const active = [];
+
+  roomState.forEach((expiresAtMs, userId) => {
+    if (expiresAtMs > now) {
+      active.push(userId);
+      return;
+    }
+    roomState.delete(userId);
+  });
+
+  if (roomState.size === 0) {
+    typingStateCache.delete(roomId);
+  }
+
+  return active;
+}
+
+async function setTypingState(roomId, userId, isTyping) {
+  const normalizedUserId = String(userId);
+  const now = Date.now();
+
+  if (isRedisReady()) {
+    const key = buildTypingKey(roomId);
+    await redisClient.zremrangebyscore(key, '-inf', now);
+
+    if (isTyping) {
+      const expiresAtMs = now + CHAT_TYPING_TTL_SEC * 1000;
+      await redisClient.zadd(key, expiresAtMs, normalizedUserId);
+      await redisClient.expire(key, CHAT_TYPING_TTL_SEC + 5);
+      return;
+    }
+
+    await redisClient.zrem(key, normalizedUserId);
+    return;
+  }
+
+  if (isTyping) {
+    upsertTypingStateMemory(roomId, normalizedUserId, now + CHAT_TYPING_TTL_SEC * 1000);
+    return;
+  }
+
+  removeTypingStateMemory(roomId, normalizedUserId);
+}
+
+async function getTypingMembers(roomId) {
+  const now = Date.now();
+
+  if (isRedisReady()) {
+    const key = buildTypingKey(roomId);
+    await redisClient.zremrangebyscore(key, '-inf', now);
+    const members = await redisClient.zrangebyscore(key, now, '+inf');
+    return (members || []).map((id) => String(id));
+  }
+
+  return pruneTypingStateMemory(roomId);
+}
+
+function hasNonEmptyString(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function isAttachmentMetadataValid(metadata) {
+  if (!metadata || typeof metadata !== 'object') {
+    return false;
+  }
+
+  return hasNonEmptyString(metadata.fileUrl);
+}
+
+function isVoiceNoteMetadataValid(metadata) {
+  if (!metadata || typeof metadata !== 'object') {
+    return false;
+  }
+
+  if (!hasNonEmptyString(metadata.fileUrl)) {
+    return false;
+  }
+
+  if (metadata.durationSec !== undefined) {
+    return Number.isFinite(metadata.durationSec) && Number(metadata.durationSec) >= 0;
+  }
+
+  return true;
 }
 
 async function canModerateRoom(currentUser, churchId, roomId) {
@@ -420,6 +583,111 @@ router.patch('/rooms/:roomId', async (req, res) => {
 });
 
 /**
+ * POST /chat/messages/upload
+ * Purpose: Uploads an attachment or voice note file and returns metadata for message creation.
+ * Multipart field: file
+ */
+router.post('/messages/upload', async (req, res) => {
+  const currentUser = await resolveCurrentUser(req);
+  if (!currentUser) {
+    return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+  }
+
+  try {
+    await runSingleUpload(chatUpload, req, res);
+  } catch (error) {
+    return res.status(400).json({ error: error.message || 'Unable to upload file' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded. Use multipart field "file".' });
+  }
+
+  try {
+    const fileUrl = await uploadToMinio(req.file);
+    return res.status(201).json({
+      fileUrl,
+      fileName: req.file.originalname,
+      mimeType: req.file.mimetype,
+      sizeBytes: req.file.size,
+      uploadedBy: String(currentUser._id),
+      uploadedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message || 'Failed to persist uploaded file' });
+  }
+});
+
+/**
+ * POST /chat/rooms/:roomId/typing
+ * Purpose: Sets typing state for current user and emits chat:typing event.
+ */
+router.post('/rooms/:roomId/typing', async (req, res) => {
+  try {
+    const currentUser = await resolveCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+    }
+
+    const { roomId } = req.params;
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const isTyping = Boolean(req.body?.isTyping);
+    await setTypingState(roomId, currentUser._id, isTyping);
+
+    const payload = {
+      roomId,
+      userId: String(currentUser._id),
+      isTyping,
+      at: new Date().toISOString(),
+    };
+
+    const io = getIoSafe();
+    if (io) {
+      io.to(roomId).emit('chat:typing', payload);
+    }
+
+    return res.json(payload);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /chat/rooms/:roomId/typing
+ * Purpose: Returns active typers for a room.
+ */
+router.get('/rooms/:roomId/typing', async (req, res) => {
+  try {
+    const currentUser = await resolveCurrentUser(req);
+    if (!currentUser) {
+      return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+    }
+
+    const { roomId } = req.params;
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const includeSelf = String(req.query.includeSelf || 'false') === 'true';
+    let typing = await getTypingMembers(roomId);
+    if (!includeSelf) {
+      typing = typing.filter((userId) => userId !== String(currentUser._id));
+    }
+
+    return res.json({
+      roomId,
+      typing,
+      at: new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /chat/messages
  * Purpose: Creates and broadcasts a chat message to a room.
  * Basic usage:
@@ -450,6 +718,10 @@ router.post('/messages', async (req, res) => {
       return res.status(400).json({ error: 'roomId required' });
     }
 
+    if (!ALLOWED_MESSAGE_TYPES.includes(messageType)) {
+      return res.status(400).json({ error: `messageType must be one of: ${ALLOWED_MESSAGE_TYPES.join(', ')}` });
+    }
+
     const roomSettings = await getRoomSettings(roomId);
     if (!roomSettings.chatEnabled) {
       return res.status(403).json({ error: 'Chat is currently disabled for this room' });
@@ -457,6 +729,14 @@ router.post('/messages', async (req, res) => {
 
     if (messageType === 'text' && (!text || !String(text).trim())) {
       return res.status(400).json({ error: 'text required for text messages' });
+    }
+
+    if (messageType === 'attachment' && !isAttachmentMetadataValid(metadata)) {
+      return res.status(400).json({ error: 'attachment messages require metadata.fileUrl' });
+    }
+
+    if (messageType === 'voice_note' && !isVoiceNoteMetadataValid(metadata)) {
+      return res.status(400).json({ error: 'voice_note messages require metadata.fileUrl and optional numeric durationSec' });
     }
 
     const participantIds = uniqueObjectIdStrings([...participants, currentUser._id]);
