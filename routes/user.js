@@ -249,13 +249,18 @@ router.patch('/update/:id', uploadImage, normalizeAddressPayload, async (req, re
             throw new Error('User not found during update transaction.');
         }
 
-        if (newPhotoUrl && oldPhotoUrl && oldPhotoUrl !== newPhotoUrl) {
-          await deleteFile(oldPhotoUrl, { throwOnError: true });
-        }
-
         await session.commitTransaction();
         session.endSession();
         session = null;
+
+        if (newPhotoUrl && oldPhotoUrl && oldPhotoUrl !== newPhotoUrl) {
+          try {
+            await deleteFile(oldPhotoUrl, { throwOnError: true });
+          } catch (cleanupErr) {
+            // Do not fail a successful DB update because old asset cleanup failed.
+            console.error('Failed to cleanup replaced user photo:', cleanupErr);
+          }
+        }
         
         res.status(200).json({
             message: 'User record updated successfully',

@@ -3,6 +3,9 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
+const IMAGE_UPLOAD_MAX_BYTES = Number(process.env.IMAGE_UPLOAD_MAX_BYTES || 5 * 1024 * 1024);
+const ALLOWED_FILE_TYPES = /jpeg|jpg|png|gif|webp|heic|heif|pdf/;
+
 // Configure S3 Client for MinIO
 const s3Client = new S3Client({
   endpoint: 'https://s3.churchlify.com',
@@ -18,16 +21,22 @@ const BUCKET_NAME = 'churchlify-data';
 const storage = multer.memoryStorage();
 
 function checkFileType(file, cb) {
-  const filetypes = /jpeg|jpg|png|gif|pdf/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
-  return mimetype && extname ? cb(null, true) : cb(new Error('Error: Unsupported file type uploaded!'));
+  const extname = ALLOWED_FILE_TYPES.test(path.extname(file.originalname || '').toLowerCase());
+  const mimetype = ALLOWED_FILE_TYPES.test((file.mimetype || '').toLowerCase());
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  }
+
+  const unsupportedTypeError = new Error('Unsupported file type uploaded. Allowed: jpg, jpeg, png, gif, webp, heic, heif, pdf.');
+  unsupportedTypeError.status = 400;
+  return cb(unsupportedTypeError);
 }
 
 // Single Image Helper
 const uploadImage = multer({
   storage,
-  limits: { fileSize: 200 * 1024 },
+  limits: { fileSize: IMAGE_UPLOAD_MAX_BYTES },
   fileFilter: (req, file, cb) => checkFileType(file, cb)
 }).single('image');
 
@@ -70,4 +79,4 @@ const deleteFile = async (fileUrl, options = {}) => {
   }
 };
 
-module.exports = { uploadImage, uploadDocs, uploadToMinio, deleteFile };
+module.exports = { uploadImage, uploadDocs, uploadToMinio, deleteFile, IMAGE_UPLOAD_MAX_BYTES };
