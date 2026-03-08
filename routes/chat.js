@@ -9,6 +9,16 @@ const { getIO } = require('../config/socket');
 const User = require('../models/user');
 const ChatMessage = require('../models/chatMessage');
 const CallSession = require('../models/callSession');
+const Ministry = require('../models/ministry');
+const Fellowship = require('../models/fellowship');
+
+const DEFAULT_ROOM_SETTINGS = Object.freeze({
+  chatEnabled: true,
+  callsEnabled: true,
+  moderatedBy: null,
+  updatedAt: null,
+});
+const roomSettingsCache = new Map();
 
 function isRedisReady() {
   return Boolean(redisClient && redisClient.status === 'ready');
@@ -32,8 +42,162 @@ async function resolveCurrentUser(req) {
     firebaseId: firebaseUid,
     church: req.church?._id,
   })
-    .select('_id firstName lastName firebaseId church')
+    .select('_id firstName lastName firebaseId church role')
     .lean();
+}
+
+function parseGroupRoomId(roomId) {
+  const parts = String(roomId || '').split(':');
+  if (parts.length !== 3 || parts[0] !== 'group') {
+    return null;
+  }
+
+  const groupType = parts[1];
+  const groupId = parts[2];
+  if (!['ministry', 'fellowship'].includes(groupType)) {
+    return null;
+  }
+  if (!mongoose.Types.ObjectId.isValid(groupId)) {
+    return null;
+  }
+
+  return { groupType, groupId };
+}
+
+function buildRoomSettingsKey(roomId) {
+  return `room:settings:${roomId}`;
+}
+
+function sanitizeRoomSettings(value = {}) {
+  return {
+    chatEnabled: typeof value.chatEnabled === 'boolean' ? value.chatEnabled : true,
+    callsEnabled: typeof value.callsEnabled === 'boolean' ? value.callsEnabled : true,
+    moderatedBy: value.moderatedBy ? String(value.moderatedBy) : null,
+    updatedAt: value.updatedAt || null,
+  };
+}
+
+async function getRoomSettings(roomId) {
+  if (!roomId) {
+    return { ...DEFAULT_ROOM_SETTINGS };
+  }
+
+  if (isRedisReady()) {
+    const raw = await redisClient.get(buildRoomSettingsKey(roomId));
+    if (!raw) {
+      return { ...DEFAULT_ROOM_SETTINGS };
+    }
+
+    try {
+      return sanitizeRoomSettings(JSON.parse(raw));
+    } catch (_) {
+      return { ...DEFAULT_ROOM_SETTINGS };
+    }
+  }
+
+  return sanitizeRoomSettings(roomSettingsCache.get(roomId) || DEFAULT_ROOM_SETTINGS);
+}
+
+async function saveRoomSettings(roomId, settings) {
+  const normalized = sanitizeRoomSettings(settings);
+  if (isRedisReady()) {
+    await redisClient.set(buildRoomSettingsKey(roomId), JSON.stringify(normalized));
+    return normalized;
+  }
+
+  roomSettingsCache.set(roomId, normalized);
+  return normalized;
+}
+
+function resolveModerationPatchPayload(body = {}) {
+  if (body && typeof body === 'object') {
+    if (body.moderation && typeof body.moderation === 'object') {
+      return body.moderation;
+    }
+
+    if (body.settings && typeof body.settings === 'object') {
+      return body.settings;
+    }
+  }
+
+  return body;
+}
+
+async function canModerateRoom(currentUser, churchId, roomId) {
+  if (!currentUser) {
+    return false;
+  }
+
+  if (['super', 'admin'].includes(currentUser.role)) {
+    return true;
+  }
+
+  const parsed = parseGroupRoomId(roomId);
+  if (!parsed) {
+    return false;
+  }
+
+  if (parsed.groupType === 'ministry') {
+    const ministry = await Ministry.findOne({
+      _id: parsed.groupId,
+      church: churchId,
+    })
+      .select('leaderId')
+      .lean();
+    return Boolean(ministry && String(ministry.leaderId) === String(currentUser._id));
+  }
+
+  const fellowship = await Fellowship.findOne({
+    _id: parsed.groupId,
+    church: churchId,
+  })
+    .select('leaderId')
+    .lean();
+  return Boolean(fellowship && String(fellowship.leaderId) === String(currentUser._id));
+}
+
+async function handleModerationPatch(req, res) {
+  const currentUser = await resolveCurrentUser(req);
+  if (!currentUser) {
+    return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+  }
+
+  const { roomId } = req.params;
+  if (!roomId) {
+    return res.status(400).json({ error: 'roomId required' });
+  }
+
+  const allowed = await canModerateRoom(currentUser, req.church._id, roomId);
+  if (!allowed) {
+    return res.status(403).json({ error: 'Only leaders/admins can moderate this room' });
+  }
+
+  const payload = resolveModerationPatchPayload(req.body || {});
+  const currentSettings = await getRoomSettings(roomId);
+  const hasChatFlag = Object.prototype.hasOwnProperty.call(payload, 'chatEnabled');
+  const hasCallsFlag = Object.prototype.hasOwnProperty.call(payload, 'callsEnabled');
+
+  if (!hasChatFlag && !hasCallsFlag) {
+    return res.status(400).json({ error: 'chatEnabled or callsEnabled required' });
+  }
+
+  const nextSettings = {
+    chatEnabled: hasChatFlag ? Boolean(payload.chatEnabled) : currentSettings.chatEnabled,
+    callsEnabled: hasCallsFlag ? Boolean(payload.callsEnabled) : currentSettings.callsEnabled,
+    moderatedBy: String(currentUser._id),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const saved = await saveRoomSettings(roomId, nextSettings);
+  const io = getIoSafe();
+  if (io) {
+    io.to(roomId).emit('chat:room:moderation', {
+      roomId,
+      settings: saved,
+    });
+  }
+
+  return res.json({ roomId, settings: saved });
 }
 
 function uniqueObjectIdStrings(values = []) {
@@ -196,6 +360,66 @@ router.get('/rooms/:roomId/members', async (req, res) => {
 });
 
 /**
+ * GET /chat/rooms/:roomId/settings
+ * Purpose: Returns room moderation settings.
+ */
+router.get('/rooms/:roomId/settings', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const settings = await getRoomSettings(roomId);
+    return res.json({ roomId, settings });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /chat/rooms/:roomId
+ * Purpose: Alias for room settings lookup.
+ */
+router.get('/rooms/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    if (!roomId) {
+      return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const settings = await getRoomSettings(roomId);
+    return res.json({ roomId, settings });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PATCH /chat/rooms/:roomId/moderation
+ * Purpose: Updates moderation settings for leaders/admins.
+ */
+router.patch('/rooms/:roomId/moderation', async (req, res) => {
+  try {
+    return handleModerationPatch(req, res);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * PATCH /chat/rooms/:roomId
+ * Purpose: Backward-compatible alias for moderation updates.
+ */
+router.patch('/rooms/:roomId', async (req, res) => {
+  try {
+    return handleModerationPatch(req, res);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
  * POST /chat/messages
  * Purpose: Creates and broadcasts a chat message to a room.
  * Basic usage:
@@ -224,6 +448,11 @@ router.post('/messages', async (req, res) => {
 
     if (!roomId) {
       return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const roomSettings = await getRoomSettings(roomId);
+    if (!roomSettings.chatEnabled) {
+      return res.status(403).json({ error: 'Chat is currently disabled for this room' });
     }
 
     if (messageType === 'text' && (!text || !String(text).trim())) {
@@ -383,6 +612,11 @@ router.post('/calls/start', async (req, res) => {
 
     if (!roomId) {
       return res.status(400).json({ error: 'roomId required' });
+    }
+
+    const roomSettings = await getRoomSettings(roomId);
+    if (!roomSettings.callsEnabled) {
+      return res.status(403).json({ error: 'Calls are currently disabled for this room' });
     }
 
     if (!['voice', 'video'].includes(mediaType)) {

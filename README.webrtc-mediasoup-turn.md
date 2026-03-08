@@ -138,8 +138,58 @@ Example response:
 }
 ```
 
+### `GET /chat/rooms/:roomId`
+Purpose: returns room moderation settings (alias endpoint for client compatibility).
+
+Example response:
+
+```json
+{
+  "roomId": "group:fellowship:67ce8f...",
+  "settings": {
+    "chatEnabled": true,
+    "callsEnabled": true,
+    "moderatedBy": null,
+    "updatedAt": null
+  }
+}
+```
+
+### `GET /chat/rooms/:roomId/settings`
+Purpose: returns room moderation settings.
+
+### `PATCH /chat/rooms/:roomId/moderation`
+Purpose: updates room moderation flags (`chatEnabled`, `callsEnabled`) for admins/super users and room leaders.
+
+Request:
+
+```json
+{
+  "chatEnabled": false,
+  "callsEnabled": true
+}
+```
+
+Response:
+
+```json
+{
+  "roomId": "group:fellowship:67ce8f...",
+  "settings": {
+    "chatEnabled": false,
+    "callsEnabled": true,
+    "moderatedBy": "67ce9a...",
+    "updatedAt": "2026-03-07T12:34:56.000Z"
+  }
+}
+```
+
+### `PATCH /chat/rooms/:roomId`
+Purpose: backward-compatible alias for moderation updates.
+
 ### `POST /chat/messages`
 Purpose: creates and broadcasts a chat message.
+If room moderation has `chatEnabled=false`, this returns `403`.
 
 Request:
 
@@ -173,6 +223,7 @@ Purpose: marks a message as read by current authenticated user.
 
 ### `POST /chat/calls/start`
 Purpose: creates a call session and emits ringing event.
+If room moderation has `callsEnabled=false`, this returns `403`.
 
 Request:
 
@@ -247,6 +298,7 @@ Server emits to clients:
 - `call:rejected` `{ ...call }`
 - `call:ended` `{ ...call }`
 - `call:signal` `{ roomId, type, payload, targetPeerId, fromPeerId, at }`
+- `chat:room:moderation` `{ roomId, settings }`
 
 ## 5. Endpoint You Need in External Mediasoup Service
 
