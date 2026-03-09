@@ -27,7 +27,7 @@ const getUser = async (userId) => {
   };
 
 const getPaypalClient = (data) => {
-  const mode = (data && (data.provider==='paypal') && data.mode) || process.env.PAYPAL_MODE || 'sandbox';
+  const mode = (data && (data.gateway==='paypal') && data.mode) || process.env.PAYPAL_MODE || 'sandbox';
   if (mode === 'live') {
     return new paypal.core.PayPalHttpClient(new paypal.core.LiveEnvironment(data.clientId, data.clientSecret));
   }
@@ -115,7 +115,7 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
 };
 
 const getPaymentKey = (data) => {
-  switch (data.provider) {
+  switch (data.gateway || data.provider) {
     case 'paypal':
       return data.clientId || '';
     case 'stripe':

@@ -91,7 +91,7 @@ router.get('/payment', async (req, res) => {
     const decryptedData =  decrypt(settings.value, settings.keyVersion);
     console.log('Decrypted value:', decryptedData);
     const key = getPaymentKey(decryptedData);
-    res.status(200).json({ key, provider: decryptedData.provider});
+    res.status(200).json({ key, provider: decryptedData.gateway || decryptedData.provider });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
