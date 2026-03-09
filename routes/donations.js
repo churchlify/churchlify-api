@@ -3,9 +3,12 @@ const axios = require('axios');
 const fetch = require('node-fetch');
 const Stripe = require('stripe');
 const paypal = require('@paypal/checkout-server-sdk');
+const mongoose = require('mongoose');
 const {validateDonationItem} = require('../middlewares/validators');
+const { requireSuperOrAdmin } = require('../middlewares/permissions');
 const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/payment');
 const DonationItem = require('../models/donationItems');
+const Donation = require('../models/donations');
 const router = express.Router();
 router.use(express.json());
 const PAYPAL_API = 'https://api-m.sandbox.paypal.com'; // sandbox: https://api-m.sandbox.paypal.com https://api-m.paypal.com
@@ -32,29 +35,194 @@ const formatResponse= ({ success, status, message, data = {} }) => {
   };
 };
 
+function isValidObjectId(id) {
+  return mongoose.Types.ObjectId.isValid(id);
+}
+
+function sanitizeDonationItemUpdate(payload = {}) {
+  const allowedFields = ['title', 'description', 'suggestedAmounts', 'imageUrl', 'recurringAvailable'];
+  const updateObject = {};
+
+  allowedFields.forEach((field) => {
+    if (payload[field] !== undefined) {
+      updateObject[field] = payload[field];
+    }
+  });
+
+  return updateObject;
+}
+
 router.get('/items', async (req, res) => {
-  const church = req.church;
-  const churchId = church._id;
-  if (!churchId) {return res.status(400).json({ error: 'Church header missing' });}
-  const items = await DonationItem.find({churchId }).select('title description amount category').lean();
-  res.json(items);
+  try {
+    const church = req.church;
+    const churchId = church && church._id;
+    if (!churchId) {return res.status(400).json({ error: 'Church header missing' });}
+    const items = await DonationItem.find({ churchId }).select('title description suggestedAmounts imageUrl recurringAvailable').lean();
+    return res.json(items);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 router.get('/donor', async (req, res) => {
-  const userId = req.headers['x-user'];
-  if (!userId) {return res.status(400).json({ error: 'User header missing' });}
-  const donor = await getUser(userId);
-  res.json(donor);
+  try {
+    const userId = req.headers['x-user'];
+    if (!userId) {return res.status(400).json({ error: 'User header missing' });}
+    const donor = await getUser(userId);
+    return res.json(donor);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 
 // Create donation item (admin)
-router.post('/items', validateDonationItem(), async (req, res) => {
-const { ...body } = req.body;
-const church = req.church;
-if (!church) {return res.status(404).json({ error: 'Church not found' });}
-const item = await DonationItem.create({ churchId: church._id, ...body });
-res.status(201).json(item);
+router.post('/items', requireSuperOrAdmin, validateDonationItem(), async (req, res) => {
+  try {
+    const { ...body } = req.body;
+    const church = req.church;
+    if (!church) {return res.status(404).json({ error: 'Church not found' });}
+    const item = await DonationItem.create({ churchId: church._id, ...body });
+    return res.status(201).json(item);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Update donation item (admin)
+router.patch('/items/update/:id', requireSuperOrAdmin, async (req, res) => {
+  try {
+    const church = req.church;
+    const { id } = req.params;
+
+    if (!church?._id) {
+      return res.status(400).json({ error: 'Church context required' });
+    }
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid donation item ID' });
+    }
+
+    const updates = sanitizeDonationItemUpdate(req.body);
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid donation item fields provided for update' });
+    }
+
+    if (updates.suggestedAmounts !== undefined && !Array.isArray(updates.suggestedAmounts)) {
+      return res.status(400).json({ error: 'suggestedAmounts must be an array of numbers' });
+    }
+
+    if (Array.isArray(updates.suggestedAmounts)) {
+      const hasInvalidAmount = updates.suggestedAmounts.some((amount) => typeof amount !== 'number' || Number.isNaN(amount) || amount <= 0);
+      if (hasInvalidAmount) {
+        return res.status(400).json({ error: 'suggestedAmounts must only contain numbers greater than 0' });
+      }
+    }
+
+    if (updates.recurringAvailable !== undefined && typeof updates.recurringAvailable !== 'boolean') {
+      return res.status(400).json({ error: 'recurringAvailable must be a boolean' });
+    }
+
+    const updatedItem = await DonationItem.findOneAndUpdate(
+      { _id: id, churchId: church._id },
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).lean();
+
+    if (!updatedItem) {
+      return res.status(404).json({ error: 'Donation item not found for this church' });
+    }
+
+    return res.status(200).json({ message: 'Donation item updated successfully', item: updatedItem });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete donation item (admin)
+router.delete('/items/delete/:id', requireSuperOrAdmin, async (req, res) => {
+  try {
+    const church = req.church;
+    const { id } = req.params;
+
+    if (!church?._id) {
+      return res.status(400).json({ error: 'Church context required' });
+    }
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: 'Invalid donation item ID' });
+    }
+
+    const deletedItem = await DonationItem.findOneAndDelete({ _id: id, churchId: church._id }).lean();
+
+    if (!deletedItem) {
+      return res.status(404).json({ error: 'Donation item not found for this church' });
+    }
+
+    return res.status(200).json({ message: 'Donation item deleted successfully', item: deletedItem });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// List donations (admin)
+router.get('/list', requireSuperOrAdmin, async (req, res) => {
+  try {
+    const church = req.church;
+
+    if (!church?._id) {
+      return res.status(400).json({ error: 'Church context required' });
+    }
+
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 20, 1), 100);
+    const skip = (page - 1) * limit;
+
+    const filter = { churchId: church._id };
+
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+
+    if (req.query.platform) {
+      filter.platform = req.query.platform;
+    }
+
+    if (req.query.isRecurring !== undefined) {
+      filter.isRecurring = String(req.query.isRecurring).toLowerCase() === 'true';
+    }
+
+    if (req.query.userId) {
+      if (!isValidObjectId(req.query.userId)) {
+        return res.status(400).json({ error: 'Invalid userId query parameter' });
+      }
+      filter.userId = req.query.userId;
+    }
+
+    const [donations, total] = await Promise.all([
+      Donation.find(filter)
+        .populate('userId', 'firstName lastName emailAddress phoneNumber')
+        .select('userId lineItems amount currency isRecurring platform status transactionReferenceId subscriptionId completedAt createdAt updatedAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Donation.countDocuments(filter)
+    ]);
+
+    return res.status(200).json({
+      donations,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 // Create a Stripe Checkout session (one-time)
