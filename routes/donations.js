@@ -245,37 +245,45 @@ router.post('/stripe/pay', async (req, res) => {
   const userId = req.headers['x-user'];
   const church = req.church;
    if (!userId) {
-    return res.status(400).json({
-      success: false,
-      showError: true,
-      message: 'Missing required donor information',
-    });
+    return res.status(400).json(
+      formatResponse({
+        success: false,
+        status: 'failed',
+        message: 'Missing required donor information'
+      })
+    );
   }
 
   if (!paymentMethod?.token) {
-    return res.status(400).json({
-      success: false,
-      showError: true,
-      message: 'Missing required payment token',
-    });
+    return res.status(400).json(
+      formatResponse({
+        success: false,
+        status: 'failed',
+        message: 'Missing required payment token'
+      })
+    );
   }
   const donor = await getUser(userId);
 
   if (!items || !items.length) {
-    return res.status(400).json({
-      success: false,
-      showError: true,
-      message: 'No donation items provided',
-    });
+    return res.status(400).json(
+      formatResponse({
+        success: false,
+        status: 'failed',
+        message: 'No donation items provided'
+      })
+    );
   }
 
   const majorAmount = Number(total);
   if (!Number.isFinite(majorAmount) || majorAmount <= 0) {
-    return res.status(400).json({
-      success: false,
-      showError: true,
-      message: 'Total amount must be a number greater than zero',
-    });
+    return res.status(400).json(
+      formatResponse({
+        success: false,
+        status: 'failed',
+        message: 'Total amount must be a number greater than zero'
+      })
+    );
   }
 
   const amount = toMinorUnitAmount(majorAmount, 'USD'); // convert to cents
@@ -337,19 +345,19 @@ router.post('/stripe/pay', async (req, res) => {
       donation.customerId = intent.customer;
       donation.subscriptionId = subscription.id;
       await createDonation(donation);
-      return res.json({
-        success: true,
-        showReceipt: true,
-        showError: false,
-        status: subscription.status,
-        message: 'Recurring donation created successfully.',
-        data: {
-          type: `Recurring ${recurring.interval}ly`,
-          subscription_id: subscription.id,
-          next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-          receipt_url: receiptUrl,
-        },
-      });
+      return res.json(
+        formatResponse({
+          success: true,
+          status: subscription.status,
+          message: 'Recurring donation created successfully.',
+          data: {
+            type: `Recurring ${recurring.interval}ly`,
+            subscription_id: subscription.id,
+            next_billing_date: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+            receipt_url: receiptUrl,
+          },
+        })
+      );
     } else {
       // 💳 One-time donation
       const paymentIntent = await stripe.paymentIntents.create({
@@ -370,29 +378,29 @@ router.post('/stripe/pay', async (req, res) => {
       donation.customerId = paymentIntent.customer;
       await createDonation(donation);
       const receiptUrl = paymentIntent.charges?.data?.[0]?.receipt_url || paymentIntent.latest_charge?.receipt_url || null;
-      return res.json({
-        success: true,
-        showReceipt: true,
-        showError: false,
-        status: paymentIntent.status,
-        message: 'One-time donation processed successfully.',
-        data: {
-          type: 'One Time',
-          payment_intent_id: paymentIntent.id,
-          receipt_url: receiptUrl,
-        },
-      });
+      return res.json(
+        formatResponse({
+          success: true,
+          status: paymentIntent.status,
+          message: 'One-time donation processed successfully.',
+          data: {
+            type: 'One Time',
+            payment_intent_id: paymentIntent.id,
+            receipt_url: receiptUrl,
+          },
+        })
+      );
     }
 
   } catch (err) {
     console.error('Stripe payment error:', err);
-    return res.status(400).json({
+    const errorResponse = formatResponse({
       success: false,
-      showReceipt: false,
-      showError: true,
-      message: 'Stripe payment failed. Please try again later.',
-      error: err.message,
+      status: 'failed',
+      message: 'Stripe payment failed. Please try again later.'
     });
+    errorResponse.error = err.message;
+    return res.status(400).json(errorResponse);
   }
 });
 
