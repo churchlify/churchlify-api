@@ -92,6 +92,165 @@ const resolveChurchIdFromStripePayload = async (payload) => {
   return null;
 };
 
+const mapStripeStatus = (eventType, dataObject) => {
+  switch (eventType) {
+    case "payment_intent.succeeded":
+    case "charge.succeeded":
+    case "invoice.paid":
+    case "invoice.payment_succeeded":
+      return "succeeded";
+    case "payment_intent.payment_failed":
+    case "charge.failed":
+    case "invoice.payment_failed":
+    case "customer.subscription.deleted":
+      return "failed";
+    case "customer.subscription.created":
+      return "processing";
+    case "charge.updated": {
+      const chargeStatus = String(dataObject && dataObject.status ? dataObject.status : "").toLowerCase();
+      if (chargeStatus === "succeeded") {
+        return "succeeded";
+      }
+      if (chargeStatus === "failed") {
+        return "failed";
+      }
+      if (chargeStatus === "pending") {
+        return "processing";
+      }
+      return null;
+    }
+    default:
+      return null;
+  }
+};
+
+const getStripeReferenceCandidates = (eventType, dataObject) => {
+  const candidates = [];
+  const pushUnique = (value) => {
+    if (!value) {
+      return;
+    }
+    const normalized = String(value);
+    if (!candidates.includes(normalized)) {
+      candidates.push(normalized);
+    }
+  };
+
+  pushUnique(dataObject && dataObject.payment_intent);
+  pushUnique(dataObject && dataObject.latest_charge);
+  if (dataObject && dataObject.latest_invoice && typeof dataObject.latest_invoice === "object") {
+    pushUnique(dataObject.latest_invoice.payment_intent);
+  }
+
+  if (eventType && String(eventType).startsWith("payment_intent.")) {
+    pushUnique(dataObject && dataObject.id);
+  }
+
+  return candidates;
+};
+
+const getStripeSubscriptionCandidates = (eventType, dataObject) => {
+  const candidates = [];
+  const pushUnique = (value) => {
+    if (!value) {
+      return;
+    }
+    const normalized = String(value);
+    if (!candidates.includes(normalized)) {
+      candidates.push(normalized);
+    }
+  };
+
+  pushUnique(dataObject && dataObject.subscription);
+  if (eventType && String(eventType).startsWith("customer.subscription.")) {
+    pushUnique(dataObject && dataObject.id);
+  }
+
+  return candidates;
+};
+
+const updateDonationFromStripeEvent = async (event, churchId) => {
+  const eventType = event && event.type;
+  const dataObject = event && event.data && event.data.object ? event.data.object : {};
+  const mappedStatus = mapStripeStatus(eventType, dataObject);
+  const referenceCandidates = getStripeReferenceCandidates(eventType, dataObject);
+  const subscriptionCandidates = getStripeSubscriptionCandidates(eventType, dataObject);
+
+  if (!referenceCandidates.length && !subscriptionCandidates.length) {
+    return null;
+  }
+
+  const updateSet = {
+    webhookReceivedAt: new Date(),
+    "platformDetails.stripe.lastEvent": eventType || null,
+    "platformDetails.stripe.chargeStatus": dataObject && dataObject.status ? dataObject.status : null,
+    "platformDetails.stripe.paymentIntentId": dataObject && dataObject.payment_intent ? dataObject.payment_intent : null,
+    "platformDetails.stripe.subscriptionId": dataObject && dataObject.subscription ? dataObject.subscription : null,
+  };
+
+  if (mappedStatus) {
+    updateSet.status = mappedStatus;
+  }
+
+  if (mappedStatus === "succeeded") {
+    const createdAt = dataObject && dataObject.created ? Number(dataObject.created) : null;
+    updateSet.completedAt = Number.isFinite(createdAt) ? new Date(createdAt * 1000) : new Date();
+  }
+
+  const update = { $set: updateSet };
+
+  let donation = null;
+  if (referenceCandidates.length) {
+    const referenceFilter = {
+      platform: "stripe",
+      transactionReferenceId: { $in: referenceCandidates }
+    };
+    if (churchId) {
+      referenceFilter.churchId = churchId;
+    }
+
+    donation = await Donation.findOneAndUpdate(
+      referenceFilter,
+      update,
+      { new: true, sort: { createdAt: -1 } }
+    ).select("_id status transactionReferenceId subscriptionId");
+
+    if (!donation && churchId) {
+      donation = await Donation.findOneAndUpdate(
+        { platform: "stripe", transactionReferenceId: { $in: referenceCandidates } },
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
+  }
+
+  if (!donation && subscriptionCandidates.length) {
+    const subscriptionFilter = {
+      platform: "stripe",
+      subscriptionId: { $in: subscriptionCandidates }
+    };
+    if (churchId) {
+      subscriptionFilter.churchId = churchId;
+    }
+
+    donation = await Donation.findOneAndUpdate(
+      subscriptionFilter,
+      update,
+      { new: true, sort: { createdAt: -1 } }
+    ).select("_id status transactionReferenceId subscriptionId");
+
+    if (!donation && churchId) {
+      donation = await Donation.findOneAndUpdate(
+        { platform: "stripe", subscriptionId: { $in: subscriptionCandidates } },
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
+  }
+
+  return donation;
+};
+
 const getMetadataChurchId = (event) => {
   const metadata = event && event.data && event.data.metadata;
   if (!metadata || typeof metadata !== "object") {
@@ -364,6 +523,7 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
 // The actual webhook endpoint
 router.post("/stripe", async (req, res) => {
   const signature = req.headers["stripe-signature"];
+  let stripeChurchId = null;
 
   if (!signature) {
     console.error("Stripe Webhook Error: Missing stripe-signature header");
@@ -393,10 +553,9 @@ router.post("/stripe", async (req, res) => {
 
   if (!webhookSecret) {
     try {
-      const churchId = await resolveChurchIdFromStripePayload(payload);
-      if (churchId) {
-        const paymentCardSettings = await getPaymentSettings(churchId);
-        console.log("Stripe Webhook: Loaded payment settings for churchId", churchId, { keys: Object.keys(paymentCardSettings) });
+      stripeChurchId = await resolveChurchIdFromStripePayload(payload);
+      if (stripeChurchId) {
+        const paymentCardSettings = await getPaymentSettings(stripeChurchId);
         webhookSecret = getCaseInsensitiveValue(paymentCardSettings, [
           "whsec",
           "webhookSecret",
@@ -425,6 +584,26 @@ router.post("/stripe", async (req, res) => {
     console.log(`⚠️ Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+
+  if (!stripeChurchId) {
+    stripeChurchId = await resolveChurchIdFromStripePayload(event);
+  }
+
+  const updatedDonation = await updateDonationFromStripeEvent(event, stripeChurchId);
+  if (updatedDonation) {
+    console.log("✅ Donation status updated from Stripe webhook", {
+      donationId: updatedDonation._id,
+      status: updatedDonation.status,
+      reference: updatedDonation.transactionReferenceId,
+      subscriptionId: updatedDonation.subscriptionId,
+    });
+  } else {
+    console.warn("Stripe webhook matched no donation", {
+      eventType: event && event.type,
+      churchId: stripeChurchId,
+    });
+  }
+
   const dataObject = event.data.object;
   console.log({ dataObject });
   switch (event.type) {
@@ -435,6 +614,15 @@ router.post("/stripe", async (req, res) => {
     case "payment_intent.payment_failed":
       console.log(`PaymentIntent failed: ${dataObject.id}`);
       break;
+    case "charge.updated":
+      console.log(`Charge updated: ${dataObject.id}`);
+      break;
+    case "charge.succeeded":
+      console.log(`Charge succeeded: ${dataObject.id}`);
+      break;
+    case "charge.failed":
+      console.log(`Charge failed: ${dataObject.id}`);
+      break;
     case "customer.subscription.created":
       console.log(`Subscription created: ${dataObject.id}`);
       break;
@@ -443,6 +631,9 @@ router.post("/stripe", async (req, res) => {
       break;
     case "invoice.payment_failed":
       console.log(`Invoice payment failed: ${dataObject.id}`);
+      break;
+    case "invoice.payment_succeeded":
+      console.log(`Invoice payment succeeded: ${dataObject.id}`);
       break;
     case "customer.subscription.deleted":
       console.log(`Subscription deleted: ${dataObject.id}`);
