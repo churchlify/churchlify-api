@@ -126,7 +126,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 // JSON handling
 app.use(skipJsonForUploads);
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({
+  limit: '1mb',
+  verify: (req, _res, buf) => {
+    if (req.originalUrl && req.originalUrl.startsWith('/webhook/')) {
+      req.rawBody = Buffer.from(buf);
+    }
+  }
+}));
 // Send simplified access logs to Winston
 app.use(
   morgan('combined', {

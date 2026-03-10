@@ -51,14 +51,22 @@ router.post("/stripe", (req, res) => {
   res.json({ received: true });
 });
 
-router.post("/paystack", express.raw({ type: "*/*" }), async (req, res) => {
+router.post("/paystack", async (req, res) => {
   try {
-    if (!(req.body instanceof Buffer)) {
-      console.error("Expected Buffer in req.body, got:", typeof req.body);
+    let rawPayload = null;
+    if (Buffer.isBuffer(req.rawBody)) {
+      rawPayload = req.rawBody;
+    } else if (Buffer.isBuffer(req.body)) {
+      rawPayload = req.body;
+    }
+
+    if (!rawPayload) {
+      console.error("Expected raw webhook payload, got:", typeof req.body);
       return res.status(400).send("Invalid body format");
     }
+
     const hash = req.headers["x-paystack-signature"];
-    const rawBody = req.body.toString("utf8");
+    const rawBody = rawPayload.toString("utf8");
     const event = JSON.parse(rawBody);
     const decryptedData = await getPaymentSettings(
       event.data.metadata.churchId
