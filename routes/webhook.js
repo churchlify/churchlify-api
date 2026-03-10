@@ -299,6 +299,10 @@ const getSubscriptionCode = (data) => {
     return String(data.subscription_code);
   }
 
+  if (typeof data.subscription === "string" && data.subscription.trim() !== "") {
+    return String(data.subscription);
+  }
+
   if (data.subscription && data.subscription.subscription_code) {
     return String(data.subscription.subscription_code);
   }
@@ -329,6 +333,34 @@ const getExpectedMajorAmount = (data) => {
     return null;
   }
   return minorAmount / 100;
+};
+
+const getPaystackCustomerCandidates = (data) => {
+  const candidates = [];
+  const pushUnique = (value) => {
+    if (!value) {
+      return;
+    }
+    const normalized = String(value).trim();
+    if (!normalized) {
+      return;
+    }
+    if (!candidates.includes(normalized)) {
+      candidates.push(normalized);
+    }
+  };
+
+  if (typeof data.customer === "string") {
+    pushUnique(data.customer);
+  }
+
+  if (data.customer && typeof data.customer === "object") {
+    pushUnique(data.customer.customer_code);
+    pushUnique(data.customer.id);
+    pushUnique(data.customer.email);
+  }
+
+  return candidates;
 };
 
 const updateDonationFromPaystackEventOnce = async (event, churchId) => {
@@ -479,6 +511,67 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
         { new: true, sort: { createdAt: -1 } }
       ).select("_id status transactionReferenceId subscriptionId");
     }
+
+    if (!donation) {
+      const legacySubRefFilter = { platform: "paystack", transactionReferenceId: subscriptionCode };
+      if (churchId) {
+        legacySubRefFilter.churchId = churchId;
+      }
+
+      donation = await Donation.findOneAndUpdate(
+        legacySubRefFilter,
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+
+      if (!donation && churchId) {
+        donation = await Donation.findOneAndUpdate(
+          { platform: "paystack", transactionReferenceId: subscriptionCode },
+          update,
+          { new: true, sort: { createdAt: -1 } }
+        ).select("_id status transactionReferenceId subscriptionId");
+      }
+    }
+  }
+
+  if (!donation && event && event.event === "charge.success") {
+    const customerCandidates = getPaystackCustomerCandidates(data);
+    if (customerCandidates.length) {
+      const recurringCustomerFilter = {
+        platform: "paystack",
+        isRecurring: true,
+        customerId: { $in: customerCandidates }
+      };
+      if (churchId) {
+        recurringCustomerFilter.churchId = churchId;
+      }
+      if (expectedMajorAmount !== null) {
+        recurringCustomerFilter.amount = expectedMajorAmount;
+      }
+
+      donation = await Donation.findOneAndUpdate(
+        recurringCustomerFilter,
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+
+      if (!donation && churchId) {
+        const recurringNoChurchFilter = {
+          platform: "paystack",
+          isRecurring: true,
+          customerId: { $in: customerCandidates }
+        };
+        if (expectedMajorAmount !== null) {
+          recurringNoChurchFilter.amount = expectedMajorAmount;
+        }
+
+        donation = await Donation.findOneAndUpdate(
+          recurringNoChurchFilter,
+          update,
+          { new: true, sort: { createdAt: -1 } }
+        ).select("_id status transactionReferenceId subscriptionId");
+      }
+    }
   }
 
   return donation;
@@ -522,13 +615,20 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
     }
   }
 
-  const subscriptionCode = data.subscription_code || (data.subscription && data.subscription.subscription_code);
+  const subscriptionCode = getSubscriptionCode(data);
   if (subscriptionCode) {
     const bySubscription = await Donation.findOne({ subscriptionId: subscriptionCode })
       .select("churchId")
       .lean();
     if (bySubscription && bySubscription.churchId) {
       return String(bySubscription.churchId);
+    }
+
+    const byLegacySubRef = await Donation.findOne({ transactionReferenceId: subscriptionCode })
+      .select("churchId")
+      .lean();
+    if (byLegacySubRef && byLegacySubRef.churchId) {
+      return String(byLegacySubRef.churchId);
     }
   }
 

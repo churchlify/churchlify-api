@@ -1094,8 +1094,14 @@ router.post('/paystack/pay', async (req, res) => {
         }
       );
       const subData = subRes.data.data;
-      donation.subscriptionId =  subData.subscription_code;
-      donation.customerId = subData.customer;
+      donation.subscriptionId = subData.subscription_code;
+      donation.transactionReferenceId = subData.subscription_code;
+      const normalizedPaystackCustomerId =
+        (subData.customer && typeof subData.customer === 'object'
+          ? subData.customer.customer_code || subData.customer.id || subData.customer.email
+          : subData.customer) ||
+        donor.emailAddress;
+      donation.customerId = String(normalizedPaystackCustomerId);
       resultData = formatResponse({
         success: true,
         status: 'created',
