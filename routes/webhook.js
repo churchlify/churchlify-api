@@ -396,6 +396,7 @@ router.post("/stripe", async (req, res) => {
       const churchId = await resolveChurchIdFromStripePayload(payload);
       if (churchId) {
         const paymentCardSettings = await getPaymentSettings(churchId);
+        console.log("Stripe Webhook: Loaded payment settings for churchId", churchId, { keys: Object.keys(paymentCardSettings) });
         webhookSecret = getCaseInsensitiveValue(paymentCardSettings, [
           "whsec",
           "webhookSecret",
