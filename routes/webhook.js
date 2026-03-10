@@ -14,7 +14,7 @@ const getMetadataChurchId = (event) => {
   if (!metadata || typeof metadata !== "object") {
     return null;
   }
-console.log("Webhook event metadata:", metadata);
+
   if (metadata.churchId) {
     return String(metadata.churchId);
   }
@@ -31,6 +31,87 @@ console.log("Webhook event metadata:", metadata);
   }
 
   return null;
+};
+
+const getSubscriptionCode = (data) => {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  if (data.subscription_code) {
+    return String(data.subscription_code);
+  }
+
+  if (data.subscription && data.subscription.subscription_code) {
+    return String(data.subscription.subscription_code);
+  }
+
+  return null;
+};
+
+const mapPaystackStatus = (eventType) => {
+  switch (eventType) {
+    case "charge.success":
+      return "succeeded";
+    case "charge.failed":
+    case "subscription.not_renewed":
+    case "subscription.disable":
+      return "failed";
+    case "subscription.create":
+      return "processing";
+    default:
+      return null;
+  }
+};
+
+const updateDonationFromPaystackEvent = async (event) => {
+  const data = event && event.data ? event.data : {};
+  const reference = data.reference ? String(data.reference) : null;
+  const subscriptionCode = getSubscriptionCode(data);
+  const mappedStatus = mapPaystackStatus(event && event.event);
+
+  if (!reference && !subscriptionCode) {
+    return null;
+  }
+
+  const updateSet = {
+    webhookReceivedAt: new Date(),
+    "platformDetails.paystack.lastEvent": event && event.event,
+    "platformDetails.paystack.reference": reference,
+    "platformDetails.paystack.subscriptionCode": subscriptionCode,
+    "platformDetails.paystack.gatewayResponse": data.gateway_response || null,
+    "platformDetails.paystack.paidAt": data.paid_at || data.paidAt || null,
+  };
+
+  if (mappedStatus) {
+    updateSet.status = mappedStatus;
+  }
+
+  if (event && event.event === "charge.success") {
+    const paidAt = data.paid_at || data.paidAt;
+    updateSet.completedAt = paidAt ? new Date(paidAt) : new Date();
+  }
+
+  const update = { $set: updateSet };
+
+  let donation = null;
+  if (reference) {
+    donation = await Donation.findOneAndUpdate(
+      { platform: "paystack", transactionReferenceId: reference },
+      update,
+      { new: true }
+    ).select("_id status transactionReferenceId subscriptionId");
+  }
+
+  if (!donation && subscriptionCode) {
+    donation = await Donation.findOneAndUpdate(
+      { platform: "paystack", subscriptionId: subscriptionCode },
+      update,
+      { new: true }
+    ).select("_id status transactionReferenceId subscriptionId");
+  }
+
+  return donation;
 };
 
 const resolveChurchIdFromPaystackEvent = async (event) => {
@@ -154,6 +235,23 @@ router.post("/paystack", async (req, res) => {
       return res.status(400).send("Signature verification failed");
     }
     console.log("✅ Paystack Webhook Verified. Event:", { event });
+
+    const updatedDonation = await updateDonationFromPaystackEvent(event);
+    if (updatedDonation) {
+      console.log("✅ Donation status updated from Paystack webhook", {
+        donationId: updatedDonation._id,
+        status: updatedDonation.status,
+        reference: updatedDonation.transactionReferenceId,
+        subscriptionId: updatedDonation.subscriptionId,
+      });
+    } else {
+      console.warn("Paystack webhook matched no donation", {
+        eventType: event && event.event,
+        reference: event && event.data && event.data.reference,
+        subscriptionCode: getSubscriptionCode(event && event.data),
+      });
+    }
+
     switch (event.event) {
       case "charge.success":
         console.log(`Paystack Charge Success: ${event.data.reference}`);
