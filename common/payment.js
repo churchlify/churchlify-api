@@ -121,8 +121,8 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
       throw new Error('Amount must be 100 NGN or greater for Paystack recurring plans');
     }
 
-    const { secretKey, provider } = await getPaymentSettings(churchId);
-    if (!secretKey) {throw new Error('Missing payment API key for this church');}
+    const { secretkey, provider } = await getPaymentSettings(churchId);
+    if (!secretkey) {throw new Error('Missing payment API key for this church');}
     let plan = await DonationPlan.findOne({churchId, amount: majorAmount, interval,provider});
 
     if (plan) {
@@ -131,7 +131,7 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
     const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: paystackAmount, interval, currency: normalizedCurrency},
       {
         headers: {
-          Authorization: `Bearer ${secretKey}`,
+          Authorization: `Bearer ${secretkey}`,
           'Content-Type': 'application/json',
         },
       }
