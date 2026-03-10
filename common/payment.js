@@ -88,6 +88,24 @@ const getPaymentSettings = async (churchId) => {
   return decrypt(settings.value, settings.keyVersion); // returns { key, provider }
 };
 
+const toMinorUnitAmount = (amount, currency = 'USD') => {
+  const parsedAmount = Number(amount);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    throw new Error('Amount must be a number greater than zero');
+  }
+
+  const normalizedCurrency = String(currency || 'USD').toUpperCase();
+  const decimals = ZERO_DECIMAL_CURRENCIES.has(normalizedCurrency) ? 0 : 2;
+  const factor = 10 ** decimals;
+  const minorAmount = Math.round(parsedAmount * factor);
+
+  if (!Number.isInteger(minorAmount) || minorAmount <= 0) {
+    throw new Error('Amount could not be normalized to a valid minor unit value');
+  }
+
+  return minorAmount;
+};
+
 const getOrCreatePlan =  async function ({churchId, name, amount,interval,currency = 'NGN'}) {
   console.log({churchId, name, amount,interval,currency});
 
@@ -145,24 +163,6 @@ const getPaymentKey = (data) => {
 
 const isSecret = (item) => {
   return arrSecrets.some(sub => item.toLowerCase().includes(sub.toLowerCase()));
-};
-
-const toMinorUnitAmount = (amount, currency = 'USD') => {
-  const parsedAmount = Number(amount);
-  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-    throw new Error('Amount must be a number greater than zero');
-  }
-
-  const normalizedCurrency = String(currency || 'USD').toUpperCase();
-  const decimals = ZERO_DECIMAL_CURRENCIES.has(normalizedCurrency) ? 0 : 2;
-  const factor = 10 ** decimals;
-  const minorAmount = Math.round(parsedAmount * factor);
-
-  if (!Number.isInteger(minorAmount) || minorAmount <= 0) {
-    throw new Error('Amount could not be normalized to a valid minor unit value');
-  }
-
-  return minorAmount;
 };
 
 module.exports = {encrypt, decrypt, isSecret, getPaymentKey, getPaymentSettings, generateUniqueReference, 
