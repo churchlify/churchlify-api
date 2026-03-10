@@ -1096,11 +1096,14 @@ router.post('/paystack/pay', async (req, res) => {
       const subData = subRes.data.data;
       donation.subscriptionId = subData.subscription_code;
       donation.transactionReferenceId = subData.subscription_code;
-      const normalizedPaystackCustomerId =
-        (subData.customer && typeof subData.customer === 'object'
-          ? subData.customer.customer_code || subData.customer.id || subData.customer.email
-          : subData.customer) ||
-        donor.emailAddress;
+      let normalizedPaystackCustomerId = subData.customer;
+      if (subData.customer && typeof subData.customer === 'object') {
+        normalizedPaystackCustomerId =
+          subData.customer.customer_code || subData.customer.id || subData.customer.email;
+      }
+      if (!normalizedPaystackCustomerId) {
+        normalizedPaystackCustomerId = donor.emailAddress;
+      }
       donation.customerId = String(normalizedPaystackCustomerId);
       resultData = formatResponse({
         success: true,
