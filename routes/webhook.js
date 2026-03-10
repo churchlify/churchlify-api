@@ -64,11 +64,22 @@ const mapPaystackStatus = (eventType) => {
   }
 };
 
-const updateDonationFromPaystackEvent = async (event) => {
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getExpectedMajorAmount = (data) => {
+  const minorAmount = Number(data && data.amount);
+  if (!Number.isFinite(minorAmount) || minorAmount <= 0) {
+    return null;
+  }
+  return minorAmount / 100;
+};
+
+const updateDonationFromPaystackEvent = async (event, churchId) => {
   const data = event && event.data ? event.data : {};
   const reference = data.reference ? String(data.reference) : null;
   const subscriptionCode = getSubscriptionCode(data);
   const mappedStatus = mapPaystackStatus(event && event.event);
+  const expectedMajorAmount = getExpectedMajorAmount(data);
 
   if (!reference && !subscriptionCode) {
     return null;
@@ -96,18 +107,71 @@ const updateDonationFromPaystackEvent = async (event) => {
 
   let donation = null;
   if (reference) {
+    const exactFilter = { platform: "paystack", transactionReferenceId: reference };
+    if (churchId) {
+      exactFilter.churchId = churchId;
+    }
     donation = await Donation.findOneAndUpdate(
-      { platform: "paystack", transactionReferenceId: reference },
+      exactFilter,
       update,
-      { new: true }
+      { new: true, sort: { createdAt: -1 } }
     ).select("_id status transactionReferenceId subscriptionId");
   }
 
-  if (!donation && subscriptionCode) {
+  if (!donation && reference) {
+    const prefixedPattern = new RegExp(`^churchlify_${escapeRegExp(reference)}(_|$)`, "i");
+    const fallbackFilter = {
+      platform: "paystack",
+      status: { $in: ["processing", "initiated"] },
+      transactionReferenceId: prefixedPattern
+    };
+    if (churchId) {
+      fallbackFilter.churchId = churchId;
+    }
+    if (expectedMajorAmount !== null) {
+      fallbackFilter.amount = expectedMajorAmount;
+    }
+
     donation = await Donation.findOneAndUpdate(
-      { platform: "paystack", subscriptionId: subscriptionCode },
+      fallbackFilter,
       update,
-      { new: true }
+      { new: true, sort: { createdAt: -1 } }
+    ).select("_id status transactionReferenceId subscriptionId");
+  }
+
+  if (!donation && reference && reference.startsWith("churchlify_")) {
+    const parts = reference.split("_");
+    const rawReference = parts.length >= 2 ? parts[1] : null;
+    if (rawReference) {
+      const rawFilter = {
+        platform: "paystack",
+        status: { $in: ["processing", "initiated"] },
+        transactionReferenceId: rawReference
+      };
+      if (churchId) {
+        rawFilter.churchId = churchId;
+      }
+      if (expectedMajorAmount !== null) {
+        rawFilter.amount = expectedMajorAmount;
+      }
+
+      donation = await Donation.findOneAndUpdate(
+        rawFilter,
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
+  }
+
+  if (!donation && subscriptionCode) {
+    const subFilter = { platform: "paystack", subscriptionId: subscriptionCode };
+    if (churchId) {
+      subFilter.churchId = churchId;
+    }
+    donation = await Donation.findOneAndUpdate(
+      subFilter,
+      update,
+      { new: true, sort: { createdAt: -1 } }
     ).select("_id status transactionReferenceId subscriptionId");
   }
 
@@ -236,7 +300,7 @@ router.post("/paystack", async (req, res) => {
     }
     console.log("✅ Paystack Webhook Verified. Event:", { event });
 
-    const updatedDonation = await updateDonationFromPaystackEvent(event);
+    const updatedDonation = await updateDonationFromPaystackEvent(event, churchId);
     if (updatedDonation) {
       console.log("✅ Donation status updated from Paystack webhook", {
         donationId: updatedDonation._id,
