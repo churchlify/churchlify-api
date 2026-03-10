@@ -318,8 +318,6 @@ const mapPaystackStatus = (eventType) => {
     case "subscription.not_renewed":
     case "subscription.disable":
       return "failed";
-    case "subscription.create":
-      return "processing";
     default:
       return null;
   }
