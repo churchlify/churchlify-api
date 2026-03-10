@@ -8,6 +8,7 @@ const Stripe = require("stripe");
 const crypto = require("crypto");
 let currentOtp = null;
 let otpExpiry = null;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getMetadataChurchId = (event) => {
   const metadata = event && event.data && event.data.metadata;
@@ -74,7 +75,7 @@ const getExpectedMajorAmount = (data) => {
   return minorAmount / 100;
 };
 
-const updateDonationFromPaystackEvent = async (event, churchId) => {
+const updateDonationFromPaystackEventOnce = async (event, churchId) => {
   const data = event && event.data ? event.data : {};
   const reference = data.reference ? String(data.reference) : null;
   const subscriptionCode = getSubscriptionCode(data);
@@ -116,6 +117,14 @@ const updateDonationFromPaystackEvent = async (event, churchId) => {
       update,
       { new: true, sort: { createdAt: -1 } }
     ).select("_id status transactionReferenceId subscriptionId");
+
+    if (!donation && churchId) {
+      donation = await Donation.findOneAndUpdate(
+        { platform: "paystack", transactionReferenceId: reference },
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
   }
 
   if (!donation && reference) {
@@ -137,6 +146,22 @@ const updateDonationFromPaystackEvent = async (event, churchId) => {
       update,
       { new: true, sort: { createdAt: -1 } }
     ).select("_id status transactionReferenceId subscriptionId");
+
+    if (!donation && churchId) {
+      const fallbackNoChurchFilter = {
+        platform: "paystack",
+        status: { $in: ["processing", "initiated"] },
+        transactionReferenceId: prefixedPattern
+      };
+      if (expectedMajorAmount !== null) {
+        fallbackNoChurchFilter.amount = expectedMajorAmount;
+      }
+      donation = await Donation.findOneAndUpdate(
+        fallbackNoChurchFilter,
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
   }
 
   if (!donation && reference && reference.startsWith("churchlify_")) {
@@ -160,6 +185,23 @@ const updateDonationFromPaystackEvent = async (event, churchId) => {
         update,
         { new: true, sort: { createdAt: -1 } }
       ).select("_id status transactionReferenceId subscriptionId");
+
+        if (!donation && churchId) {
+          const rawNoChurchFilter = {
+            platform: "paystack",
+            status: { $in: ["processing", "initiated"] },
+            transactionReferenceId: rawReference
+          };
+          if (expectedMajorAmount !== null) {
+            rawNoChurchFilter.amount = expectedMajorAmount;
+          }
+
+          donation = await Donation.findOneAndUpdate(
+            rawNoChurchFilter,
+            update,
+            { new: true, sort: { createdAt: -1 } }
+          ).select("_id status transactionReferenceId subscriptionId");
+        }
     }
   }
 
@@ -173,9 +215,38 @@ const updateDonationFromPaystackEvent = async (event, churchId) => {
       update,
       { new: true, sort: { createdAt: -1 } }
     ).select("_id status transactionReferenceId subscriptionId");
+
+    if (!donation && churchId) {
+      donation = await Donation.findOneAndUpdate(
+        { platform: "paystack", subscriptionId: subscriptionCode },
+        update,
+        { new: true, sort: { createdAt: -1 } }
+      ).select("_id status transactionReferenceId subscriptionId");
+    }
   }
 
   return donation;
+};
+
+const updateDonationFromPaystackEvent = async (event, churchId) => {
+  const shouldRetry = event && event.event === "charge.success";
+  const maxAttempts = shouldRetry ? 6 : 1;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const donation = await updateDonationFromPaystackEventOnce(event, churchId);
+    if (donation) {
+      if (attempt > 1) {
+        console.log("Paystack webhook donation update matched on retry", { attempt });
+      }
+      return donation;
+    }
+
+    if (attempt < maxAttempts) {
+      await sleep(500);
+    }
+  }
+
+  return null;
 };
 
 const resolveChurchIdFromPaystackEvent = async (event) => {
