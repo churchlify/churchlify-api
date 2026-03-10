@@ -292,6 +292,7 @@ router.post('/stripe/pay', async (req, res) => {
     userId,
     lineItems: items,
     platform: 'stripe',
+    currency: 'USD',
     status: 'processing',
     isRecurring: recurring?.interval ? true: false,
     amount: majorAmount
@@ -339,10 +340,29 @@ router.post('/stripe/pay', async (req, res) => {
         expand: ['latest_invoice.payment_intent.latest_charge'],
       });
       console.log('Stripe subscription created:', subscription.id, 'Status:', {subscription});
-      const intent = subscription.latest_invoice?.payment_intent;
-      const receiptUrl = intent?.charges?.data?.[0]?.receipt_url ||  subscription.latest_invoice?.hosted_invoice_url || null;
-      donation.transactionReferenceId = intent.id;
-      donation.customerId = intent.customer;
+      // Stripe can return payment_intent as null/string/object depending on invoice lifecycle.
+      let latestInvoice = null;
+      if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
+        latestInvoice = subscription.latest_invoice;
+      }
+      const intent = latestInvoice?.payment_intent;
+      const paymentIntentId = typeof intent === 'string' ? intent : intent?.id || null;
+      let paymentIntentCustomer = null;
+      if (typeof intent === 'object' && typeof intent?.customer === 'string') {
+        paymentIntentCustomer = intent.customer;
+      }
+      const latestCharge = typeof intent === 'object' && intent ? intent.latest_charge : null;
+      const receiptUrl =
+        (typeof latestCharge === 'object' ? latestCharge.receipt_url : null) ||
+        intent?.charges?.data?.[0]?.receipt_url ||
+        latestInvoice?.hosted_invoice_url ||
+        null;
+
+      donation.transactionReferenceId = paymentIntentId || latestInvoice?.id || subscription.id;
+      donation.customerId =
+        paymentIntentCustomer ||
+        (typeof subscription.customer === 'string' ? subscription.customer : null) ||
+        customer.id;
       donation.subscriptionId = subscription.id;
       await createDonation(donation);
       return res.json(
@@ -1058,6 +1078,7 @@ router.post('/paystack/pay', async (req, res) => {
     userId,
     lineItems: items,
     platform: 'paystack',
+    currency: 'NGN',
     status: 'processing',
     isRecurring,
     amount: totalAmount

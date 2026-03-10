@@ -126,6 +126,7 @@ const mapStripeStatus = (eventType, dataObject) => {
 
 const getStripeReferenceCandidates = (eventType, dataObject) => {
   const candidates = [];
+  const normalizedEventType = String(eventType || "");
   const pushUnique = (value) => {
     if (!value) {
       return;
@@ -138,11 +139,25 @@ const getStripeReferenceCandidates = (eventType, dataObject) => {
 
   pushUnique(dataObject && dataObject.payment_intent);
   pushUnique(dataObject && dataObject.latest_charge);
+  pushUnique(dataObject && dataObject.charge);
   if (dataObject && dataObject.latest_invoice && typeof dataObject.latest_invoice === "object") {
+    pushUnique(dataObject.latest_invoice.id);
+    pushUnique(dataObject.latest_invoice.charge);
+    pushUnique(dataObject.latest_invoice.latest_charge);
     pushUnique(dataObject.latest_invoice.payment_intent);
   }
 
-  if (eventType && String(eventType).startsWith("payment_intent.")) {
+  if (normalizedEventType.startsWith("invoice.")) {
+    // When donation reference falls back to invoice id, invoice webhooks must match directly.
+    pushUnique(dataObject && dataObject.id);
+  }
+
+  if (normalizedEventType.startsWith("charge.")) {
+    // Charge webhooks identify the charge by object id.
+    pushUnique(dataObject && dataObject.id);
+  }
+
+  if (normalizedEventType.startsWith("payment_intent.")) {
     pushUnique(dataObject && dataObject.id);
   }
 
