@@ -115,7 +115,7 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
 };
 
 const getPaymentKey = (data) => {
-  switch (data.gateway || data.provider) {
+  switch ((data.gateway || data.provider).toLowerCase()) {
     case 'paypal':
       return data.clientId || '';
     case 'stripe':
