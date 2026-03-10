@@ -2,11 +2,66 @@ const express = require("express");
 const router = express.Router();
 router.use(express.json());
 const mongoose = require("mongoose");
+const Donation = require("../models/donations");
 const { getPaymentSettings } = require("../common/payment");
 const Stripe = require("stripe");
 const crypto = require("crypto");
 let currentOtp = null;
 let otpExpiry = null;
+
+const getMetadataChurchId = (event) => {
+  const metadata = event && event.data && event.data.metadata;
+  if (!metadata || typeof metadata !== "object") {
+    return null;
+  }
+console.log("Webhook event metadata:", metadata);
+  if (metadata.churchId) {
+    return String(metadata.churchId);
+  }
+
+  // Some providers can send metadata fields as custom_fields arrays.
+  const customFields = metadata.custom_fields;
+  if (Array.isArray(customFields)) {
+    const match = customFields.find((field) =>
+      field && (field.variable_name === "churchId" || field.display_name === "churchId")
+    );
+    if (match && match.value) {
+      return String(match.value);
+    }
+  }
+
+  return null;
+};
+
+const resolveChurchIdFromPaystackEvent = async (event) => {
+  const metadataChurchId = getMetadataChurchId(event);
+  if (metadataChurchId) {
+    return metadataChurchId;
+  }
+
+  const data = event && event.data ? event.data : {};
+  const reference = data.reference;
+  if (reference) {
+    const byReference = await Donation.findOne({ transactionReferenceId: reference })
+      .select("churchId")
+      .lean();
+    if (byReference && byReference.churchId) {
+      return String(byReference.churchId);
+    }
+  }
+
+  const subscriptionCode = data.subscription_code || (data.subscription && data.subscription.subscription_code);
+  if (subscriptionCode) {
+    const bySubscription = await Donation.findOne({ subscriptionId: subscriptionCode })
+      .select("churchId")
+      .lean();
+    if (bySubscription && bySubscription.churchId) {
+      return String(bySubscription.churchId);
+    }
+  }
+
+  return null;
+};
 
 // The actual webhook endpoint
 router.post("/stripe", (req, res) => {
@@ -68,16 +123,28 @@ router.post("/paystack", async (req, res) => {
     const hash = req.headers["x-paystack-signature"];
     const rawBody = rawPayload.toString("utf8");
     const event = JSON.parse(rawBody);
-    const decryptedData = await getPaymentSettings(
-      event.data.metadata.churchId
-    );
-    const paystackSecret = decryptedData.secretKey;
-    console.log({ decryptedData }, paystackSecret);
 
     if (!hash) {
       console.error("Paystack Webhook Error: Missing signature header.");
       return res.status(400).send("Signature missing");
     }
+
+    const churchId = await resolveChurchIdFromPaystackEvent(event);
+    if (!churchId) {
+      console.warn("Paystack Webhook: churchId missing; acknowledging without processing", {
+        eventType: event && event.event,
+        reference: event && event.data && event.data.reference
+      });
+      return res.sendStatus(200);
+    }
+
+    const decryptedData = await getPaymentSettings(churchId);
+    const paystackSecret = decryptedData && decryptedData.secretKey;
+    if (!paystackSecret) {
+      console.error("Paystack Webhook Error: Missing paystack secret for church", churchId);
+      return res.sendStatus(200);
+    }
+
     const calculatedHash = crypto
       .createHmac("sha512", paystackSecret)
       .update(rawBody)
