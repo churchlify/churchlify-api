@@ -22,6 +22,14 @@ const gateway = new braintree.BraintreeGateway({
   privateKey: 'fd433d233d1461ce1b53885ad83997fe',
 });
 
+const getStatusColor = (status) => {
+  const normalizedStatus = String(status || '').toLowerCase();
+  if (normalizedStatus === 'processing' || normalizedStatus === 'succeeded') {
+    return 'green';
+  }
+  return 'red';
+};
+
 
 
 const formatResponse= ({ success, status, message, data = {} }) => {
@@ -30,6 +38,7 @@ const formatResponse= ({ success, status, message, data = {} }) => {
     showReceipt: !!data.receipt_url,
     showError: !success,
     status,
+    statusColor: getStatusColor(status),
     message,
     data,
   };
@@ -211,8 +220,13 @@ router.get('/list', requireSuperOrAdmin, async (req, res) => {
       Donation.countDocuments(filter)
     ]);
 
+    const donationsWithStatusColor = donations.map((donation) => ({
+      ...donation,
+      statusColor: getStatusColor(donation.status)
+    }));
+
     return res.status(200).json({
-      donations,
+      donations: donationsWithStatusColor,
       meta: {
         page,
         limit,

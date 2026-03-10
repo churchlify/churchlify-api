@@ -137,7 +137,6 @@ router.get('/payment', async (req, res) => {
     if (!settings){ return res.status(404).json({ message: 'Payment settings not found' });}
     console.log('Encrypted value:', settings.value);
     const decryptedData =  decrypt(settings.value, settings.keyVersion);
-    console.log('Decrypted value:', decryptedData);
     const key = getPaymentKey(decryptedData);
     res.status(200).json({ key, provider: decryptedData.gateway || decryptedData.provider });
   } catch (error) {

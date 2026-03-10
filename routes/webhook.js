@@ -10,6 +10,88 @@ let currentOtp = null;
 let otpExpiry = null;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const getCaseInsensitiveValue = (obj, keys) => {
+  if (!obj || typeof obj !== "object") {
+    return undefined;
+  }
+
+  const normalized = {};
+  Object.keys(obj).forEach((key) => {
+    normalized[String(key).toLowerCase()] = obj[key];
+  });
+
+  for (const key of keys) {
+    const value = normalized[String(key).toLowerCase()];
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return value;
+    }
+  }
+
+  return undefined;
+};
+
+const resolveChurchIdFromStripePayload = async (payload) => {
+  const dataObject = payload && payload.data && payload.data.object ? payload.data.object : {};
+  const metadata = dataObject && dataObject.metadata;
+  const metadataChurchId = getCaseInsensitiveValue(metadata, ["churchId"]);
+  if (metadataChurchId) {
+    return String(metadataChurchId);
+  }
+
+  const referenceCandidates = [];
+  const subscriptionCandidates = [];
+  const pushUnique = (arr, value) => {
+    if (!value) {
+      return;
+    }
+    const normalizedValue = String(value);
+    if (!arr.includes(normalizedValue)) {
+      arr.push(normalizedValue);
+    }
+  };
+
+  pushUnique(referenceCandidates, dataObject.id);
+  pushUnique(referenceCandidates, dataObject.payment_intent);
+  if (dataObject.latest_invoice && typeof dataObject.latest_invoice === "object") {
+    pushUnique(referenceCandidates, dataObject.latest_invoice.payment_intent);
+  }
+
+  pushUnique(subscriptionCandidates, dataObject.subscription);
+  if (payload && payload.type && String(payload.type).startsWith("customer.subscription.")) {
+    pushUnique(subscriptionCandidates, dataObject.id);
+  }
+
+  if (referenceCandidates.length) {
+    const byReference = await Donation.findOne({
+      platform: "stripe",
+      transactionReferenceId: { $in: referenceCandidates }
+    })
+      .sort({ createdAt: -1 })
+      .select("churchId")
+      .lean();
+
+    if (byReference && byReference.churchId) {
+      return String(byReference.churchId);
+    }
+  }
+
+  if (subscriptionCandidates.length) {
+    const bySubscription = await Donation.findOne({
+      platform: "stripe",
+      subscriptionId: { $in: subscriptionCandidates }
+    })
+      .sort({ createdAt: -1 })
+      .select("churchId")
+      .lean();
+
+    if (bySubscription && bySubscription.churchId) {
+      return String(bySubscription.churchId);
+    }
+  }
+
+  return null;
+};
+
 const getMetadataChurchId = (event) => {
   const metadata = event && event.data && event.data.metadata;
   if (!metadata || typeof metadata !== "object") {
@@ -280,9 +362,57 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
 };
 
 // The actual webhook endpoint
-router.post("/stripe", (req, res) => {
+router.post("/stripe", async (req, res) => {
   const signature = req.headers["stripe-signature"];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  if (!signature) {
+    console.error("Stripe Webhook Error: Missing stripe-signature header");
+    return res.status(400).send("Signature missing");
+  }
+
+  if (!Buffer.isBuffer(req.rawBody)) {
+    console.error("Stripe Webhook Error: Expected raw webhook payload buffer");
+    return res.status(400).send("Invalid body format");
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(req.rawBody.toString("utf8"));
+  } catch (err) {
+    console.error("Stripe Webhook Error: Invalid JSON payload", err.message);
+    return res.status(400).send("Invalid payload");
+  }
+
+  let webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    webhookSecret = process.env.STRIPE_SIGNING_SECRET;
+  }
+  if (!webhookSecret) {
+    webhookSecret = process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
+  }
+
+  if (!webhookSecret) {
+    try {
+      const churchId = await resolveChurchIdFromStripePayload(payload);
+      if (churchId) {
+        const paymentCardSettings = await getPaymentSettings(churchId);
+        webhookSecret = getCaseInsensitiveValue(paymentCardSettings, [
+          "whsec",
+          "webhookSecret",
+          "webhook_secret",
+          "stripeWebhookSecret"
+        ]);
+      }
+    } catch (err) {
+      console.error("Stripe Webhook Error: Failed loading church webhook secret", err.message);
+    }
+  }
+
+  if (!webhookSecret) {
+    console.error("Stripe Webhook Error: Missing signing secret (env or payment_card.value.whsec)");
+    return res.status(500).send("Stripe webhook not configured");
+  }
+
   let event;
   try {
     event = Stripe.webhooks.constructEvent(
@@ -355,7 +485,7 @@ router.post("/paystack", async (req, res) => {
     }
 
     const decryptedData = await getPaymentSettings(churchId);
-    const paystackSecret = decryptedData && decryptedData.secretKey;
+    const paystackSecret = getCaseInsensitiveValue(decryptedData, ["secretKey", "secretkey"]);
     if (!paystackSecret) {
       console.error("Paystack Webhook Error: Missing paystack secret for church", churchId);
       return res.sendStatus(200);
