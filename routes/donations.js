@@ -6,7 +6,7 @@ const paypal = require('@paypal/checkout-server-sdk');
 const mongoose = require('mongoose');
 const {validateDonationItem} = require('../middlewares/validators');
 const { requireSuperOrAdmin } = require('../middlewares/permissions');
-const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation } = require('../common/payment');
+const { getPaymentSettings, getOrCreatePlan, generateUniqueReference, getPayPalAccessToken, getPaypalClient, getUser, createDonation, toMinorUnitAmount } = require('../common/payment');
 const DonationItem = require('../models/donationItems');
 const Donation = require('../models/donations');
 const router = express.Router();
@@ -255,7 +255,16 @@ router.post('/stripe/pay', async (req, res) => {
     });
   }
 
-  const amount = Math.round(total * 100); // convert to cents
+  const majorAmount = Number(total);
+  if (!Number.isFinite(majorAmount) || majorAmount <= 0) {
+    return res.status(400).json({
+      success: false,
+      showError: true,
+      message: 'Total amount must be a number greater than zero',
+    });
+  }
+
+  const amount = toMinorUnitAmount(majorAmount, 'USD'); // convert to cents
   const donation = {
     churchId: church._id,
     userId,
@@ -263,7 +272,7 @@ router.post('/stripe/pay', async (req, res) => {
     platform: 'stripe',
     status: 'processing',
     isRecurring: recurring?.interval ? true: false,
-    amount: total
+    amount: majorAmount
   };
 
   try {
@@ -385,7 +394,7 @@ router.post('/stripe/create-subscription', async (req, res) => {
     const prices = await Promise.all(
       items.map(i =>
         stripe.prices.create({
-          unit_amount: Math.round(parseFloat(i.amount) * 100),
+          unit_amount: toMinorUnitAmount(i.amount, 'USD'),
           currency: 'usd',
           recurring: { interval: 'month' }, // must be the same interval for all
           product_data: { name: i.title },
@@ -1002,6 +1011,24 @@ router.post('/paystack/pay', async (req, res) => {
   }
 
   //const amount = Math.round(total * 100); // convert to kobo
+  const totalAmount = Number(total);
+  if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+    return res.status(400).json({
+      success: false,
+      showError: true,
+      message: 'Total amount must be a number greater than zero',
+    });
+  }
+
+  const paystackAmount = toMinorUnitAmount(totalAmount, 'NGN');
+  if (paystackAmount < 10000) {
+    return res.status(400).json({
+      success: false,
+      showError: true,
+      message: 'Amount is invalid. Minimum charge for NGN is 100',
+    });
+  }
+
   const isRecurring = recurring?.interval ? true : false;
 
     const donation = {
@@ -1011,12 +1038,12 @@ router.post('/paystack/pay', async (req, res) => {
     platform: 'paystack',
     status: 'processing',
     isRecurring,
-    amount: total
+    amount: totalAmount
   };
  
   let resultData;
   if (isRecurring) {
-      const plan = await getOrCreatePlan({ churchId, name: `churchlify_${Date.now()} Plan`, amount: total, interval: `${recurring.interval.replace('year','annual')}ly`});
+      const plan = await getOrCreatePlan({ churchId, name: `churchlify_${Date.now()} Plan`, amount: totalAmount, interval: `${recurring.interval.replace('year','annual')}ly`, currency: 'NGN'});
       const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, 
         plan: plan.planCode, metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
         {
@@ -1041,7 +1068,7 @@ router.post('/paystack/pay', async (req, res) => {
       // 💳 One-time donation
       const reference = generateUniqueReference(paymentMethod?.reference);
       const trxRes = await axios.post(`${PAYSTACK_API}/transaction/initialize`,
-        { email: donor.emailAddress, amount: total * 100,reference: reference,
+        { email: donor.emailAddress, amount: paystackAmount,reference: reference,
           metadata: { donor, items, source: 'Churchlify Platform',churchId,},
         },
         {

@@ -11,6 +11,11 @@ const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
 const fetch = require('node-fetch');
 const axios = require('axios');
 const arrSecrets = ['stripe','paypal','paystack','payment','payment_card'];
+
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF',
+  'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
+]);
  
  const generateUniqueReference = (timestamp = Date.now()) => {
   const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -87,14 +92,25 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
   console.log({churchId, name, amount,interval,currency});
 
   try {
+    const majorAmount = Number(amount);
+    if (!Number.isFinite(majorAmount) || majorAmount <= 0) {
+      throw new Error('Amount must be a number greater than zero');
+    }
+
+    const normalizedCurrency = String(currency || 'NGN').toUpperCase();
+    const paystackAmount = toMinorUnitAmount(majorAmount, normalizedCurrency);
+    if (normalizedCurrency === 'NGN' && paystackAmount < 10000) {
+      throw new Error('Amount must be 100 NGN or greater for Paystack recurring plans');
+    }
+
     const { secretKey, provider } = await getPaymentSettings(churchId);
     if (!secretKey) {throw new Error('Missing payment API key for this church');}
-    let plan = await DonationPlan.findOne({churchId, amount, interval,provider});
+    let plan = await DonationPlan.findOne({churchId, amount: majorAmount, interval,provider});
 
     if (plan) {
       return plan;
     }
-    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: amount * 100, interval, currency},
+    const res = await axios.post(`${PAYSTACK_API}/plan`, { name, amount: paystackAmount, interval, currency: normalizedCurrency},
       {
         headers: {
           Authorization: `Bearer ${secretKey}`,
@@ -105,7 +121,7 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
 
     const { plan_code: planCode, id: providerId } = res.data.data;
     plan = await DonationPlan.create({
-      churchId, planCode, name, amount,interval, provider: 'paystack',providerId,
+      churchId, planCode, name, amount: majorAmount, interval, provider: 'paystack',providerId,
     });
     return plan;
   } catch (error) {
@@ -131,5 +147,23 @@ const isSecret = (item) => {
   return arrSecrets.some(sub => item.toLowerCase().includes(sub.toLowerCase()));
 };
 
+const toMinorUnitAmount = (amount, currency = 'USD') => {
+  const parsedAmount = Number(amount);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    throw new Error('Amount must be a number greater than zero');
+  }
+
+  const normalizedCurrency = String(currency || 'USD').toUpperCase();
+  const decimals = ZERO_DECIMAL_CURRENCIES.has(normalizedCurrency) ? 0 : 2;
+  const factor = 10 ** decimals;
+  const minorAmount = Math.round(parsedAmount * factor);
+
+  if (!Number.isInteger(minorAmount) || minorAmount <= 0) {
+    throw new Error('Amount could not be normalized to a valid minor unit value');
+  }
+
+  return minorAmount;
+};
+
 module.exports = {encrypt, decrypt, isSecret, getPaymentKey, getPaymentSettings, generateUniqueReference, 
-    getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation, getUser, arrSecrets};
+    getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation, getUser, arrSecrets, toMinorUnitAmount};

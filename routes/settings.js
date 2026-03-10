@@ -7,8 +7,49 @@ const { arrSecrets, encrypt, decrypt, isSecret, getPaymentKey } = require('../co
 const router = express.Router();
 router.use(express.json());
 
+const VALID_PAYMENT_GATEWAYS = ['paypal', 'paystack', 'stripe'];
+
+const validatePaymentGatewayCase = (key, value) => {
+  if (!key || typeof key !== 'string' || key.trim().toLowerCase() !== 'payment_card') {
+    return null;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+
+  const fieldsToValidate = ['gateway', 'provider'].filter((field) => value[field] !== undefined);
+  if (!fieldsToValidate.length) {
+    return null;
+  }
+
+  for (const field of fieldsToValidate) {
+    const raw = value[field];
+    if (typeof raw !== 'string' || !raw.trim()) {
+      return `Invalid value.${field}. Valid gateway values are case-sensitive and must be lower case: ${VALID_PAYMENT_GATEWAYS.join(', ')}`;
+    }
+
+    const normalized = raw.trim();
+    if (normalized !== normalized.toLowerCase()) {
+      return `Invalid value.${field} "${raw}". Valid gateway values are case-sensitive and must be lower case: ${VALID_PAYMENT_GATEWAYS.join(', ')}`;
+    }
+
+    if (!VALID_PAYMENT_GATEWAYS.includes(normalized)) {
+      return `Unsupported value.${field} "${normalized}". Valid gateway values are case-sensitive and must be lower case: ${VALID_PAYMENT_GATEWAYS.join(', ')}`;
+    }
+  }
+
+  return null;
+};
+
 router.post('/create', validateSettings(), async (req, res) => {
   const { church, key, value } = req.body;
+  const gatewayValidationError = validatePaymentGatewayCase(key, value);
+  if (gatewayValidationError) {
+    return res.status(400).json({
+      errors: [{ msg: gatewayValidationError, path: 'value', location: 'body' }]
+    });
+  }
+
   const safeValue = isSecret(key) ? encrypt(value) : value;
   const newItem = new Setting({ church, key, value:safeValue});
   try {
@@ -51,6 +92,13 @@ router.patch('/update/:id', async (req, res) => {
     }
     Object.assign(setting, rest);
     if (value !== undefined) {
+      const gatewayValidationError = validatePaymentGatewayCase(setting.key, value);
+      if (gatewayValidationError) {
+        return res.status(400).json({
+          errors: [{ msg: gatewayValidationError, path: 'value', location: 'body' }]
+        });
+      }
+
       const safeValue = isSecret(setting.key) ? encrypt(value) : value;
       setting.value = safeValue;
     }
