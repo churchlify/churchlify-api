@@ -353,7 +353,7 @@ router.post('/stripe/pay', async (req, res) => {
       }
       const latestCharge = typeof intent === 'object' && intent ? intent.latest_charge : null;
       const receiptUrl =
-        (typeof latestCharge === 'object' ? latestCharge.receipt_url : null) ||
+        (latestCharge && typeof latestCharge === 'object' ? latestCharge.receipt_url : null) ||
         intent?.charges?.data?.[0]?.receipt_url ||
         latestInvoice?.hosted_invoice_url ||
         null;
