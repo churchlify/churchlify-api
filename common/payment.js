@@ -148,14 +148,35 @@ const getOrCreatePlan =  async function ({churchId, name, amount,interval,curren
   }
 };
 
+const getCaseInsensitiveValue = (obj, keys) => {
+  if (!obj || typeof obj !== 'object') {
+    return undefined;
+  }
+
+  const normalized = {};
+  Object.keys(obj).forEach((key) => {
+    normalized[String(key).toLowerCase()] = obj[key];
+  });
+
+  for (const key of keys) {
+    const value = normalized[String(key).toLowerCase()];
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      return value;
+    }
+  }
+
+  return undefined;
+};
+
 const getPaymentKey = (data) => {
-  switch ((data.gateway || data.provider).toLowerCase()) {
+  const gateway = String(getCaseInsensitiveValue(data, ['gateway', 'provider']) || '').toLowerCase();
+  switch (gateway) {
     case 'paypal':
-      return data.clientId || '';
+      return getCaseInsensitiveValue(data, ['clientId', 'clientid']) || '';
     case 'stripe':
-      return data.publishableKey || '';
+      return getCaseInsensitiveValue(data, ['publishableKey', 'publishablekey']) || '';
     case 'paystack':
-      return data.publicKey || '';
+      return getCaseInsensitiveValue(data, ['publicKey', 'publickey']) || '';
     default:
       return '';
   }
