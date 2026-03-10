@@ -338,7 +338,7 @@ router.post('/stripe/pay', async (req, res) => {
         default_payment_method: stripePaymentMethod.id,
         expand: ['latest_invoice.payment_intent.latest_charge'],
       });
-
+      console.log('Stripe subscription created:', subscription.id, 'Status:', {subscription});
       const intent = subscription.latest_invoice?.payment_intent;
       const receiptUrl = intent?.charges?.data?.[0]?.receipt_url ||  subscription.latest_invoice?.hosted_invoice_url || null;
       donation.transactionReferenceId = intent.id;
