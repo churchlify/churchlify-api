@@ -299,7 +299,7 @@ router.post('/stripe/pay', async (req, res) => {
 
   try {
     const decryptedData = await getPaymentSettings(church._id);
-    const stripe = new Stripe(decryptedData.secretKey);
+    const stripe = new Stripe(decryptedData.secretkey);
 
     // Step 1️⃣ Create Payment Method
     const stripePaymentMethod = await stripe.paymentMethods.create({
@@ -410,7 +410,7 @@ router.post('/stripe/create-subscription', async (req, res) => {
   try {
     const church = req.church;
     const decryptedData = await getPaymentSettings(church._id);
-    const stripe = new Stripe(decryptedData.secretKey);
+    const stripe = new Stripe(decryptedData.secretkey);
     const { items } = req.body;
     // Create price
     const prices = await Promise.all(
@@ -442,7 +442,7 @@ router.get('/stripe/session/:id', async (req, res) => {
   try {
     const church = req.church;
     const decryptedData = await getPaymentSettings(church._id);
-    const stripe = new Stripe(decryptedData.secretKey);
+    const stripe = new Stripe(decryptedData.secretkey);
     const session = await stripe.checkout.sessions.retrieve(req.params.id, {
       expand: [
         'line_items.data.price.product',
@@ -653,7 +653,7 @@ router.post('/paypal/capture-order', async (req, res) => {
     const decryptedData = await getPaymentSettings(church._id);
     const accessToken = await getPayPalAccessToken(
       decryptedData.clientId,
-      decryptedData.secretKey
+      decryptedData.secretkey
     );
 
     const headers = {
@@ -847,10 +847,10 @@ router.post('/paypal/pay', async (req, res) => {
   try {
     const church = req.church;
     const decryptedData = await getPaymentSettings(church._id);
-    const { clientId, secretKey } = decryptedData;
+    const { clientId, secretkey } = decryptedData;
 
     // Get OAuth token
-    const auth = Buffer.from(`${clientId}:${secretKey}`).toString('base64');
+    const auth = Buffer.from(`${clientId}:${secretkey}`).toString('base64');
     const tokenResponse = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
       method: 'POST',
       headers: {
@@ -1011,8 +1011,8 @@ router.post('/paystack/pay', async (req, res) => {
 
     const church = req.church;
     const churchId = church._id;
-    const { secretKey } = await getPaymentSettings(churchId);
-    if (!secretKey) {return res.status(400).json({ error: 'Payment settings not configured.' });}
+    const { secretkey } = await getPaymentSettings(churchId);
+    if (!secretkey) {return res.status(400).json({ error: 'Payment settings not configured.' });}
     //const { items, recurring, paymentMethod, total } = req.body;
   const userId = req.headers['x-user'];
    if (!userId) {
@@ -1069,7 +1069,7 @@ router.post('/paystack/pay', async (req, res) => {
       const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, 
         plan: plan.planCode, metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
         {
-          headers: {Authorization: `Bearer ${secretKey}`,'Content-Type': 'application/json',},
+          headers: {Authorization: `Bearer ${secretkey}`,'Content-Type': 'application/json',},
         }
       );
       const subData = subRes.data.data;
@@ -1094,7 +1094,7 @@ router.post('/paystack/pay', async (req, res) => {
           metadata: { donor, items, source: 'Churchlify Platform',churchId,},
         },
         {
-          headers: { Authorization: `Bearer ${secretKey}`,  'Content-Type': 'application/json' },
+          headers: { Authorization: `Bearer ${secretkey}`,  'Content-Type': 'application/json' },
         }
       );
 
