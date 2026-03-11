@@ -13,7 +13,37 @@ const eventInstanceSchema = new mongoose.Schema({
   endTime: { type: String, required: true },
   isCheckinOpen: { type: Boolean, default: false }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+eventInstanceSchema.virtual('startDateTime').get(function () {
+  const d = new Date(this.date);
+  const [h, m] = this.startTime.split(':').map(Number);
+  d.setHours(h, m, 0, 0);
+  return d;
+});
+
+eventInstanceSchema.virtual('endDateTime').get(function () {
+  const d = new Date(this.date);
+  const [h, m] = this.endTime.split(':').map(Number);
+  d.setHours(h, m, 0, 0);
+  return d;
+});
+eventInstanceSchema.virtual('autoCheckinOpen').get(function () {
+  const now = new Date();
+
+  const eventDate = new Date(this.date);
+  const [startHour, startMinute] = this.startTime.split(':').map(Number);
+
+  const eventStart = new Date(eventDate);
+  eventStart.setHours(startHour, startMinute, 0, 0);
+
+  const twoHoursFromNow = new Date(now.getTime() + (2 * 60 * 60 * 1000));
+  const sameDay = eventStart.toDateString() === now.toDateString();
+
+  return sameDay && eventStart >= now && eventStart <= twoHoursFromNow;
 });
 
 // Compound indexes for efficient queries

@@ -112,10 +112,20 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
 #swagger.tags = ['Events']
 */
 router.get('/find/:id', async(req, res) => {
-    const { id } = req.params;
-    const event = await EventInstance.findById(id).populate('location').lean();
-    if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
-    res.json({ event });
+        const { id } = req.params;
+        const event = await EventInstance.findById(id).populate('location').lean();
+        if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
+        // Compute effective checkin open
+        const timezone = event?.church?.timeZone || 'UTC';
+        const now = require('moment-timezone').tz(timezone);
+        event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
+            const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
+            const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
+            if (!eventStart.isValid()) { return false; }
+            const twoHoursFromNow = now.clone().add(2, 'hours');
+            return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
+        })());
+        res.json({ event });
 });
 /*
 #swagger.tags = ['Events']
@@ -126,15 +136,22 @@ router.get('/upcoming', async (req, res) => {
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
-        
         // Get current time in church timezone
         const timezone = church.timeZone || 'UTC';
-        const now = nowInChurchTz(timezone).toDate();
-        
-        let filter = {date: { $gte: now }};
+        const now = require('moment-timezone').tz(timezone);
+        let filter = {date: { $gte: now.toDate() }};
         if(church) { filter.church = church._id; }
         const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1 }).lean();
-        res.json({ event});
+        if (event) {
+                    event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
+                        const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
+                        const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
+                        if (!eventStart.isValid()) { return false; }
+                        const twoHoursFromNow = now.clone().add(2, 'hours');
+                        return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
+                    })());
+        }
+        res.json({ event });
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
         res.status(500).json({ message: 'Server error' });
@@ -188,22 +205,18 @@ router.get('/list', async(req, res) => {
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
-        
         // Get church timezone for proper month calculation
         const timezone = church.timeZone || 'UTC';
-        const inputMoment = nowInChurchTz(timezone);
-
+        const inputMoment = require('moment-timezone').tz(timezone);
         const parsedParts = parseYearMonthFromDateInput(req.query.date);
         if (parsedParts) {
             inputMoment.year(parsedParts.year).month(parsedParts.month - 1);
         }
-        
         const { startDate, endDate } = getMonthBoundaries(
             inputMoment.year(),
             inputMoment.month() + 1,
             timezone
         );
-
         const filter = { date: { $gte: startDate, $lte: endDate } };
         if (church?._id) {
             filter.church = church._id;
@@ -214,7 +227,17 @@ router.get('/list', async(req, res) => {
             .select('title date location isCheckinOpen eventId')
             .sort({ date: 1 })
             .lean();
-
+        // Add effectiveCheckinOpen to each event
+        const now = require('moment-timezone').tz(timezone);
+        for (const event of events) {
+                    event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
+                        const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
+                        const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
+                        if (!eventStart.isValid()) { return false; }
+                        const twoHoursFromNow = now.clone().add(2, 'hours');
+                        return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
+                    })());
+        }
         const appliedMonth = `${inputMoment.year()}-${String(inputMoment.month() + 1).padStart(2, '0')}`;
         res.status(200).json({
             events,

@@ -28,6 +28,26 @@ async function getCurrentUser(req) {
 function generatePickupCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
+
+function isAutoCheckinWindowOpen(eventInstance, now, timezone) {
+  if (!eventInstance?.date || !eventInstance?.startTime) {
+    return false;
+  }
+
+  const eventDateInTz = moment.tz(eventInstance.date, timezone).format('YYYY-MM-DD');
+  const eventStart = moment.tz(
+    `${eventDateInTz} ${eventInstance.startTime}`,
+    ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'],
+    timezone
+  );
+
+  if (!eventStart.isValid()) {
+    return false;
+  }
+
+  const twoHoursFromNow = now.clone().add(2, 'hours');
+  return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
+}
 //initiate drop-off
 /*
 #swagger.tags = ['Checkin']
@@ -76,16 +96,21 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
     const startOfDay = now.clone().startOf('day').toDate();
     const endOfDay = now.clone().endOf('day').toDate();
 
-    // Find an active event instance
-    const checkinOpenInstance = await EventInstance.findOne({
+    // Find event instances for today and allow manual override or auto-open window (next 2 hours)
+    const todayInstances = await EventInstance.find({
       church: churchId,
-      isCheckinOpen: true,
       date: { $gte: startOfDay, $lte: endOfDay }
-    });
+    })
+      .sort({ date: 1, startTime: 1 })
+      .lean();
+
+    const checkinOpenInstance = todayInstances.find((instance) =>
+      instance.isCheckinOpen || isAutoCheckinWindowOpen(instance, now, timezone)
+    );
 
     if (!checkinOpenInstance) {
       return res.status(400).json({
-        message: 'Check-in is not currently open for any event at your church.'
+        message: 'Check-in opens automatically for same-day events starting within the next 2 hours.'
       });
     }
 
