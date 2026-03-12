@@ -916,6 +916,28 @@ router.get('/monthly', requireMinistryAccess, async (req, res) => {
       .sort({ scheduleDate: 1, slotNumber: 1, createdAt: 1 })
       .lean();
 
+    if (req.query.aggregate === 'true') {
+      // Group by eventId
+      const eventMap = new Map();
+      for (const sched of schedules) {
+        const eventInstance = sched.eventInstanceId;
+        if (!eventInstance){ continue;}
+        const eventId = eventInstance.eventId?._id || eventInstance.eventId;
+        if (!eventId){ continue;}
+        if (!eventMap.has(eventId)) {
+          eventMap.set(eventId, {
+            eventId,
+            eventTitle: eventInstance.title,
+            eventDate: eventInstance.date,
+            assignments: []
+          });
+        }
+        eventMap.get(eventId).assignments.push(sched);
+      }
+      return res.json({
+        events: Array.from(eventMap.values())
+      });
+    }
     return res.json({ schedules });
   } catch (error) {
     return res.status(500).json({ message: error.message });
