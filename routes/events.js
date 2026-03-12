@@ -224,7 +224,7 @@ router.get('/list', async(req, res) => {
         const events = await EventInstance.find(filter)
             .populate('location', 'name address')
             .populate('eventId', 'name type')
-            .select('title date location isCheckinOpen eventId')
+            .select('title date location isCheckinOpen eventId startTime endTime')
             .sort({ date: 1 })
             .lean();
         // Add effectiveCheckinOpen to each event
