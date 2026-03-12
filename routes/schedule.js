@@ -11,7 +11,7 @@ const Schedule = require('../models/schedule');
 const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
-const { getMonthBoundaries, parseChurchDate } = require('../common/timezone.helper');
+const { parseChurchDate } = require('../common/timezone.helper');
 const { 
   requireSuperOrAdminOrMinistryLeader, 
   requireSuperOrAdminOrResourceMinistryLeader,
@@ -22,6 +22,7 @@ const { validateScheduleRole, validateScheduleAssignment, validateScheduleTempla
 
 const router = express.Router();
 router.use(express.json());
+const attachTimezone = require('../middlewares/attachTimezone');
 
 const asObjectId = (id) => new mongoose.Types.ObjectId(id);
 
@@ -219,6 +220,7 @@ router.post('/templates/create', requireSuperOrAdminOrMinistryLeader, validateSc
 */
 router.get('/templates/event/:eventId', async (req, res) => {
   try {
+    const churchTimezone = res.locals.churchTimezone || req.church?.timeZone || 'UTC';
     const { eventId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(eventId)) {
       return res.status(400).json({ message: 'Invalid event ID.' });
@@ -236,11 +238,12 @@ router.get('/templates/event/:eventId', async (req, res) => {
     if (req.query.aggregate === 'true') {
       return res.json({
         eventId,
-        ...aggregateEventTemplateRows(templates)
+        ...aggregateEventTemplateRows(templates),
+        churchTimezone
       });
     }
 
-    return res.json({ templates });
+    return res.json({ templates, churchTimezone });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -267,9 +270,11 @@ router.get('/templates/event/:eventId/aggregate', async (req, res) => {
       .sort({ createdAt: 1 })
       .lean();
 
+    const churchTimezone = res.locals.churchTimezone || req.church?.timeZone || 'UTC';
     return res.json({
       eventId,
-      ...aggregateEventTemplateRows(templates)
+      ...aggregateEventTemplateRows(templates),
+      churchTimezone
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -305,6 +310,7 @@ router.get('/templates/event-instance/:eventInstanceId', async (req, res) => {
       .sort({ createdAt: 1 })
       .lean();
 
+    const churchTimezone = res.locals.churchTimezone || req.church?.timeZone || 'UTC';
     if (req.query.aggregate === 'true') {
       return res.json({
         eventInstance: {
@@ -313,7 +319,8 @@ router.get('/templates/event-instance/:eventInstanceId', async (req, res) => {
           title: eventInstance.title,
           date: eventInstance.date
         },
-        ...aggregateEventTemplateRows(templates)
+        ...aggregateEventTemplateRows(templates),
+        churchTimezone
       });
     }
 
@@ -324,7 +331,8 @@ router.get('/templates/event-instance/:eventInstanceId', async (req, res) => {
         title: eventInstance.title,
         date: eventInstance.date
       },
-      templates
+      templates,
+      churchTimezone
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -869,7 +877,8 @@ router.get('/event-instance/:eventInstanceId/:ministryId', requireMinistryAccess
       .sort({ slotNumber: 1, createdAt: 1 })
       .lean();
 
-    return res.json({ schedules });
+    const churchTimezone = res.locals.churchTimezone || req.church?.timeZone || 'UTC';
+    return res.json({ schedules, churchTimezone });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -893,9 +902,9 @@ router.get('/monthly', requireMinistryAccess, async (req, res) => {
       return res.status(400).json({ message: 'Provide valid month (1-12) and year.' });
     }
 
-    // Get church timezone for proper month boundary calculation
-    const timezone = req.church.timeZone || 'UTC';
-    const { startDate, endDate } = getMonthBoundaries(year, month, timezone);
+    // Use UTC for month boundary calculation
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 1));
 
     const schedules = await Schedule.find({
       church: req.church._id,
@@ -916,6 +925,7 @@ router.get('/monthly', requireMinistryAccess, async (req, res) => {
       .sort({ scheduleDate: 1, slotNumber: 1, createdAt: 1 })
       .lean();
 
+    const churchTimezone = res.locals.churchTimezone || req.church?.timeZone || 'UTC';
     if (req.query.aggregate === 'true') {
       // Group by eventId
       const eventMap = new Map();
@@ -935,10 +945,11 @@ router.get('/monthly', requireMinistryAccess, async (req, res) => {
         eventMap.get(eventId).assignments.push(sched);
       }
       return res.json({
-        events: Array.from(eventMap.values())
+        events: Array.from(eventMap.values()),
+        churchTimezone
       });
     }
-    return res.json({ schedules });
+    return res.json({ schedules, churchTimezone });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -1025,9 +1036,9 @@ router.post('/auto-schedule', requireSuperOrAdminOrMinistryLeader, validateAutoS
       return res.status(404).json({ message: 'No templates found for this event and ministry.' });
     }
 
-    // Get church timezone for proper month boundary calculation
-    const timezone = church.timeZone || 'UTC';
-    const { startDate, endDate } = getMonthBoundaries(Number(year), Number(month), timezone);
+    // Use UTC for month boundary calculation
+    const startDate = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
+    const endDate = new Date(Date.UTC(Number(year), Number(month), 1));
 
     const eventInstances = await EventInstance.find({
       church: church._id,
@@ -1309,9 +1320,9 @@ router.get('/my-assignments', async (req, res) => {
       return res.status(400).json({ message: 'Valid month (1-12) and year are required' });
     }
 
-    // Build date range for the month
-    const startDate = new Date(yearNum, monthNum - 1, 1);
-    const endDate = new Date(yearNum, monthNum, 0, 23, 59, 59, 999);
+    // Build date range for the month in UTC
+    const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+    const endDate = new Date(Date.UTC(yearNum, monthNum, 1));
 
     // Build query
     const query = {
@@ -1385,6 +1396,7 @@ router.get('/my-assignments', async (req, res) => {
       .sort({ startDate: 1 })
       .lean();
 
+    const churchTimezone = res.locals.churchTimezone || currentUser?.church?.timeZone || 'UTC';
     return res.status(200).json({
       month: monthNum,
       year: yearNum,
@@ -1393,7 +1405,8 @@ router.get('/my-assignments', async (req, res) => {
       accepted: enrichedAssignments.filter(a => a.responseStatus === 'accepted').length,
       declined: enrichedAssignments.filter(a => a.responseStatus === 'declined').length,
       assignments: enrichedAssignments,
-      availabilityBlocks
+      availabilityBlocks,
+      churchTimezone
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -1708,9 +1721,11 @@ router.get('/availability/blocks', async (req, res) => {
       .sort({ startDate: 1 })
       .lean();
 
+    const churchTimezone = res.locals.churchTimezone || currentUser?.church?.timeZone || 'UTC';
     return res.status(200).json({
       total: blocks.length,
-      blocks
+      blocks,
+      churchTimezone
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -1777,4 +1792,6 @@ router.delete('/availability/blocks/:id', async (req, res) => {
   }
 });
 
+// Attach timezone middleware to all GET endpoints
+router.use(attachTimezone);
 module.exports = router;

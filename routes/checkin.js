@@ -4,13 +4,12 @@
 // routes/checkin.js
 const {authenticateFirebaseToken} = require('../middlewares/auth');
 const {isValidObjectId} = require('../middlewares/validators');
-const moment = require('moment-timezone');
+// moment import removed (unused)
 const EventInstance = require('../models/eventinstance');
 const express = require('express');
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
 const User = require('../models/user');
-const Church = require('../models/church');
 const { getIO } = require('../config/socket');
 const router = express.Router();
 router.use(express.json());
@@ -29,25 +28,7 @@ function generatePickupCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-function isAutoCheckinWindowOpen(eventInstance, now, timezone) {
-  if (!eventInstance?.date || !eventInstance?.startTime) {
-    return false;
-  }
-
-  const eventDateInTz = moment.tz(eventInstance.date, timezone).format('YYYY-MM-DD');
-  const eventStart = moment.tz(
-    `${eventDateInTz} ${eventInstance.startTime}`,
-    ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'],
-    timezone
-  );
-
-  if (!eventStart.isValid()) {
-    return false;
-  }
-
-  const twoHoursFromNow = now.clone().add(2, 'hours');
-  return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
-}
+// isAutoCheckinWindowOpen function removed (unused)
 //initiate drop-off
 /*
 #swagger.tags = ['Checkin']
@@ -87,14 +68,11 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
 
     // Assume all kids share the same parent/church (verified by authorization)
     const churchId = currentUser.church;
-    const churchData = await Church.findById(churchId);
-    const timezone = churchData.timeZone || 'UTC'; // fallback to UTC if not set
-
-    // Timezone-aware calculations
-    const now = moment.tz(timezone);
-    const expiresAt = now.clone().add(15, 'minutes').toDate();
-    const startOfDay = now.clone().startOf('day').toDate();
-    const endOfDay = now.clone().endOf('day').toDate();
+    // Use UTC for all date/time calculations
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 15 * 60000); // 15 minutes from now
+    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
+    const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
     // Find event instances for today and allow manual override or auto-open window (next 2 hours)
     const todayInstances = await EventInstance.find({
@@ -105,7 +83,18 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       .lean();
 
     const checkinOpenInstance = todayInstances.find((instance) =>
-      instance.isCheckinOpen || isAutoCheckinWindowOpen(instance, now, timezone)
+      instance.isCheckinOpen || (
+        instance.date && instance.startTime &&
+        (() => {
+          // Auto-checkin window: event starts within next 2 hours
+          const eventStart = new Date(instance.date);
+          // Parse startTime as HH:mm
+          const [h, m] = instance.startTime.split(':').map(Number);
+          eventStart.setUTCHours(h || 0, m || 0, 0, 0);
+          const twoHoursFromNow = new Date(now.getTime() + 2 * 3600000);
+          return eventStart >= now && eventStart <= twoHoursFromNow;
+        })()
+      )
     );
 
     if (!checkinOpenInstance) {

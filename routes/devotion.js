@@ -6,8 +6,9 @@ const express = require('express');
 const Devotion = require('../models/devotion');
 const {validateDevotion} = require('../middlewares/validators');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
-const { getMonthBoundaries, nowInChurchTz, parseChurchDate } = require('../common/timezone.helper');
-const moment = require('moment-timezone');
+// Unused imports removed
+// moment import removed (unused)
+const attachTimezone = require('../middlewares/attachTimezone');
 const router = express.Router();
 router.use(express.json());
 /*
@@ -44,7 +45,7 @@ router.post('/create', uploadImage, validateDevotion(), async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-router.get('/find/:id', async(req, res) => {
+router.get('/find/:id', attachTimezone, async(req, res) => {
     const { id } = req.params;
     const devotion = await Devotion.findById(id).populate('church').lean();
     if (!devotion) {return res.status(404).json({ message: `Devotion with id ${id} not found` });}
@@ -82,28 +83,25 @@ router.patch('/update/:id', uploadImage, async(req, res) => {
 /*
 #swagger.tags = ['Devotion']
 */
-router.get('/list', async(req, res) => {
+router.get('/list', attachTimezone, async(req, res) => {
     try {
         const churchId = req.church?._id;
-        const timezone = req.church?.timeZone || 'UTC';
-        
-        // Parse input date or use current time in church timezone
-        const inputMoment = req.query.date ?
-          moment.tz(parseChurchDate(req.query.date, timezone), timezone) :
-          nowInChurchTz(timezone);
-        
-        const { startDate } = getMonthBoundaries(
-          inputMoment.year(),
-          inputMoment.month() + 1,
-          timezone
-        );
-        
-        const filter = {date: { $gte: startDate }};
+        // Use UTC for all date calculations
+        let startDate;
+        if (req.query.date) {
+            // Parse input date as UTC
+            startDate = new Date(req.query.date);
+        } else {
+            // Use current UTC date
+            const now = new Date();
+            startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        }
+        const filter = { date: { $gte: startDate } };
         if (churchId) {
             filter.church = churchId;
         }
         const devotions = await Devotion.find(filter).select('title scripture date author tags isPublished church').lean();
-        res.status(200).json({ devotions });
+        res.status(200).json({ devotions, churchTimezone: res.locals.churchTimezone });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

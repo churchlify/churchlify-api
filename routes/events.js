@@ -11,10 +11,11 @@ const Venue = require('../models/venue');
 const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
-const { getChurchTimezone, parseChurchDate, getMonthBoundaries, nowInChurchTz } = require('../common/timezone.helper');
+// Unused imports removed
 //const event = require('../models/event');
 const router = express.Router();
 router.use(express.json());
+const attachTimezone = require('../middlewares/attachTimezone');
 
 function parseYearMonthFromDateInput(value) {
     if (!value) {
@@ -63,17 +64,14 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
           flierUrl = await uploadToMinio(req.file);
         }
 
-        // Get church timezone for proper date parsing
-        const timezone = await getChurchTimezone(church);
-        const resolvedEndDate = recurrence?.endDate ? parseChurchDate(recurrence.endDate, timezone) : parseChurchDate(endDate, timezone);
-
+        // Save all dates in UTC (assume input is UTC or ISO)
         const eventData = {
             church,
             title,
             description,
-            startDate: parseChurchDate(startDate, timezone),
+            startDate: startDate ? new Date(startDate) : null,
             startTime,
-            endDate: resolvedEndDate,
+            endDate: endDate ? new Date(endDate) : null,
             endTime,
             location: venueId,
             flier: flierUrl,
@@ -88,8 +86,8 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
             eventData.recurrence = {
                 frequency: recurrence.frequency,
                 interval: recurrence.interval || 1,
-                daysOfWeek: recurrence.daysOfWeek || [], // For weekly recurrence
-                endDate: recurrence.endDate ? parseChurchDate(recurrence.endDate, timezone) : null
+                daysOfWeek: recurrence.daysOfWeek || [],
+                endDate: recurrence.endDate ? new Date(recurrence.endDate) : null
             };
         }
          // Use the EventService to create the event
@@ -111,47 +109,32 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-router.get('/find/:id', async(req, res) => {
+router.get('/find/:id', attachTimezone, async(req, res) => {
         const { id } = req.params;
         const event = await EventInstance.findById(id).populate('location').lean();
         if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
-        // Compute effective checkin open
-        const timezone = event?.church?.timeZone || 'UTC';
-        const now = require('moment-timezone').tz(timezone);
-        event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
-            const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
-            const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
-            if (!eventStart.isValid()) { return false; }
-            const twoHoursFromNow = now.clone().add(2, 'hours');
-            return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
-        })());
-        res.json({ event });
+        // Compute effective checkin open (display only)
+        event.effectiveCheckinOpen = event.isCheckinOpen;
+        res.json({ event, timezone: res.locals.churchTimezone });
 });
 /*
 #swagger.tags = ['Events']
 */
-router.get('/upcoming', async (req, res) => {
+router.get('/upcoming', attachTimezone, async (req, res) => {
     try {
         const church = req.church;
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
-        // Get current time in church timezone
-        const timezone = church.timeZone || 'UTC';
-        const now = require('moment-timezone').tz(timezone);
-        let filter = {date: { $gte: now.toDate() }};
+        // Use UTC for all date/time handling
+        const now = new Date();
+        let filter = {date: { $gte: now }};
         if(church) { filter.church = church._id; }
         const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1 }).lean();
         if (event) {
-                    event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
-                        const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
-                        const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
-                        if (!eventStart.isValid()) { return false; }
-                        const twoHoursFromNow = now.clone().add(2, 'hours');
-                        return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
-                    })());
+            event.effectiveCheckinOpen = event.isCheckinOpen;
         }
-        res.json({ event });
+        res.json({ event, churchTimezone: res.locals.churchTimezone });
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
         res.status(500).json({ message: 'Server error' });
@@ -162,13 +145,23 @@ router.get('/upcoming', async (req, res) => {
 */
 router.patch('/update/:id', uploadImage, validateEvent(), async (req, res) => {
   const { id } = req.params;
-  const allowedFields = ['church', 'title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'location', 'flier', 'reminder', 'allowKidsCheckin', 'checkinStartTime', 'recurrence', 'createdBy'];
-  const updateFields = {};
-  allowedFields.forEach(field => {
-    if (req.body[field] !== undefined) {
-      updateFields[field] = req.body[field];
-    }
-  });
+    const allowedFields = ['church', 'title', 'description', 'startDate', 'startTime', 'endDate', 'endTime', 'location', 'flier', 'reminder', 'allowKidsCheckin', 'checkinStartTime', 'recurrence', 'createdBy'];
+    const updateFields = {};
+    allowedFields.forEach(field => {
+        if (req.body[field] !== undefined) {
+            // Save all dates in UTC
+            if (['startDate', 'endDate'].includes(field)) {
+                updateFields[field] = req.body[field] ? new Date(req.body[field]) : null;
+            } else if (field === 'recurrence' && req.body.recurrence) {
+                updateFields.recurrence = {
+                    ...req.body.recurrence,
+                    endDate: req.body.recurrence.endDate ? new Date(req.body.recurrence.endDate) : null
+                };
+            } else {
+                updateFields[field] = req.body[field];
+            }
+        }
+    });
   try {
     const existingEvent = await Event.findById(id);
     if (!existingEvent) {
@@ -199,25 +192,30 @@ router.patch('/update/:id', uploadImage, validateEvent(), async (req, res) => {
 /*
 #swagger.tags = ['Events']
 */
-router.get('/list', async(req, res) => {
+router.get('/list', attachTimezone, async(req, res) => {
     try {
         const church = req.church;
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
-        // Get church timezone for proper month calculation
-        const timezone = church.timeZone || 'UTC';
-        const inputMoment = require('moment-timezone').tz(timezone);
-        const parsedParts = parseYearMonthFromDateInput(req.query.date);
-        if (parsedParts) {
-            inputMoment.year(parsedParts.year).month(parsedParts.month - 1);
+        // Use UTC for all date/time handling
+        let year, month;
+        if (req.query.date) {
+            const parsedParts = parseYearMonthFromDateInput(req.query.date);
+            if (parsedParts) {
+                year = parsedParts.year;
+                month = parsedParts.month;
+            }
         }
-        const { startDate, endDate } = getMonthBoundaries(
-            inputMoment.year(),
-            inputMoment.month() + 1,
-            timezone
-        );
-        const filter = { date: { $gte: startDate, $lte: endDate } };
+        const now = new Date();
+        if (!year || !month) {
+            year = now.getUTCFullYear();
+            month = now.getUTCMonth() + 1;
+        }
+        // Month boundaries in UTC
+        const startDate = new Date(Date.UTC(year, month - 1, 1));
+        const endDate = new Date(Date.UTC(year, month, 1));
+        const filter = { date: { $gte: startDate, $lt: endDate } };
         if (church?._id) {
             filter.church = church._id;
         }
@@ -227,26 +225,19 @@ router.get('/list', async(req, res) => {
             .select('title date location isCheckinOpen eventId startTime endTime')
             .sort({ date: 1 })
             .lean();
-        // Add effectiveCheckinOpen to each event
-        const now = require('moment-timezone').tz(timezone);
+        // Add effectiveCheckinOpen to each event (display only)
         for (const event of events) {
-                    event.effectiveCheckinOpen = event.isCheckinOpen || (event.date && event.startTime && (() => {
-                        const eventDateInTz = require('moment-timezone').tz(event.date, timezone).format('YYYY-MM-DD');
-                        const eventStart = require('moment-timezone').tz(`${eventDateInTz} ${event.startTime}`, ['YYYY-MM-DD HH:mm', 'YYYY-MM-DD HH:mm:ss'], timezone);
-                        if (!eventStart.isValid()) { return false; }
-                        const twoHoursFromNow = now.clone().add(2, 'hours');
-                        return eventStart.isSameOrAfter(now) && eventStart.isSameOrBefore(twoHoursFromNow);
-                    })());
+            event.effectiveCheckinOpen = event.isCheckinOpen;
         }
-        const appliedMonth = `${inputMoment.year()}-${String(inputMoment.month() + 1).padStart(2, '0')}`;
+        const appliedMonth = `${year}-${String(month).padStart(2, '0')}`;
         res.status(200).json({
             events,
             meta: {
-                appliedTimezone: timezone,
                 appliedMonth,
                 rangeStart: startDate.toISOString(),
                 rangeEnd: endDate.toISOString(),
             },
+            churchTimezone: res.locals.churchTimezone
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -302,51 +293,55 @@ router.put('/update-checkin-status/:id', async (req, res) => {
     }
 });
 
-router.get('/main/find/:id', async(req, res) => {
+router.get('/main/find/:id', attachTimezone, async(req, res) => {
     const { id } = req.params;
     const event = await Event.findById(id).lean();
     if (!event){ return res.status(404).json({ message: `Event with id ${id} not found` });}
-    res.json({ event });
+    res.json({ event, timezone: res.locals.churchTimezone });
 });
 
-router.get('/main/list', async(req, res) => {
+router.get('/main/list', attachTimezone, async(req, res) => {
     try {
         const church = req.church;
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
 
-        const timezone = church.timeZone || 'UTC';
-        const inputMoment = nowInChurchTz(timezone);
-        const parsedParts = parseYearMonthFromDateInput(req.query.date);
-        if (parsedParts) {
-            inputMoment.year(parsedParts.year).month(parsedParts.month - 1);
+        // Use UTC for all date/time handling
+        let year, month;
+        if (req.query.date) {
+            const parsedParts = parseYearMonthFromDateInput(req.query.date);
+            if (parsedParts) {
+                year = parsedParts.year;
+                month = parsedParts.month;
+            }
         }
-
-        const { startDate, endDate } = getMonthBoundaries(
-            inputMoment.year(),
-            inputMoment.month() + 1,
-            timezone
-        );
-
+        const now = new Date();
+        if (!year || !month) {
+            year = now.getUTCFullYear();
+            month = now.getUTCMonth() + 1;
+        }
+        // Month boundaries in UTC
+        const startDate = new Date(Date.UTC(year, month - 1, 1));
+        const endDate = new Date(Date.UTC(year, month, 1));
         const filter = {
             endDate: { $gte: startDate },
-            startDate: { $lte: endDate },
+            startDate: { $lt: endDate },
         };
         if (church?._id) {
             filter.church = church._id;
         }
         const events = await Event.find(filter).sort({ startDate: 1 }).lean();
-        const appliedMonth = `${inputMoment.year()}-${String(inputMoment.month() + 1).padStart(2, '0')}`;
+        const appliedMonth = `${year}-${String(month).padStart(2, '0')}`;
 
         res.status(200).json({
             events,
             meta: {
-                appliedTimezone: timezone,
                 appliedMonth,
                 rangeStart: startDate.toISOString(),
                 rangeEnd: endDate.toISOString(),
             },
+            churchTimezone: res.locals.churchTimezone
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
