@@ -196,6 +196,8 @@ const sendPushNotification = async (target, content, useTokens = false) => {
         console.warn(`⚠️ Invalid topic name skipped: ${topic}`);
         continue;
       }
+      const finalData = stringifyData(content.data || {});
+      console.log('🚀 Payload being sent to FCM:', JSON.stringify(finalData));
 
       const message = {
         topic: topic.trim(),
@@ -203,7 +205,7 @@ const sendPushNotification = async (target, content, useTokens = false) => {
           title: content.subject,
           body: content.body,
         },
-        data: stringifyData(content.data || {}),
+        data: finalData,
       };
 
       try {
