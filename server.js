@@ -88,6 +88,7 @@ const allowedHeaders = [
   'x-church',
   'x-user',
   'x-Restricted',
+  'x-client-web',
 ];
 
 
