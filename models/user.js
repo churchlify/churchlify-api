@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
     pushToken: {type: String},
     muteNotifications: { type: Boolean, default: false },
     lastUsedToken: { type: String },
+    lastActivityAt: { type: Date },
     adminAt: {type: Schema.Types.ObjectId, ref: 'Church', index: true},
     firebaseId: { type: String, required: [true, 'firebaseId is required'], unique: true, trim: true, index: true },
     role: { type: String, enum: ['super', 'member', 'admin'], default: 'member', index: true }
