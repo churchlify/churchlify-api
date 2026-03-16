@@ -3,6 +3,7 @@ const { Server } = require('socket.io');
 const { startWorker, mediaTopology } = require('../media-client');
 const eventWorker = require('../common/event.worker');
 const notificationWorker = require('../common/notification.worker');
+const userDeletionWorker = require('../common/user.deletion.worker');
 const { auth } = require('../common/firebase');
 const User = require('../models/user');
 
@@ -76,6 +77,7 @@ async function setupSocket(app) {
     await startWorker(io);
     eventWorker.start();
     notificationWorker.start();
+    userDeletionWorker.start();
     console.log(`✅ Socket + workers started (mediasoup topology: ${mediaTopology})`);
   } catch (err) {
     console.error('❌ Failed to start core worker:', err);

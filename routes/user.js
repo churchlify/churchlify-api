@@ -9,11 +9,25 @@ const { validateUser } = require('../middlewares/validators');
 const { normalizeAddressPayload } = require('../middlewares/addressNormalizer');
 const { cacheRoute } = require('../middlewares/tenantCache');
 const { uploadImage, deleteFile, uploadToMinio } = require('../common/upload');
-const { del: delCache } = require('../common/cache');
+const { cleanupUserData } = require('../common/user.cleanup.service');
+const UserDeletionRequest = require('../models/userDeletionRequest');
 const router = express.Router();
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function parseRetainDays(value) {
+  if (value === undefined) {
+    return null;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return NaN;
+  }
+
+  return parsed;
 }
 
 /*
@@ -310,25 +324,130 @@ router.get('/list', cacheRoute('users:list', 60), async (req, res) => {
 router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const userToDelete = await User.findById(id);
-    
-    if (!userToDelete) {
+    const previewOnly = req.query.preview === 'true';
+    const confirmationToken = req.query.confirm;
+    const retainDays = parseRetainDays(req.query.retainDays);
+
+    if (Number.isNaN(retainDays)) {
+      return res.status(400).json({ error: 'retainDays must be a positive integer when provided.' });
+    }
+
+    if (retainDays !== null && retainDays !== 30) {
+      return res.status(400).json({
+        error: 'Only retainDays=30 is currently supported.'
+      });
+    }
+
+    if (!previewOnly && confirmationToken !== 'DELETE_USER') {
+      return res.status(400).json({
+        error: 'Deletion not confirmed. Pass confirm=DELETE_USER to execute.',
+        hint: 'Use preview=true first to inspect impact safely.'
+      });
+    }
+
+    if (previewOnly && retainDays === 30) {
+      const previewResult = await cleanupUserData(id, { previewOnly: true });
+
+      if (!previewResult.preview && !previewResult.deleted) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const retentionUntil = new Date();
+      retentionUntil.setDate(retentionUntil.getDate() + 30);
+
+      return res.status(200).json({
+        message: 'Preview generated. No data was deleted.',
+        preview: true,
+        retention: {
+          enabled: true,
+          retainDays: 30,
+          scheduledDeletionAt: retentionUntil
+        },
+        summary: previewResult.summary
+      });
+    }
+
+    if (!previewOnly && retainDays === 30) {
+      const previewResult = await cleanupUserData(id, { previewOnly: true });
+
+      if (!previewResult.preview && !previewResult.deleted) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (previewResult.summary?.hasBlockingReferences) {
+        return res.status(409).json({
+          error: 'User deletion blocked. Reassign or remove blocking references first.',
+          preview: false,
+          summary: previewResult.summary,
+          hint: 'Use preview=true to inspect blockingReferences.'
+        });
+      }
+
+      const scheduledDeletionAt = new Date();
+      scheduledDeletionAt.setDate(scheduledDeletionAt.getDate() + 30);
+
+      await UserDeletionRequest.findOneAndUpdate(
+        { userId: id },
+        {
+          $set: {
+            retainDays: 30,
+            executeAfter: scheduledDeletionAt,
+            status: 'pending',
+            lastError: null,
+            summarySnapshot: previewResult.summary,
+            requestedAt: new Date()
+          },
+          $setOnInsert: {
+            attempts: 0
+          }
+        },
+        { upsert: true, new: true }
+      );
+
+      return res.status(202).json({
+        message: 'User deletion scheduled. Data will be retained for 30 days.',
+        preview: false,
+        retention: {
+          enabled: true,
+          retainDays: 30,
+          scheduledDeletionAt
+        },
+        summary: previewResult.summary
+      });
+    }
+
+    const result = await cleanupUserData(id, { previewOnly });
+
+    if (result.deleted) {
+      await UserDeletionRequest.deleteOne({ userId: id });
+    }
+
+    if (!result.deleted && !result.preview && !result.blocked) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Clean up Minio photo if it exists
-    if (userToDelete.photoUrl) {
-        await deleteFile(userToDelete.photoUrl);
+    if (result.preview) {
+      return res.status(200).json({
+        message: 'Preview generated. No data was deleted.',
+        preview: true,
+        summary: result.summary
+      });
     }
 
-    await User.findByIdAndDelete(id);
-    
-    // Invalidate church's user list cache
-    if (userToDelete.church) {
-      await delCache(userToDelete.church.toString(), 'users:list');
+    if (result.blocked) {
+      return res.status(409).json({
+        error: 'User deletion blocked. Reassign or remove blocking references first.',
+        preview: false,
+        summary: result.summary,
+        hint: 'Use preview=true to inspect blockingReferences.'
+      });
     }
-    
-    res.status(200).json({ message: 'User deleted successfully', user: userToDelete });
+
+    res.status(200).json({
+      message: 'User deleted successfully',
+      preview: false,
+      summary: result.summary
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
