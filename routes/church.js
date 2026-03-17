@@ -77,7 +77,7 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
 router.post('/create', uploadChurchImageStrict, normalizeAddressPayload, validateChurch(), async (req, res) => {
     let logoUrl = null;
   try {
-    const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone } = req.body;
+    const { name, shortName, createdBy, emailAddress, phoneNumber, timeZone, themeSettings } = req.body;
     const address = req.body.address || null;
     const [existingEmail, existingPhone, existingUser] = await Promise.all([
       Church.findOne({ emailAddress }),
@@ -95,7 +95,8 @@ router.post('/create', uploadChurchImageStrict, normalizeAddressPayload, validat
     }
 
     await createChurchRecord({ 
-        name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone 
+        name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone,
+        ...(themeSettings && { themeSettings })
         }, res, logoUrl);
 
     } catch (err) {

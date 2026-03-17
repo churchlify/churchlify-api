@@ -14,7 +14,16 @@ const churchSchema = new mongoose.Schema({
     timeZone: { type: String, required: true },
     isApproved: {type:Boolean, default: false},
     isPublished: {type:Boolean, default: false},
-    logo: String
+    logo: String,
+    themeSettings: {
+        type: {
+            primaryColor: { type: String },
+            mode: { type: String, enum: ['light', 'dark', 'system'] },
+            textPreference: { type: String, enum: ['auto', 'black', 'white'] }
+        },
+        required: false,
+        default: undefined
+    }
 }, { timestamps: true });
 
 churchSchema.pre('save', async function (next) {
