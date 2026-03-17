@@ -28,10 +28,12 @@ const authenticateFirebaseToken = async (req, res, next) => {
             if (user) {
                 const now = Date.now();
                 const lastActivity = user.lastActivityAt ? new Date(user.lastActivityAt).getTime() : 0;
-                if (lastActivity && now - lastActivity > INACTIVITY_TIMEOUT_MS) {
+                // auth_time is seconds; if the fresh login happened after the last recorded
+                // activity the user has re-authenticated and the inactivity window resets.
+                const freshLogin = req.user.auth_time * 1000 > lastActivity;
+                if (!freshLogin && lastActivity && now - lastActivity > INACTIVITY_TIMEOUT_MS) {
                     return res.status(440).json({ message: 'Session expired due to inactivity.' });
                 }
-                // Update lastActivityAt
                 user.lastActivityAt = new Date();
                 await user.save();
             }
@@ -61,10 +63,12 @@ const authenticateToken = async (req, res, next) => {
             if (user) {
                 const now = Date.now();
                 const lastActivity = user.lastActivityAt ? new Date(user.lastActivityAt).getTime() : 0;
-                if (lastActivity && now - lastActivity > INACTIVITY_TIMEOUT_MS) {
+                // iat is seconds; if this token was issued after the last activity the
+                // user has freshly logged in and the inactivity window should reset.
+                const freshLogin = req.user.iat * 1000 > lastActivity;
+                if (!freshLogin && lastActivity && now - lastActivity > INACTIVITY_TIMEOUT_MS) {
                     return res.status(440).json({ message: 'Session expired due to inactivity.' });
                 }
-                // Update lastActivityAt
                 user.lastActivityAt = new Date();
                 await user.save();
             }
