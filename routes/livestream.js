@@ -19,8 +19,9 @@ async function checkYouTubeEndpoints(channelId) {
 
   // 1. Check /live endpoint
   try {
-    const res = await https.get(liveUrl);
+    const res = https.get(liveUrl);
     const finalUrl = res.responseUrl;
+    console.log(`Checked ${liveUrl}, final URL: ${finalUrl}`);
 
     if (finalUrl.includes('watch?v=')) {
       const videoId = finalUrl.split('v=')[1].split('&')[0];
@@ -32,8 +33,9 @@ async function checkYouTubeEndpoints(channelId) {
 
   // 2. Check embed/live_stream
   try {
-    const res = await https.get(embedUrl);
+    const res = https.get(embedUrl);
     const finalUrl = res.responseUrl;
+    console.log(`Checked ${embedUrl}, final URL: ${finalUrl}`);
 
     if (finalUrl.includes('watch?v=')) {
       const videoId = finalUrl.split('v=')[1].split('&')[0];
