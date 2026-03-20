@@ -93,7 +93,13 @@ router.get('/list', async (req, res) => {
     const church = req.church;
     let filter = {};
     if(church) { filter.church = church._id; }
-    const prayers = await Prayer.find(filter).select('title prayerRequest author urgency isPublic anonymous createdAt').lean();
+    if (req.query.isPublic !== undefined) {
+            filter.isPublic = req.query.isPublic === 'true';
+        }
+        if (req.query.anonymous !== undefined) {
+            filter.anonymous = req.query.anonymous === 'true';
+        }
+    const prayers = await Prayer.find(filter).populate('author', 'firstName lastName').select('title prayerRequest author urgency isPublic anonymous createdAt').lean();
     res.status(200).json({ prayers });
   } catch (error) {
     res.status(500).json({ message: error.message });

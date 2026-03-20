@@ -55,7 +55,13 @@ router.get('/list', cacheRoute('testimony:list', 60), async(req, res) => {
         const church = req.church;
         let filter = {};
         if(church) { filter.church = church._id; }
-        const testimonies = await Testimony.find(filter).select('title story author impact isPublic gratitude createdAt').lean();
+        if (req.query.isPublic !== undefined) {
+            filter.isPublic = req.query.isPublic === 'true';
+        }
+        if (req.query.anonymous !== undefined) {
+            filter.anonymous = req.query.anonymous === 'true';
+        }
+        const testimonies = await Testimony.find(filter).populate('author', 'firstName lastName').select('title story author impact isPublic anonymous gratitude createdAt').lean();
         res.status(200).json({ testimonies });
     } catch (error) {
         res.status(500).json({ message: error.message });
