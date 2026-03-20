@@ -18,6 +18,7 @@ const churchSchema = new mongoose.Schema({
     themeSettings: {
         type: {
             primaryColor: { type: String },
+            secondaryColor: { type: String },
             mode: { type: String, enum: ['light', 'dark', 'system'] },
             textPreference: { type: String, enum: ['auto', 'black', 'white'] }
         },

@@ -46,6 +46,7 @@ const validateChurch = () => [
     body('isPublished').optional().toBoolean().custom(value => typeof value === 'boolean').withMessage('Publish status can only be true or false'),
     body('themeSettings').optional().isObject().withMessage('themeSettings must be an object'),
     body('themeSettings.primaryColor').optional().isString().withMessage('primaryColor must be a string'),
+    body('themeSettings.secondaryColor').optional().isString().withMessage('secondaryColor must be a string'),
     body('themeSettings.mode').optional().isIn(['light', 'dark', 'system']).withMessage('mode must be one of: light, dark, system'),
     body('themeSettings.textPreference').optional().isIn(['auto', 'black', 'white']).withMessage('textPreference must be one of: auto, black, white'),
 
