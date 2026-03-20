@@ -100,7 +100,7 @@ router.get('/list', attachTimezone, async(req, res) => {
         if (churchId) {
             filter.church = churchId;
         }
-        const devotions = await Devotion.find(filter).select('title scripture date author tags isPublished church').lean();
+        const devotions = await Devotion.find(filter).select('title scripture content date author tags isPublished church').lean();
         res.status(200).json({ devotions, churchTimezone: res.locals.churchTimezone });
     } catch (error) {
         res.status(500).json({ message: error.message });
