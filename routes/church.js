@@ -237,14 +237,17 @@ router.get('/search', async (req, res) => {
     const limitNum = parseInt(limit, 10) || 25;
 
     // Create case-insensitive search filter
-    const searchFilter = search ? {isPublished: true,
-          $or: [
-            { name: { $regex: search, $options: 'i' } },
-            { 'address.city': { $regex: search, $options: 'i' } },
-            { 'address.state': { $regex: search, $options: 'i' } },
-            { 'address.country': { $regex: search, $options: 'i' } },
-          ],
-        } : {};
+const searchFilter = {
+  isPublished: true,
+  ...(search && {
+    $or: [
+      { name: { $regex: search, $options: 'i' } },
+      { 'address.city': { $regex: search, $options: 'i' } },
+      { 'address.state': { $regex: search, $options: 'i' } },
+      { 'address.country': { $regex: search, $options: 'i' } },
+    ],
+  }),
+};
 
     // Fetch paginated results
     const churches = await Church.find(searchFilter)
