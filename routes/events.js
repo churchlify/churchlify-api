@@ -123,27 +123,48 @@ router.get('/find/:id', attachTimezone, async(req, res) => {
 router.get('/upcoming', attachTimezone, async (req, res) => {
     try {
         const church = req.church;
+        const timezone = res.locals.churchTimezone || 'UTC'; // Fallback to UTC
+
         if (!church) {
             return res.status(400).json({ message: 'Church context required' });
         }
-        // Use UTC for all date/time handling
+
+        // 1. Get the current time in the CHURCH'S timezone
         const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+        
+        // 2. Format "today" to match your DB's ISO format (YYYY-MM-DDT00:00:00.000Z)
+        const todayString = now.toLocaleDateString('en-CA', { timeZone: timezone }); // YYYY-MM-DD
+        const today = new Date(`${todayString}T00:00:00.000Z`);
+
+        // 3. Format "currentTime" as HH:MM in the CHURCH'S timezone
+        const currentTime = now.toLocaleTimeString('en-GB', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: false, 
+            timeZone: timezone 
+        });
+
         let filter = {
           $or: [
             { date: { $gt: today } },
             { date: today, startTime: { $gt: currentTime } }
-          ]
+          ],
+          church: church._id
         };
-        if(church) { filter.church = church._id; }
-        console.log('Upcoming events filter:', JSON.stringify(filter));
-        const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1, startTime: 1 }).lean();
-        console.log('Upcoming event found:', event);   
+
+        console.log(`Timezone: ${timezone} | Today: ${todayString} | Now: ${currentTime}`);
+        
+        const event = await EventInstance.findOne(filter)
+            .populate('location')
+            .select('title date startTime location isCheckinOpen')
+            .sort({ date: 1, startTime: 1 })
+            .lean();
+
         if (event) {
             event.effectiveCheckinOpen = event.isCheckinOpen;
         }
-        res.json({ event, churchTimezone: res.locals.churchTimezone });
+
+        res.json({ event, churchTimezone: timezone });
     } catch (error) {
         console.error('Error fetching upcoming event:', error);
         res.status(500).json({ message: 'Server error' });
