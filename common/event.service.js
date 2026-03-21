@@ -22,7 +22,7 @@ async buildRecurringInstances(event) {
   let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || [], timezone);
 
   while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
-    const currentMoment = moment.tz(current, timezone);
+    const currentMoment = moment.utc(current).tz(timezone);
     const weekday = currentMoment.day();
 
     if (recurrence.frequency === 'DAILY') {
@@ -121,7 +121,7 @@ flattenObject(obj, prefix = '', result = {}) {
 }
 
  getFirstMatchingWeekday(startDate, daysOfWeek, timezone) {
-  const start = moment.tz(startDate, timezone);
+  const start = moment.utc(startDate).tz(timezone);
   const maxLookahead = 7; // one week
 
   for (let i = 0; i < maxLookahead; i++) {
