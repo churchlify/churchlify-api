@@ -237,7 +237,7 @@ router.get('/search', async (req, res) => {
     const limitNum = parseInt(limit, 10) || 25;
 
     // Create case-insensitive search filter
-    const searchFilter = search ? {
+    const searchFilter = search ? {isPublished: true,
           $or: [
             { name: { $regex: search, $options: 'i' } },
             { 'address.city': { $regex: search, $options: 'i' } },
