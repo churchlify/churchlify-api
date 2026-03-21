@@ -477,7 +477,7 @@ router.delete('/delete/:id', authenticateFirebaseToken, async (req, res) => {
         const isParent = kids.some(kid => 
           String(kid.parent) === String(currentUser._id)
         );
-        const isAdmin = currentUser.role === 'admin' || currentUser.role === 'super';
+        const isAdmin = currentUser.role === 'admin' || currentUser.role === 'super' || currentUser.church === currentUser.adminAt;
 
         if (!isParent && !isAdmin) {
           return res.status(403).json({ error: 'Not authorized to delete this check-in record' });

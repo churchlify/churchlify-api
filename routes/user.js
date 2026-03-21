@@ -135,7 +135,7 @@ router.get('/search', async (req, res) => {
       filter.church = church._id;
     }
 
-    const users = await User.find(filter).select('firstName lastName phoneNumber emailAddress photoUrl').lean();
+    const users = await User.find(filter).select('firstName lastName phoneNumber emailAddress photoUrl role').lean();
 
     if (users.length === 0) {
       return res.status(404).json({ message: 'No matching users found' });
