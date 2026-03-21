@@ -4,8 +4,30 @@ const { https } = require('follow-redirects');
 const Settings = require('../models/settings');
 const { get, set } = require('../common/cache');
 const logger = require('../logger/logger');
-
 const CACHE_TTL = 60;
+const axios = require('axios'); // Recommended for API calls
+
+async function checkYouTubeAPI(channelId, apiKey) {
+  if (!apiKey) {return null;}
+
+  try {
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&eventType=live&key=${apiKey}`;
+    const response = await axios.get(url);
+    
+    const liveVideo = response.data.items[0];
+    if (liveVideo) {
+      return { 
+        live: true, 
+        videoId: liveVideo.id.videoId, 
+        title: liveVideo.snippet.title,
+        source: 'youtube-api' 
+      };
+    }
+  } catch (err) {
+    logger.error('YouTube API call failed', err.response?.data || err.message);
+  }
+  return null;
+}
 
 // Helper to handle async redirect tracking
 function getFinalUrl(url) {
@@ -46,7 +68,7 @@ async function checkYouTubeEndpoints(channelId) {
   return { live: false };
 }
 
-async function detectLiveStream(channelId, churchId) {
+async function detectLiveStream(channelId, churchId, apiKey) {
   if (!isValidChannelId(channelId)) {
     return { live: false, error: 'Invalid channel ID' };
   }
@@ -55,9 +77,13 @@ async function detectLiveStream(channelId, churchId) {
   const cached = await get(churchId, cacheKey);
   if (cached) {return cached;}
 
-  const result = await checkYouTubeEndpoints(channelId);
+  let result = await checkYouTubeAPI(channelId, apiKey);
+
+ if (!result || !result.live) {
+    logger.info(`API found no live stream for ${channelId}, trying scraper...`);
+    result = await checkYouTubeEndpoints(channelId);
+  }
   await set(churchId, cacheKey, result, CACHE_TTL);
-  
   return result;
 }
 
@@ -65,12 +91,14 @@ router.get('/feed', async (req, res) => {
   try {
     const churchId = req.church._id;
     const setting = await Settings.findOne({ church: churchId, key: 'channel' }).lean();
-    
     if (!setting?.value) {
       return res.status(404).json({ error: 'YouTube channel setting not found' });
     }
+    
+    const api_key = await Settings.findOne({ church: churchId, key: 'youtube_api_key' }).lean();
+    const YOUTUBE_API_KEY = api_key?.value || process.env.YOUTUBE_API_KEY;  
 
-    const response = await detectLiveStream(setting.value, churchId);
+    const response = await detectLiveStream(setting.value, churchId, YOUTUBE_API_KEY );
     res.json(response);
   } catch (error) {
     logger.error('Livestream feed error:', error);
