@@ -137,7 +137,9 @@ router.get('/upcoming', attachTimezone, async (req, res) => {
           ]
         };
         if(church) { filter.church = church._id; }
+        console.log('Upcoming events filter:', JSON.stringify(filter));
         const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1, startTime: 1 }).lean();
+        console.log('Upcoming event found:', event);   
         if (event) {
             event.effectiveCheckinOpen = event.isCheckinOpen;
         }
