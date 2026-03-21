@@ -4,7 +4,7 @@ const Verification = require('../models/verification');
 const Church = require('../models/church');
 const { validateVerification } = require('../middlewares/validators');
 const { cacheRoute } = require('../middlewares/tenantCache');
-const { uploadDocs } = require('../common/upload');
+const { uploadDocs, uploadToMinio, deleteFile } = require('../common/upload');
 const router = express.Router();
 
 router.post(
@@ -15,6 +15,10 @@ router.post(
   ]),
   validateVerification(),
   async (req, res) => {
+    let uploadedGovernmentIdUrl = null;
+    let uploadedRegistrationProofUrl = null;
+    let uploadedSupportingDocs = [];
+
     try {
       const {
         incorporationNumber,
@@ -59,14 +63,35 @@ router.post(
         console.warn('Invalid supportingDocs metadata');
       }
 
-      // Map uploaded supportingDocs
-      const supportingDocs = files
-        .filter((f) => f.fieldname.startsWith('supportingDocs'))
-        .map((f, i) => ({
-          type: supportingDocsMeta[i]?.type || 'other',
-          fileUrl: `${process.env.API_BASE_URL}/uploads/${f.filename}`,
-          originalName: f.originalname,
-        }));
+      // Upload files to MinIO
+      let uploadedGovernmentIdUrl = null;
+      let uploadedRegistrationProofUrl = null;
+      let uploadedSupportingDocs = [];
+
+      try {
+        uploadedGovernmentIdUrl = await uploadToMinio(governmentId);
+        uploadedRegistrationProofUrl = await uploadToMinio(registrationProof);
+
+        // Upload supporting docs
+        const supportingFiles = files.filter((f) => f.fieldname.startsWith('supportingDocs'));
+        for (const file of supportingFiles) {
+          const url = await uploadToMinio(file);
+          uploadedSupportingDocs.push({
+            type: supportingDocsMeta[uploadedSupportingDocs.length]?.type || 'other',
+            fileUrl: url,
+            originalName: file.originalname,
+          });
+        }
+      } catch (uploadError) {
+        // Cleanup on upload failure
+        if (uploadedGovernmentIdUrl) { await deleteFile(uploadedGovernmentIdUrl); }
+        if (uploadedRegistrationProofUrl) { await deleteFile(uploadedRegistrationProofUrl); }
+        for (const doc of uploadedSupportingDocs) {
+          await deleteFile(doc.fileUrl);
+        }
+        console.error('File upload error:', uploadError);
+        return res.status(500).json({ error: 'Failed to upload files.' });
+      }
 
       const submitter = submittedBy || req.headers['x-user'];
       const church = churchId || req.church._id;
@@ -78,14 +103,14 @@ router.post(
         incorporationNumber,
         craNumber,
         governmentId: {
-          fileUrl: `${process.env.API_BASE_URL}/uploads/${governmentId.filename}`,
+          fileUrl: uploadedGovernmentIdUrl,
           originalName: governmentId.originalname,
         },
         registrationProof: {
-          fileUrl: `${process.env.API_BASE_URL}//uploads/${registrationProof.filename}`,
+          fileUrl: uploadedRegistrationProofUrl,
           originalName: registrationProof.originalname,
         },
-        supportingDocs,
+        supportingDocs: uploadedSupportingDocs,
       });
 
       await verification.save();
@@ -95,6 +120,12 @@ router.post(
         verification,
       });
     } catch (err) {
+      // Cleanup uploaded files on error
+      if (uploadedGovernmentIdUrl) { await deleteFile(uploadedGovernmentIdUrl); }
+      if (uploadedRegistrationProofUrl) { await deleteFile(uploadedRegistrationProofUrl); }
+      for (const doc of uploadedSupportingDocs) {
+        await deleteFile(doc.fileUrl);
+      }
       console.error('Verification error:', err);
       return res.status(400).json({ error: err.message });
     }

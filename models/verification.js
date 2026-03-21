@@ -2,6 +2,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const validateRefs = require("../common/validateRefs");
+const Church = require("./church");
 
 const SupportingDocSchema = new Schema(
   {
@@ -42,6 +43,15 @@ const VerificationSchema = new Schema(
 // Compound indexes for efficient queries
 VerificationSchema.index({ churchId: 1, status: 1 });
 VerificationSchema.index({ submittedBy: 1, createdAt: -1 });
+
+VerificationSchema.post("save", async function(doc) {
+  try {
+    const isApproved = doc.status === "approved";
+    await Church.updateOne({ _id: doc.churchId }, { isApproved });
+  } catch (error) {
+    console.error("Error updating church approval status:", error);
+  }
+});
 
 VerificationSchema.plugin(validateRefs, {
   refs: [
