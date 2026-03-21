@@ -128,9 +128,16 @@ router.get('/upcoming', attachTimezone, async (req, res) => {
         }
         // Use UTC for all date/time handling
         const now = new Date();
-        let filter = {date: { $gte: now }};
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+        let filter = {
+          $or: [
+            { date: { $gt: today } },
+            { date: today, startTime: { $gt: currentTime } }
+          ]
+        };
         if(church) { filter.church = church._id; }
-        const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1 }).lean();
+        const event = await EventInstance.findOne(filter).populate('location').select('title date startTime location isCheckinOpen').sort({ date: 1, startTime: 1 }).lean();
         if (event) {
             event.effectiveCheckinOpen = event.isCheckinOpen;
         }
