@@ -2,8 +2,6 @@ const Church = require('../models/church');
 const user = require('../models/user');
 const Event = require('../models/event');
 const EventInstance = require('../models/eventinstance');
-const { getChurchTimezone, nowInChurchTz, addTimeInChurchTz } = require('./timezone.helper');
-const moment = require('moment-timezone');
 
 class EventService {
 
@@ -12,33 +10,32 @@ getInstanceDateKey(date) {
 }
 
 async buildRecurringInstances(event) {
-  // Get church timezone for proper date calculations
-  const timezone = await getChurchTimezone(event.church);
-  const now = nowInChurchTz(timezone);
-  const futureLimit = now.clone().add(365, 'days').toDate();
+  // Use UTC date calculations (no timezone conversion needed)
+  const now = new Date();
+  const futureLimit = new Date(now);
+  futureLimit.setUTCDate(futureLimit.getUTCDate() + 365);
 
   const { recurrence, startDate, startTime, endTime } = event;
   let occurrences = [];
-  let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || [], timezone);
+  let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || []);
 
   while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
-    const currentMoment = moment.utc(current).tz(timezone);
-    const weekday = currentMoment.day();
+    const weekday = current.getUTCDay();
 
     if (recurrence.frequency === 'DAILY') {
       occurrences.push(new Date(current));
-      current = addTimeInChurchTz(current, recurrence.interval, 'days', timezone);
+      current = this.addDaysUTC(current, recurrence.interval);
     } else if (recurrence.frequency === 'WEEKLY' && recurrence.daysOfWeek.includes(weekday)) {
       occurrences.push(new Date(current));
-      current = addTimeInChurchTz(current, recurrence.interval * 7, 'days', timezone);
+      current = this.addDaysUTC(current, recurrence.interval * 7);
     } else if (recurrence.frequency === 'MONTHLY') {
       occurrences.push(new Date(current));
-      current = addTimeInChurchTz(current, recurrence.interval, 'months', timezone);
+      current = this.addMonthsUTC(current, recurrence.interval);
     } else if (recurrence.frequency === 'YEARLY') {
       occurrences.push(new Date(current));
-      current = addTimeInChurchTz(current, recurrence.interval, 'years', timezone);
+      current = this.addYearsUTC(current, recurrence.interval);
     } else {
-      current = addTimeInChurchTz(current, 1, 'days', timezone);
+      current = this.addDaysUTC(current, 1);
     }
   }
 
@@ -120,18 +117,38 @@ flattenObject(obj, prefix = '', result = {}) {
   return result;
 }
 
- getFirstMatchingWeekday(startDate, daysOfWeek, timezone) {
-  const start = moment.utc(startDate).tz(timezone);
-  const maxLookahead = 7; // one week
+ getFirstMatchingWeekday(startDate, daysOfWeek) {
+  const start = new Date(startDate);
+  const maxLookahead = 7;
 
   for (let i = 0; i < maxLookahead; i++) {
-    const candidate = start.clone().add(i, 'days');
-    if (daysOfWeek.includes(candidate.day())) {
-      return candidate.toDate();
+    const candidate = new Date(start);
+    candidate.setUTCDate(candidate.getUTCDate() + i);
+    const candidateDayOfWeek = candidate.getUTCDay();
+    if (daysOfWeek.includes(candidateDayOfWeek)) {
+      return candidate;
     }
   }
 
   return start.toDate(); // fallback if no match (shouldn't happen)
+}
+
+addDaysUTC(date, days) {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+addMonthsUTC(date, months) {
+  const result = new Date(date);
+  result.setUTCMonth(result.getUTCMonth() + months);
+  return result;
+}
+
+addYearsUTC(date, years) {
+  const result = new Date(date);
+  result.setUTCFullYear(result.getUTCFullYear() + years);
+  return result;
 }
 
 async expandRecurringEvents() {
