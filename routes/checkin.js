@@ -3,7 +3,6 @@
 */
 // routes/checkin.js
 const {authenticateFirebaseToken} = require('../middlewares/auth');
-const {isValidObjectId} = require('../middlewares/validators');
 const moment = require('moment-timezone');
 const EventInstance = require('../models/eventinstance');
 const Church = require('../models/church');
@@ -24,10 +23,50 @@ async function getCurrentUser(req) {
   return User.findOne({ firebaseId: firebaseUid }).lean();
 }
 
+async function getActiveCheckInForUser(userId) {
+  return await CheckIn.findOne({
+    requestedBy: userId,
+    // We only care about check-ins that haven't been fully 'picked_up' yet
+    'children.status': { $in: ['check_in_request', 'dropped_off'] }
+  })
+  .populate('children.child', 'firstName lastName')
+  .populate('eventInstance', 'title date startTime endTime')
+  .lean();
+}
+
 // Generate a random 4-digit pickup code
 function generatePickupCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
+
+/*
+#swagger.tags = ['Checkin']
+#swagger.description = 'Checks if the user has a pending or active check-in session.'
+*/
+router.get('/active', authenticateFirebaseToken, async (req, res) => {
+  try {
+    const currentUser = await getCurrentUser(req);
+    if (!currentUser) {return res.status(401).json({ error: 'Unauthorized' });}
+
+    const activeCheckIn = await getActiveCheckInForUser(currentUser._id);
+
+    if (!activeCheckIn) {
+      return res.status(200).json({ hasActiveCheckIn: false });
+    }
+
+    // Check if the check-in has expired (if it was never confirmed)
+    if (activeCheckIn.expiresAt && new Date() > new Date(activeCheckIn.expiresAt)) {
+      return res.status(200).json({ hasActiveCheckIn: false, message: 'Previous request expired.' });
+    }
+
+    res.status(200).json({
+      hasActiveCheckIn: true,
+      checkIn: activeCheckIn
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // isAutoCheckinWindowOpen function removed (unused)
 //initiate drop-off
@@ -42,15 +81,23 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
 
   try {
     const currentUser = await getCurrentUser(req);
-    if (!currentUser) {
-      return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+    if (!currentUser) {return res.status(401).json({ error: 'Unauthorized' });}
+
+    // 1. Prevent multiple active check-in sessions
+    const existing = await getActiveCheckInForUser(currentUser._id);
+    if (existing) {
+      return res.status(400).json({ 
+        message: 'You already have an active check-in session.', 
+        checkInId: existing._id 
+      });
     }
 
-    if (!Array.isArray(child) || child.length === 0 || !child.every(isValidObjectId)) {
-      return res.status(400).json({ error: 'Invalid or missing child IDs' });
+    // 2. Validate Children
+    if (!Array.isArray(child) || child.length === 0) {
+      return res.status(400).json({ error: 'No children selected' });
     }
 
-    const kids = await Kid.find({ _id: { $in: child } }).populate('parent');
+    const kids = await Kid.find({ _id: { $in: child } });
     if (kids.length !== child.length) {
       return res.status(400).json({ error: 'One or more child IDs do not exist' });
     }
@@ -66,83 +113,44 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       });
     }
 
-    const churchId = currentUser.church;
-    const church = await Church.findById(churchId).select('timeZone').lean();
+    const church = await Church.findById(currentUser.church).select('timeZone').lean();
     const churchTimezone = church?.timeZone || 'UTC';
-
-    // 1. Get current time in church's local timezone
     const nowInChurchTz = moment.tz(churchTimezone);
-    
-    // 2. Define the search window (Today in Church Timezone)
-    // We use .startOf('day').toDate() to get the UTC point that represents 00:00 in the church's TZ
+
+    // 3. Find Today's Events
     const startOfDay = nowInChurchTz.clone().startOf('day').toDate();
     const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
 
     const todayInstances = await EventInstance.find({
-      church: churchId,
+      church: currentUser.church,
       date: { $gte: startOfDay, $lte: endOfDay }
-    })
-    .sort({ startTime: 1 })
-    .lean();
+    }).lean();
 
-    // 3. Robust check-in allowance logic
-    const isCheckinAllowed = (instance) => {
+    const checkinOpenInstance = todayInstances.find(instance => {
       if (instance.isCheckinOpen) {return true;}
-      if (!instance.date || !instance.startTime || !instance.endTime){ return false;}
-
-      // FIX: Extract the literal "YYYY-MM-DD" from the UTC Date string 
-      // This prevents "2026-03-22T00:00Z" from becoming "2026-03-21" in MDT
+      
       const literalDate = new Date(instance.date).toISOString().split('T')[0];
-
-      // Stitch literal date + string time into the Church's context
       const eventStart = moment.tz(`${literalDate} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
       const eventEnd = moment.tz(`${literalDate} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
       
-      // Define the "Auto-Open" window (e.g., 2 hours before start)
-      const windowOpenTime = eventStart.clone().subtract(2, 'hours');
-
-      // Check-in is allowed if "Now" is between (Start - 2hrs) and the actual End of the event
-      return nowInChurchTz.isBetween(windowOpenTime, eventEnd);
-    };
-
-    const checkinOpenInstance = todayInstances.find(isCheckinAllowed);
+      return nowInChurchTz.isBetween(eventStart.clone().subtract(2, 'hours'), eventEnd);
+    });
 
     if (!checkinOpenInstance) {
-      return res.status(400).json({
-        message: 'No active events found. Check-in opens 2 hours before the event starts.'
-      });
+      return res.status(400).json({ message: 'No events are currently open for check-in.' });
     }
-
-    // 4. Conflict Check
-    for (const kidId of child) {
-      const existingCheckIn = await CheckIn.findOne({
-        'children.child': kidId,
-        'children.status': { $in: ['check_in_request', 'dropped_off'] },
-        eventInstance: checkinOpenInstance._id
-      });
-
-      if (existingCheckIn) {
-        return res.status(400).json({
-          message: `Child already has an active check-in for ${checkinOpenInstance.title}.`
-        });
-      }
-    }
-
-    const pickupCode = generatePickupCode();
-    const expiresAt = new Date(Date.now() + 15 * 60000); // 15 mins from now UTC
 
     const newCheckIn = new CheckIn({
-      children: child.map(kidId => ({ child: kidId, status: 'check_in_request' })),
-      expiresAt,
+      children: child.map(id => ({ child: id, status: 'check_in_request' })),
+      expiresAt: new Date(Date.now() + 15 * 60000), 
       eventInstance: checkinOpenInstance._id,
       requestedBy: currentUser._id,
-      pickupCode
+      pickupCode: generatePickupCode()
     });
 
     await newCheckIn.save();
-    await newCheckIn.populate('children.child', 'firstName lastName');
+   await newCheckIn.populate('children.child', 'firstName lastName');
 
-    // 5. Socket Emission
     try {
       getIO().emit('checkin:initiated', {
         checkInId: newCheckIn._id,
@@ -157,16 +165,9 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
         timestamp: new Date()
       });
     } catch (err) { console.error('Socket fail:', err.message); }
-
-    res.status(201).json({
-      message: 'Check-in request created.',
-      checkIn: newCheckIn,
-      eventTitle: checkinOpenInstance.title,
-      pickupCode
-    });
+    res.status(201).json({ message: 'Check-in initiated', checkIn: newCheckIn });
 
   } catch (err) {
-    console.error('Check-in error:', err);
     res.status(500).json({ error: err.message });
   }
 });
