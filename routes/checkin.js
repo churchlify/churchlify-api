@@ -34,28 +34,27 @@ function generatePickupCode() {
 /*
 #swagger.tags = ['Checkin']
 */
+/*
+#swagger.tags = ['Checkin']
+*/
 router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
-  const { child } = req.body; // expecting an array of ObjectIds
+  const { child } = req.body; 
 
   try {
-    // Get authenticated user
     const currentUser = await getCurrentUser(req);
     if (!currentUser) {
       return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
     }
 
-    // Validate input
     if (!Array.isArray(child) || child.length === 0 || !child.every(isValidObjectId)) {
       return res.status(400).json({ error: 'Invalid or missing child IDs' });
     }
 
-    // Fetch all kids and validate existence
     const kids = await Kid.find({ _id: { $in: child } }).populate('parent');
     if (kids.length !== child.length) {
       return res.status(400).json({ error: 'One or more child IDs do not exist' });
     }
 
-    // SECURITY: Verify current user is the parent of all children
     const unauthorizedKids = kids.filter(kid => 
       String(kid.parent._id) !== String(currentUser._id)
     );
@@ -67,78 +66,55 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       });
     }
 
-    // Assume all kids share the same parent/church (verified by authorization)
     const churchId = currentUser.church;
-
-    // Get church timezone for proper date/time comparisons
     const church = await Church.findById(churchId).select('timeZone').lean();
     const churchTimezone = church?.timeZone || 'UTC';
 
-    // Get current time in church timezone
+    // 1. Get current time in church's local timezone
     const nowInChurchTz = moment.tz(churchTimezone);
-    const now = nowInChurchTz.toDate(); // Current time as Date object
-    const expiresAt = new Date(now.getTime() + 15 * 60000); // 15 minutes from now
+    
+    // 2. Define the search window (Today in Church Timezone)
+    // We use .startOf('day').toDate() to get the UTC point that represents 00:00 in the church's TZ
+    const startOfDay = nowInChurchTz.clone().startOf('day').toDate();
+    const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
 
-    // Calculate start and end of today in church timezone, then convert to UTC for MongoDB query
-    const startOfDayInChurchTz = nowInChurchTz.clone().startOf('day');
-    const endOfDayInChurchTz = nowInChurchTz.clone().endOf('day');
-    const startOfDay = startOfDayInChurchTz.toDate(); // UTC equivalent
-    const endOfDay = endOfDayInChurchTz.toDate(); // UTC equivalent
-
-    // Find event instances for today and allow manual override or auto-open window (next 2 hours)
     const todayInstances = await EventInstance.find({
       church: churchId,
       date: { $gte: startOfDay, $lte: endOfDay }
     })
-      .sort({ date: 1, startTime: 1 })
-      .lean();
+    .sort({ startTime: 1 })
+    .lean();
 
-    // Helper function to check if check-in is allowed for an event instance
-    // Check-in is allowed if:
-    // 1. isCheckinOpen is manually set to true, OR
-    // 2. Current time (in church timezone) is within 2 hours of event start time (before or after) AND event end date is in the future
+    // 3. Robust check-in allowance logic
     const isCheckinAllowed = (instance) => {
-      if (instance.isCheckinOpen) {
-        return true;
-      }
+      if (instance.isCheckinOpen) {return true;}
+      if (!instance.date || !instance.startTime || !instance.endTime){ return false;}
 
-      if (!instance.date || !instance.startTime || !instance.endTime) {
-        return false;
-      }
+      // FIX: Extract the literal "YYYY-MM-DD" from the UTC Date string 
+      // This prevents "2026-03-22T00:00Z" from becoming "2026-03-21" in MDT
+      const literalDate = new Date(instance.date).toISOString().split('T')[0];
 
-      // Parse event start and end times in church timezone
-      const eventDateStr = moment.tz(instance.date, churchTimezone).format('YYYY-MM-DD');
-      const eventStartDateTime = moment.tz(`${eventDateStr} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
-      const eventEndDateTime = moment.tz(`${eventDateStr} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+      // Stitch literal date + string time into the Church's context
+      const eventStart = moment.tz(`${literalDate} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+      const eventEnd = moment.tz(`${literalDate} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+      
+      // Define the "Auto-Open" window (e.g., 2 hours before start)
+      const windowOpenTime = eventStart.clone().subtract(2, 'hours');
 
-      // Current time in church timezone
-      const currentTimeInChurchTz = moment.tz(churchTimezone);
-
-      // Two hours from now in church timezone
-      const twoHoursFromNowInChurchTz = currentTimeInChurchTz.clone().add(2, 'hours');
-
-      // Check if event starts within the next 2 hours (event start is between now and 2 hours from now)
-      const isEventStartingSoon = eventStartDateTime.isSameOrAfter(currentTimeInChurchTz) &&
-        eventStartDateTime.isSameOrBefore(twoHoursFromNowInChurchTz);
-
-      // Check if event end date is in the future
-      const isEventEndInFuture = eventEndDateTime.isAfter(currentTimeInChurchTz);
-      console.log(`Checking event instance ${instance._id}: starts at ${eventStartDateTime.format()} (isEventStartingSoon: ${isEventStartingSoon}), ends at ${eventEndDateTime.format()} (isEventEndInFuture: ${isEventEndInFuture})`);
-
-      return isEventStartingSoon && isEventEndInFuture;
+      // Check-in is allowed if "Now" is between (Start - 2hrs) and the actual End of the event
+      return nowInChurchTz.isBetween(windowOpenTime, eventEnd);
     };
 
     const checkinOpenInstance = todayInstances.find(isCheckinAllowed);
 
     if (!checkinOpenInstance) {
       return res.status(400).json({
-        message: 'Check-in opens automatically for same-day events starting within the next 2 hours.'
+        message: 'No active events found. Check-in opens 2 hours before the event starts.'
       });
     }
 
-    // Check for conflicts per child
+    // 4. Conflict Check
     for (const kidId of child) {
-      // Check if child already has an active check-in for this event
       const existingCheckIn = await CheckIn.findOne({
         'children.child': kidId,
         'children.status': { $in: ['check_in_request', 'dropped_off'] },
@@ -147,20 +123,16 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
 
       if (existingCheckIn) {
         return res.status(400).json({
-          message: `Child ${kidId} already has an active check-in request for this event.`
+          message: `Child already has an active check-in for ${checkinOpenInstance.title}.`
         });
       }
     }
 
-    // Create and save the new check-in REQUEST (pending staff confirmation)
     const pickupCode = generatePickupCode();
-    const children = child.map(kidId => ({
-      child: kidId,
-      status: 'check_in_request' // Pending confirmation from church staff
-    }));
+    const expiresAt = new Date(Date.now() + 15 * 60000); // 15 mins from now UTC
 
     const newCheckIn = new CheckIn({
-      children,
+      children: child.map(kidId => ({ child: kidId, status: 'check_in_request' })),
       expiresAt,
       eventInstance: checkinOpenInstance._id,
       requestedBy: currentUser._id,
@@ -170,10 +142,9 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
     await newCheckIn.save();
     await newCheckIn.populate('children.child', 'firstName lastName');
 
-    // Emit WebSocket event for real-time updates
+    // 5. Socket Emission
     try {
-      const io = getIO();
-      io.emit('checkin:initiated', {
+      getIO().emit('checkin:initiated', {
         checkInId: newCheckIn._id,
         eventInstance: checkinOpenInstance._id,
         eventTitle: checkinOpenInstance.title,
@@ -185,22 +156,20 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
         requestedBy: currentUser._id,
         timestamp: new Date()
       });
-    } catch (socketErr) {
-      console.error('Socket emission failed:', socketErr.message);
-    }
+    } catch (err) { console.error('Socket fail:', err.message); }
 
     res.status(201).json({
-      message: 'Check-in request created successfully. Waiting for staff confirmation.',
+      message: 'Check-in request created.',
       checkIn: newCheckIn,
       eventTitle: checkinOpenInstance.title,
-      pickupCode: pickupCode // ONE code for all kids - can be used multiple times
+      pickupCode
     });
+
   } catch (err) {
     console.error('Check-in error:', err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // Confirm drop-off (for church staff/volunteers)
 /*
