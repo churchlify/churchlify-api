@@ -123,6 +123,7 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
 
       // Check if event end date is in the future
       const isEventEndInFuture = eventEndDateTime.isAfter(currentTimeInChurchTz);
+      console.log(`Checking event instance ${instance._id}: starts at ${eventStartDateTime.format()} (isEventStartingSoon: ${isEventStartingSoon}), ends at ${eventEndDateTime.format()} (isEventEndInFuture: ${isEventEndInFuture})`);
 
       return isEventStartingSoon && isEventEndInFuture;
     };
