@@ -92,6 +92,7 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
           const [h, m] = instance.startTime.split(':').map(Number);
           eventStart.setUTCHours(h || 0, m || 0, 0, 0);
           const twoHoursFromNow = new Date(now.getTime() + 2 * 3600000);
+          console.log(`Event start: "${eventStart}" and 2 hrs time ${twoHoursFromNow} against current time ${now.toISOString()} and now + 2hrs ${twoHoursFromNow.toISOString()}`);
           return eventStart >= now && eventStart <= twoHoursFromNow;
         })()
       )
