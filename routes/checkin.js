@@ -4,8 +4,9 @@
 // routes/checkin.js
 const {authenticateFirebaseToken} = require('../middlewares/auth');
 const {isValidObjectId} = require('../middlewares/validators');
-// moment import removed (unused)
+const moment = require('moment-timezone');
 const EventInstance = require('../models/eventinstance');
+const Church = require('../models/church');
 const express = require('express');
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
@@ -68,11 +69,21 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
 
     // Assume all kids share the same parent/church (verified by authorization)
     const churchId = currentUser.church;
-    // Use UTC for all date/time calculations
-    const now = new Date();
+
+    // Get church timezone for proper date/time comparisons
+    const church = await Church.findById(churchId).select('timeZone').lean();
+    const churchTimezone = church?.timeZone || 'UTC';
+
+    // Get current time in church timezone
+    const nowInChurchTz = moment.tz(churchTimezone);
+    const now = nowInChurchTz.toDate(); // Current time as Date object
     const expiresAt = new Date(now.getTime() + 15 * 60000); // 15 minutes from now
-    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-    const endOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+
+    // Calculate start and end of today in church timezone, then convert to UTC for MongoDB query
+    const startOfDayInChurchTz = nowInChurchTz.clone().startOf('day');
+    const endOfDayInChurchTz = nowInChurchTz.clone().endOf('day');
+    const startOfDay = startOfDayInChurchTz.toDate(); // UTC equivalent
+    const endOfDay = endOfDayInChurchTz.toDate(); // UTC equivalent
 
     // Find event instances for today and allow manual override or auto-open window (next 2 hours)
     const todayInstances = await EventInstance.find({
@@ -82,21 +93,41 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       .sort({ date: 1, startTime: 1 })
       .lean();
 
-    const checkinOpenInstance = todayInstances.find((instance) =>
-      instance.isCheckinOpen || (
-        instance.date && instance.startTime &&
-        (() => {
-          // Auto-checkin window: event starts within next 2 hours
-          const eventStart = new Date(instance.date);
-          // Parse startTime as HH:mm
-          const [h, m] = instance.startTime.split(':').map(Number);
-          eventStart.setUTCHours(h || 0, m || 0, 0, 0);
-          const twoHoursFromNow = new Date(now.getTime() + 2 * 3600000);
-          console.log(`Event start: "${eventStart}" and 2 hrs time ${twoHoursFromNow} against current time ${now.toISOString()} and now + 2hrs ${twoHoursFromNow.toISOString()}`);
-          return eventStart >= now && eventStart <= twoHoursFromNow;
-        })()
-      )
-    );
+    // Helper function to check if check-in is allowed for an event instance
+    // Check-in is allowed if:
+    // 1. isCheckinOpen is manually set to true, OR
+    // 2. Current time (in church timezone) is within 2 hours of event start time (before or after) AND event end date is in the future
+    const isCheckinAllowed = (instance) => {
+      if (instance.isCheckinOpen) {
+        return true;
+      }
+
+      if (!instance.date || !instance.startTime || !instance.endTime) {
+        return false;
+      }
+
+      // Parse event start and end times in church timezone
+      const eventDateStr = moment.tz(instance.date, churchTimezone).format('YYYY-MM-DD');
+      const eventStartDateTime = moment.tz(`${eventDateStr} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+      const eventEndDateTime = moment.tz(`${eventDateStr} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+
+      // Current time in church timezone
+      const currentTimeInChurchTz = moment.tz(churchTimezone);
+
+      // Two hours from now in church timezone
+      const twoHoursFromNowInChurchTz = currentTimeInChurchTz.clone().add(2, 'hours');
+
+      // Check if event starts within the next 2 hours (event start is between now and 2 hours from now)
+      const isEventStartingSoon = eventStartDateTime.isSameOrAfter(currentTimeInChurchTz) &&
+        eventStartDateTime.isSameOrBefore(twoHoursFromNowInChurchTz);
+
+      // Check if event end date is in the future
+      const isEventEndInFuture = eventEndDateTime.isAfter(currentTimeInChurchTz);
+
+      return isEventStartingSoon && isEventEndInFuture;
+    };
+
+    const checkinOpenInstance = todayInstances.find(isCheckinAllowed);
 
     if (!checkinOpenInstance) {
       return res.status(400).json({
