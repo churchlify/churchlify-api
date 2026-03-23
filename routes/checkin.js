@@ -397,6 +397,81 @@ router.get('/find/:id', authenticateFirebaseToken, async(req, res) => {
 /*
 #swagger.tags = ['Checkin']
 */
+router.get('/search', authenticateFirebaseToken, async(req, res) => {
+    try {
+        const currentUser = await getCurrentUser(req);
+        if (!currentUser) {
+          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
+        }
+
+        const { pickupCode, lastName } = req.query;
+        
+        if (!pickupCode && !lastName) {
+            return res.status(400).json({ error: 'Please provide either pickupCode or lastName to search' });
+        }
+
+        // Base match for EventInstance to ensure it's the current user's church
+        const eventMatch = { church: currentUser.church };
+
+        // Query check-ins
+        let checkinQuery = { eventInstance: { $exists: true } };
+
+        if (pickupCode) {
+            checkinQuery.pickupCode = pickupCode;
+        }
+
+        // If searching by lastName, find kids first
+        let kidIds = null;
+        if (lastName) {
+            const kids = await Kid.find({ 
+                lastName: { $regex: new RegExp(`^${lastName}$`, 'i') } 
+            }).select('_id').lean();
+            
+            if (kids.length === 0) {
+                return res.status(200).json({ checkins: [] });
+            }
+            
+            kidIds = kids.map(k => k._id);
+            if (pickupCode) {
+                checkinQuery['children.child'] = { $in: kidIds };
+            } else {
+                checkinQuery['children.child'] = { $in: kidIds };
+            }
+        }
+
+        const checkins = await CheckIn.find(checkinQuery)
+          .select('children expiresAt eventInstance requestedBy createdAt pickupCode')
+          .populate({
+            path: 'eventInstance',
+            match: eventMatch,
+            select: 'title date church'
+          })
+          .populate('children.child', 'firstName lastName')
+          .populate('requestedBy', 'firstName lastName')
+          .lean();
+
+        // Filter out null eventInstances (from different churches)
+        // If kidIds was set, further ensure the populated children match the last name if not already exact
+        let filteredCheckins = checkins.filter(c => c.eventInstance !== null);
+
+        if (lastName && kidIds) {
+            // Check if any of the populated children have the matching last name
+            filteredCheckins = filteredCheckins.filter(c => {
+                return c.children.some(ch => 
+                    ch.child && ch.child.lastName && ch.child.lastName.toLowerCase() === lastName.toLowerCase()
+                );
+            });
+        }
+
+        res.status(200).json({ checkIns: filteredCheckins });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+/*
+#swagger.tags = ['Checkin']
+*/
 router.get('/list', authenticateFirebaseToken, async(req, res) => {
     try {
         const currentUser = await getCurrentUser(req);
