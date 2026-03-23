@@ -125,6 +125,7 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       church: currentUser.church,
       date: { $gte: startOfDay, $lte: endOfDay }
     }).lean();
+    console.log(`Found ${todayInstances.length} event instances for today in church ${currentUser.church} using startOfDay ${startOfDay} and endOfDay ${endOfDay}`);
 
     const checkinOpenInstance = todayInstances.find(instance => {
       if (instance.isCheckinOpen) {return true;}
