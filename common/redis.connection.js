@@ -5,7 +5,7 @@ const CONFIG = {
     host: process.env.REDIS_HOST || `redis.${process.env.K8S_NAMESPACE || 'platform'}.svc.cluster.local`,
     port: parseInt(process.env.REDIS_PORT || '6379'),
     password: process.env.REDIS_PASSWORD,
-    connectTimeout: 10000,
+    connectTimeout: 20000,
     // KeepAlive is vital for avoiding ETIMEDOUT in cloud VPCs (AWS/GCP)
     keepAlive: 10000, 
     family: 4, 
@@ -44,6 +44,12 @@ const createClient = () => {
     client.on('connect', () => console.log('Redis: Socket connected.'));
     client.on('ready', () => console.info('Redis: Cluster/Server ready.'));
     client.on('error', (err) => console.error(`Redis Error: ${err.message}`));
+    client.on('error', (err) => {
+    if (err.message.includes('Ready check failed')) {
+        console.error('CRITICAL: Redis connected but failed AUTH or INFO check. Check password!');
+    }
+    console.error(`Redis Error: ${err.message}`);
+});
     
     // Graceful Shutdown Handler
     process.on('SIGTERM', async () => {
