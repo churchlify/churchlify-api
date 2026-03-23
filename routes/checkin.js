@@ -118,8 +118,10 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
     const nowInChurchTz = moment.tz(churchTimezone);
 
     // 3. Find Today's Events
-    const startOfDay = nowInChurchTz.clone().startOf('day').toDate();
-    const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
+    // Use the church's local date string to build a UTC-wide window
+    const dateStr = nowInChurchTz.format('YYYY-MM-DD');
+    const startOfDay = moment.utc(dateStr).startOf('day').toDate(); // 2026-03-23T00:00:00Z
+    const endOfDay = moment.utc(dateStr).endOf('day').toDate();   // 2026-03-23T23:59:59Z
 
     const todayInstances = await EventInstance.find({
       church: currentUser.church,
