@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     dateOfBirth: {type: Date, required: [true, 'Date of birth is required']},
     gender: { type: String, enum: ['Male', 'Female'] },
     isMarried: {type:Boolean, default: false},
+    isChurchAdmin: {type:Boolean, default: false},
     anniversaryDate: Date,
     emailAddress: { type: String, required: [true, 'Email is required'], unique: true, lowercase: true, trim: true, index: true },
     phoneNumber: { type: String, required: [true, 'Phone number is required'], unique: true, lowercase: true, trim: true, index: true },
@@ -23,7 +24,7 @@ const userSchema = new mongoose.Schema({
     lastActivityAt: { type: Date },
     adminAt: {type: Schema.Types.ObjectId, ref: 'Church', index: true},
     firebaseId: { type: String, required: [true, 'firebaseId is required'], unique: true, trim: true, index: true },
-    role: { type: String, enum: ['super', 'member', 'admin'], default: 'member', index: true }
+    role: { type: String, enum: ['super', 'member', 'admin','chaperone','church_admin'], default: 'member', index: true }
 }, { timestamps: true });
 
 // Compound indexes for efficient queries

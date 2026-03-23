@@ -132,6 +132,12 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       const literalDate = new Date(instance.date).toISOString().split('T')[0];
       const eventStart = moment.tz(`${literalDate} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
       const eventEnd = moment.tz(`${literalDate} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+      console.log(`Checking event "${instance.title}" for check-in window:`, {
+        now: nowInChurchTz.format(),
+        eventStart: eventStart.format(),
+        eventEnd: eventEnd.format(),
+        isBetween: nowInChurchTz.isBetween(eventStart.clone().subtract(2, 'hours'), eventEnd)
+      });
       
       return nowInChurchTz.isBetween(eventStart.clone().subtract(2, 'hours'), eventEnd);
     });
