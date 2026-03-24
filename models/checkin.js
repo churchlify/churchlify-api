@@ -13,10 +13,10 @@ const checkInSchema = new mongoose.Schema({
         droppedOffBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         droppedOffAt: { type: Date },
         pickedUpBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        pickedUpAt: { type: Date }
+        pickedUpAt: { type: Date },
+        expiresAt: { type: Date, required: true }
     }],
-    createdAt: { type: Date, default: Date.now },
-    expiresAt: { type: Date, required: true }
+    createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 // Validate at least one child
@@ -27,7 +27,6 @@ checkInSchema.path('children').validate(function(children) {
 // Indexes for common queries
 checkInSchema.index({ 'children.child': 1 });
 checkInSchema.index({ 'children.status': 1 });
-checkInSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
 checkInSchema.pre('save', async function (next) {
     if (this.isNew || this.isModified('children')) {

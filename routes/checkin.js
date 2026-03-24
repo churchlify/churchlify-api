@@ -24,14 +24,25 @@ async function getCurrentUser(req) {
 }
 
 async function getActiveCheckInForUser(userId) {
-  return await CheckIn.findOne({
+  const now = new Date();
+
+  const checkIn = await CheckIn.findOne({
     requestedBy: userId,
-    // We only care about check-ins that haven't been fully 'picked_up' yet
     'children.status': { $in: ['check_in_request', 'dropped_off'] }
   })
   .populate('children.child', 'firstName lastName')
   .populate('eventInstance', 'title date startTime endTime')
   .lean();
+
+  if (!checkIn) {return null;}
+
+  checkIn.children = checkIn.children.filter(child => {
+    if (child.status !== 'check_in_request') {return true; }
+    return child.expiresAt && new Date(child.expiresAt) > now;
+  });
+
+  // If no children are left active after filtering, treat the whole check-in as inactive
+  return checkIn.children.length > 0 ? checkIn : null;
 }
 
 // Generate a random 4-digit pickup code
@@ -46,23 +57,36 @@ function generatePickupCode() {
 router.get('/active', authenticateFirebaseToken, async (req, res) => {
   try {
     const currentUser = await getCurrentUser(req);
-    if (!currentUser) {return res.status(401).json({ error: 'Unauthorized' });}
+    const { eventId } = req.query; // Client passes the ID of the event they are looking at
 
-    const activeCheckIn = await getActiveCheckInForUser(currentUser._id);
+    if (!eventId) {
+      return res.status(400).json({ error: 'Event ID is required to check active status' });
+    }
+
+    const activeCheckIn = await CheckIn.findOne({
+      requestedBy: currentUser._id,
+      eventInstance: eventId, // Strict match to the specific event
+      'children.status': { $in: ['check_in_request', 'dropped_off'] }
+    })
+    .populate('children.child', 'firstName lastName')
+    .lean();
 
     if (!activeCheckIn) {
       return res.status(200).json({ hasActiveCheckIn: false });
     }
 
-    // Check if the check-in has expired (if it was never confirmed)
-    if (activeCheckIn.expiresAt && new Date() > new Date(activeCheckIn.expiresAt)) {
-      return res.status(200).json({ hasActiveCheckIn: false, message: 'Previous request expired.' });
+    // Apply your new child-level expiry logic
+    const now = new Date();
+    activeCheckIn.children = activeCheckIn.children.filter(child => {
+      if (child.status !== 'check_in_request') {return true;}
+      return child.expiresAt && new Date(child.expiresAt) > now;
+    });
+
+    if (activeCheckIn.children.length === 0) {
+      return res.status(200).json({ hasActiveCheckIn: false, message: 'Requests expired' });
     }
 
-    res.status(200).json({
-      hasActiveCheckIn: true,
-      checkIn: activeCheckIn
-    });
+    res.status(200).json({ hasActiveCheckIn: true, checkIn: activeCheckIn });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -149,8 +173,9 @@ router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
       return res.status(400).json({ message: 'No events are currently open for check-in.' });
     }
 
+    const expiryTime = new Date(Date.now() + 15 * 60000); // 15 mins
     const newCheckIn = new CheckIn({
-      children: child.map(id => ({ child: id, status: 'check_in_request' })),
+      children: child.map(id => ({ child: id, status: 'check_in_request', expiresAt: expiryTime })),
       expiresAt: new Date(Date.now() + 15 * 60000), 
       eventInstance: checkinOpenInstance._id,
       requestedBy: currentUser._id,
@@ -397,76 +422,30 @@ router.get('/find/:id', authenticateFirebaseToken, async(req, res) => {
 /*
 #swagger.tags = ['Checkin']
 */
-router.get('/search', authenticateFirebaseToken, async(req, res) => {
-    try {
-        const currentUser = await getCurrentUser(req);
-        if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
-
-        const { pickupCode, lastName } = req.query;
-        
-        if (!pickupCode && !lastName) {
-            return res.status(400).json({ error: 'Please provide either pickupCode or lastName to search' });
-        }
-
-        // Base match for EventInstance to ensure it's the current user's church
-        const eventMatch = { church: currentUser.church };
-
-        // Query check-ins
-        let checkinQuery = { eventInstance: { $exists: true } };
-
-        if (pickupCode) {
-            checkinQuery.pickupCode = pickupCode;
-        }
-
-        // If searching by lastName, find kids first
-        let kidIds = null;
-        if (lastName) {
-            const kids = await Kid.find({ 
-                lastName: { $regex: new RegExp(`^${lastName}$`, 'i') } 
-            }).select('_id').lean();
-            
-            if (kids.length === 0) {
-                return res.status(200).json({ checkins: [] });
-            }
-            
-            kidIds = kids.map(k => k._id);
-            if (pickupCode) {
-                checkinQuery['children.child'] = { $in: kidIds };
-            } else {
-                checkinQuery['children.child'] = { $in: kidIds };
-            }
-        }
-
-        const checkins = await CheckIn.find(checkinQuery)
-          .select('children expiresAt eventInstance requestedBy createdAt pickupCode')
-          .populate({
-            path: 'eventInstance',
-            match: eventMatch,
-            select: 'title date church'
-          })
-          .populate('children.child', 'firstName lastName')
-          .populate('requestedBy', 'firstName lastName')
-          .lean();
-
-        // Filter out null eventInstances (from different churches)
-        // If kidIds was set, further ensure the populated children match the last name if not already exact
-        let filteredCheckins = checkins.filter(c => c.eventInstance !== null);
-
-        if (lastName && kidIds) {
-            // Check if any of the populated children have the matching last name
-            filteredCheckins = filteredCheckins.filter(c => {
-                return c.children.some(ch => 
-                    ch.child && ch.child.lastName && ch.child.lastName.toLowerCase() === lastName.toLowerCase()
-                );
-            });
-        }
-
-        res.status(200).json({ checkIns: filteredCheckins });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+router.get('/search', authenticateFirebaseToken, async (req, res) => {
+    const { pickupCode, lastName, eventId } = req.query;
+    
+    if (!eventId) {
+        return res.status(400).json({ error: 'Search must be scoped to a specific Event ID' });
     }
+
+    let checkinQuery = { eventInstance: eventId };
+
+    if (pickupCode) {checkinQuery.pickupCode = pickupCode;}
+    
+    if (lastName) {
+        const kids = await Kid.find({ 
+            lastName: { $regex: new RegExp(`^${lastName}$`, 'i') } 
+        }).select('_id');
+        checkinQuery['children.child'] = { $in: kids.map(k => k._id) };
+    }
+
+    const checkins = await CheckIn.find(checkinQuery)
+      .populate('children.child', 'firstName lastName')
+      .populate('requestedBy', 'firstName lastName')
+      .lean();
+
+    res.status(200).json({ checkIns: checkins });
 });
 
 /*
