@@ -439,6 +439,7 @@ router.get('/search', authenticateFirebaseToken, async (req, res) => {
         }).select('_id');
         checkinQuery['children.child'] = { $in: kids.map(k => k._id) };
     }
+    console.log('Check-in search query:', checkinQuery);
 
     const checkins = await CheckIn.find(checkinQuery)
       .populate('children.child', 'firstName lastName')
