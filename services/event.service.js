@@ -36,6 +36,7 @@ async function getChurchActiveEvent(user, preferredEventId = null) {
   const church = await Church.findById(user.church).select('timeZone').lean();
   const churchTimezone = church?.timeZone || 'UTC';
   const nowInChurchTz = moment.tz(churchTimezone);
+  console.log('Current time in church timezone:', nowInChurchTz.format(), 'Preferred event ID:', preferredEventId);
 
   if (preferredEventId) {
     const event = await EventInstance.findOne({ _id: preferredEventId, church: user.church }).lean();
@@ -44,6 +45,7 @@ async function getChurchActiveEvent(user, preferredEventId = null) {
 
   const startOfDay = nowInChurchTz.clone().startOf('day').toDate();
   const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
+  console.log('Looking for events between:', startOfDay, 'and', endOfDay, 'for church:', user.church);
 
   const todayInstances = await EventInstance.find({
     church: user.church,
