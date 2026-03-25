@@ -13,8 +13,8 @@ async function getActiveEventForUser(user, preferredEventId = null) {
     if (event) {return event;}
   }
 
-  const start = now.clone().startOf('day').utc().toDate();
-  const end = now.clone().endOf('day').utc().toDate();
+  const start = now.clone().startOf('day').toDate();
+  const end = now.clone().endOf('day').toDate();
 
   const events = await EventInstance.find({
     church: user.church,
@@ -23,7 +23,7 @@ async function getActiveEventForUser(user, preferredEventId = null) {
 
   return events.find(e => {
     if (e.isCheckinOpen) {return true;}
-    const d = moment(e.date).format('YYYY-MM-DD');
+    const d = new Date(e.date).toISOString().split('T')[0];
     const s = moment.tz(`${d} ${e.startTime}`, 'YYYY-MM-DD HH:mm', tz);
     const en = moment.tz(`${d} ${e.endTime}`, 'YYYY-MM-DD HH:mm', tz);
     return now.isBetween(s.clone().subtract(2, 'hours'), en);
