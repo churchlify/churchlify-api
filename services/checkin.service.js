@@ -24,7 +24,7 @@ function filterActiveChildren(children) {
 
 // ---- core ----
 async function getActiveEvent(user) {
-  const event = await getActiveEventForUser(user);
+  const event = await getChurchActiveEvent(user);
   if (!event) {return null;}
 
   return {
@@ -38,7 +38,7 @@ async function getActiveEvent(user) {
 }
 
 async function getActiveCheckIn(user) {
-  const event = await getActiveEventForUser(user);
+  const event = await getChurchActiveEvent(user);
   if (!event) {return { hasActiveCheckIn: false };}
 
   const checkin = await CheckIn.findOne({
@@ -114,7 +114,7 @@ async function searchCheckins(user, query) {
 async function initiateCheckIn(user, body) {
   const { child, eventId } = body;
 
-  const event = await getActiveEventForUser(user, eventId);
+  const event = await getChurchActiveEvent(user, eventId);
   if (!event) {throw { status: 400, message: 'No active event' };}
 
   // atomic protection

@@ -21,6 +21,8 @@ async function getActiveEventForUser(user, preferredEventId = null) {
     date: { $gte: start, $lte: end }
   }).lean();
 
+  console.log('Today\'s events:', events);
+
   return events.find(e => {
     if (e.isCheckinOpen) {return true;}
     const d = new Date(e.date).toISOString().split('T')[0];
@@ -30,13 +32,13 @@ async function getActiveEventForUser(user, preferredEventId = null) {
   }) || null;
 }
 
-async function getChurchActiveEvent(churchId, preferredEventId = null) {
-  const church = await Church.findById(churchId).select('timeZone').lean();
+async function getChurchActiveEvent(user, preferredEventId = null) {
+  const church = await Church.findById(user.church).select('timeZone').lean();
   const churchTimezone = church?.timeZone || 'UTC';
   const nowInChurchTz = moment.tz(churchTimezone);
 
   if (preferredEventId) {
-    const event = await EventInstance.findOne({ _id: preferredEventId, church: churchId }).lean();
+    const event = await EventInstance.findOne({ _id: preferredEventId, church: user.church }).lean();
     if (event) return event;
   }
 
@@ -44,9 +46,11 @@ async function getChurchActiveEvent(churchId, preferredEventId = null) {
   const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
 
   const todayInstances = await EventInstance.find({
-    church: churchId,
+    church: user.church,
     date: { $gte: startOfDay, $lte: endOfDay }
   }).lean();
+
+  console.log('Today\'s event instances:', todayInstances);
 
   return todayInstances.find(instance => {
     if (instance.isCheckinOpen) return true;
