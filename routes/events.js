@@ -63,16 +63,17 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
         if (req.file) {
           flierUrl = await uploadToMinio(req.file);
         }
+        const tz = church.timeZone;
 
         // Save all dates in UTC (assume input is UTC or ISO)
         const eventData = {
             church,
             title,
             description,
-            startDate: startDate ? new Date(startDate) : null,
-            startTime,
-            endDate: endDate ? new Date(endDate) : null,
-            endTime,
+            startDate: startDate ? EventService.normalizeDate(startDate, tz) : null,
+            startTime: startTime ? EventService.normalizeTime(startTime) : null,
+            endDate: endDate ? EventService.normalizeDate(endDate, tz) : null,
+            endTime: endTime ? EventService.normalizeTime(endTime) : null,
             location: venueId,
             flier: flierUrl,
             allowKidsCheckin,

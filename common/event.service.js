@@ -2,8 +2,21 @@ const Church = require('../models/church');
 const user = require('../models/user');
 const Event = require('../models/event');
 const EventInstance = require('../models/eventinstance');
+const moment = require('moment-timezone');
 
 class EventService {
+
+ normalizeDate(inputDate, churchTimezone) {
+  return moment
+    .tz(inputDate, churchTimezone)   // interpret the date in the church's timezone
+    .startOf('day')                  // snap to local midnight
+    .utc()                           // convert to UTC
+    .toDate();                       // store as a stable UTC date
+}
+
+ normalizeTime(inputTime, format = 'HH:mm') {
+  return moment(inputTime, format).toDate();
+ }
 
 getInstanceDateKey(date) {
   return new Date(date).toISOString();
