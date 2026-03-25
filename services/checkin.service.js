@@ -2,7 +2,7 @@
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
 const { getIO } = require('../config/socket');
-const { getActiveEventForUser, getChurchActiveEvent } = require('./event.service');
+const { getChurchActiveEvent } = require('./event.service');
 
 // ---- helpers ----
 async function generatePickupCode() {
@@ -61,7 +61,7 @@ async function searchCheckins(user, query) {
   const { pickupCode, lastName, eventId } = query;
 
   // 1. Get active event (or fallback to provided)
-  const event = await getActiveEventForUser(user, eventId);
+  const event = await getChurchActiveEvent(user, eventId);
   if (!event) {
     throw { status: 400, message: 'No active event' };
   }
