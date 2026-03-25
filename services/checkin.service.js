@@ -69,6 +69,7 @@ async function searchCheckins(user, query) {
   const mongoQuery = {
     eventInstance: event._id
   };
+  console.log('Searching check-ins for event:', event._id);
 
   // 3. Pickup code search (FAST path - indexed)
   if (pickupCode) {
@@ -88,7 +89,7 @@ async function searchCheckins(user, query) {
 
     mongoQuery['children.child'] = { $in: kids.map(k => k._id) };
   }
-
+console.log('Mongo query for check-ins:', mongoQuery);
   // 5. Query check-ins
   const checkins = await CheckIn.find(mongoQuery)
     .populate('children.child', 'firstName lastName')
