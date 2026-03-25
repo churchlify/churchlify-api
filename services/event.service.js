@@ -74,8 +74,7 @@ async function getChurchUpcomingEvent(user, preferredEventId = null) {
     })
     .filter(e =>
       now.isBefore(e.end) &&                     // event not ended
-      now.isSameOrAfter(e.start.clone().subtract(2, 'hours')) && // within 2h before start
-      now.isBefore(e.start)                      // hasn't started yet
+      now.isSameOrAfter(e.start.clone().subtract(2, 'hours')) // within 2h before start
     );
     console.log('Upcoming events within 2 hours:', upcoming);
   if (!upcoming.length) return null;
