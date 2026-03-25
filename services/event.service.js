@@ -30,5 +30,33 @@ async function getActiveEventForUser(user, preferredEventId = null) {
   }) || null;
 }
 
-module.exports = { getActiveEventForUser };
+async function getChurchActiveEvent(churchId, preferredEventId = null) {
+  const church = await Church.findById(churchId).select('timeZone').lean();
+  const churchTimezone = church?.timeZone || 'UTC';
+  const nowInChurchTz = moment.tz(churchTimezone);
 
+  if (preferredEventId) {
+    const event = await EventInstance.findOne({ _id: preferredEventId, church: churchId }).lean();
+    if (event) return event;
+  }
+
+  const startOfDay = nowInChurchTz.clone().startOf('day').toDate();
+  const endOfDay = nowInChurchTz.clone().endOf('day').toDate();
+
+  const todayInstances = await EventInstance.find({
+    church: churchId,
+    date: { $gte: startOfDay, $lte: endOfDay }
+  }).lean();
+
+  return todayInstances.find(instance => {
+    if (instance.isCheckinOpen) return true;
+    
+    const literalDate = new Date(instance.date).toISOString().split('T')[0];
+    const eventStart = moment.tz(`${literalDate} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+    const eventEnd = moment.tz(`${literalDate} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
+    
+    return nowInChurchTz.isBetween(eventStart.clone().subtract(2, 'hours'), eventEnd);
+  });
+}
+
+module.exports = { getActiveEventForUser, getChurchActiveEvent };

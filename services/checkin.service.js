@@ -2,7 +2,7 @@
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
 const { getIO } = require('../config/socket');
-const { getActiveEventForUser } = require('./event.service');
+const { getActiveEventForUser, getChurchActiveEvent } = require('./event.service');
 
 // ---- helpers ----
 async function generatePickupCode() {

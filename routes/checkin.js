@@ -13,6 +13,7 @@ router.use(authenticateFirebaseToken, attachUser);
 // Get current active event
 router.get('/current-event', async (req, res) => {
   try {
+    console.log('Fetching active event for user:', req.currentUser._id);
     const event = await checkinService.getActiveEvent(req.currentUser);
 
     if (!event) {
@@ -38,6 +39,7 @@ router.get('/active', async (req, res) => {
 // Initiate check-in
 router.post('/initiate', async (req, res) => {
   try {
+    console.log('Initiating check-in for user:', req.currentUser._id, 'with data:', req.body);
     const result = await checkinService.initiateCheckIn(req.currentUser, req.body);
     res.status(201).json(result);
   } catch (err) {
