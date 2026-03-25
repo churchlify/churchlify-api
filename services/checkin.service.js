@@ -78,7 +78,7 @@ async function searchCheckins(user, query) {
   // 4. Last name search (optimized)
   if (lastName) {
     const kids = await Kid.find({
-      church: user.church,
+      parent: user._id,
       lastName: { $regex: `^${lastName}$`, $options: 'i' }
     }).select('_id');
 
