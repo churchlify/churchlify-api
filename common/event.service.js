@@ -15,21 +15,20 @@ class EventService {
 }
 
  normalizeTime(inputTime, format = 'HH:mm') {
-  return moment(inputTime, format).toDate();
+  return moment(inputTime, format).format('HH:mm');
  }
 
 getInstanceDateKey(date) {
-  return new Date(date).toISOString();
+   return moment.utc(date).format('YYYY-MM-DD');
 }
 
 async buildRecurringInstances(event) {
-  // Use UTC date calculations (no timezone conversion needed)
   const now = new Date();
   const futureLimit = new Date(now);
   futureLimit.setUTCDate(futureLimit.getUTCDate() + 365);
 
   const { recurrence, startDate, startTime, endTime } = event;
-  let occurrences = [];
+  const occurrences = [];
   let current = this.getFirstMatchingWeekday(startDate, recurrence.daysOfWeek || []);
 
   while (current <= futureLimit && (!recurrence.endDate || current <= recurrence.endDate)) {
@@ -57,21 +56,27 @@ async buildRecurringInstances(event) {
     .lean();
 
   const checkinByDate = new Map(
-    existingInstances.map((instance) => [this.getInstanceDateKey(instance.date), !!instance.isCheckinOpen])
+    existingInstances.map((instance) => [
+      this.getInstanceDateKey(instance.date),
+      !!instance.isCheckinOpen
+    ])
   );
 
-  return occurrences.map((date) => ({
-    eventId: event._id,
-    church: event.church,
-    title: event.title,
-    description: event.description,
-    location: event.location,
-    flier: event.flier,
-    date,
-    startTime,
-    endTime,
-    isCheckinOpen: checkinByDate.get(this.getInstanceDateKey(date)) || false
-  }));
+  return occurrences.map((date) => {
+    const key = this.getInstanceDateKey(date);
+    return {
+      eventId: event._id,
+      church: event.church,
+      title: event.title,
+      description: event.description,
+      location: event.location,
+      flier: event.flier,
+      date, // already UTC date
+      startTime,
+      endTime,
+      isCheckinOpen: checkinByDate.get(key) || false
+    };
+  });
 }
 
 async syncEventInstancesForEvent(eventOrId) {
@@ -81,38 +86,76 @@ async syncEventInstancesForEvent(eventOrId) {
   if (isEventId) {
     event = await Event.findById(eventOrId).populate('church');
   }
-
-  if (!event) {
-    throw new Error('Event not found while syncing event instances.');
-  }
+  if (!event) throw new Error('Event not found while syncing event instances.');
 
   if (event.isRecurring) {
-    const instances = await this.buildRecurringInstances(event);
-    await EventInstance.deleteMany({ eventId: event._id });
-    if (instances.length > 0) {
-      await EventInstance.insertMany(instances);
-    }
-    return;
+    return this.syncRecurringInstances(event);
   }
 
-  const existingInstance = await EventInstance.findOne({ eventId: event._id })
-    .select('isCheckinOpen')
-    .lean();
-
-  await EventInstance.deleteMany({ eventId: event._id });
-  await EventInstance.create({
-    eventId: event._id,
-    church: event.church,
-    title: event.title,
-    description: event.description,
-    location: event.location,
-    flier: event.flier,
-    date: event.startDate,
-    startTime: event.startTime,
-    endTime: event.endTime,
-    isCheckinOpen: !!existingInstance?.isCheckinOpen
-  });
+  // single instance: update or create, but don't delete
+  await EventInstance.findOneAndUpdate(
+    { eventId: event._id },
+    {
+      eventId: event._id,
+      church: event.church,
+      title: event.title,
+      description: event.description,
+      location: event.location,
+      flier: event.flier,
+      date: event.startDate,
+      startTime: event.startTime,
+      endTime: event.endTime
+    },
+    { upsert: true }
+  );
 }
+
+async syncRecurringInstances(event) {
+  const instances = await this.buildRecurringInstances(event);
+
+  const existing = await EventInstance.find({ eventId: event._id }).lean();
+  const existingByKey = new Map(
+    existing.map(i => [this.getInstanceDateKey(i.date), i])
+  );
+
+  const toInsert = [];
+  const seenKeys = new Set();
+
+  for (const inst of instances) {
+    const key = this.getInstanceDateKey(inst.date);
+    seenKeys.add(key);
+
+    if (existingByKey.has(key)) {
+      const existingInst = existingByKey.get(key);
+      await EventInstance.updateOne(
+        { _id: existingInst._id },
+        {
+          title: inst.title,
+          description: inst.description,
+          location: inst.location,
+          flier: inst.flier,
+          startTime: inst.startTime,
+          endTime: inst.endTime,
+          // preserve isCheckinOpen from existing
+          isCheckinOpen: existingInst.isCheckinOpen
+        }
+      );
+    } else {
+      toInsert.push(inst);
+    }
+  }
+
+  if (toInsert.length) {
+    await EventInstance.insertMany(toInsert);
+  }
+
+  // delete only obsolete future instances (optional: keep past ones)
+  const obsolete = existing.filter(i => !seenKeys.has(this.getInstanceDateKey(i.date)));
+  if (obsolete.length) {
+    await EventInstance.deleteMany({ _id: { $in: obsolete.map(o => o._id) } });
+  }
+}
+
 
 flattenObject(obj, prefix = '', result = {}) {
   for (const key in obj) {
@@ -130,7 +173,7 @@ flattenObject(obj, prefix = '', result = {}) {
   return result;
 }
 
- getFirstMatchingWeekday(startDate, daysOfWeek) {
+getFirstMatchingWeekday(startDate, daysOfWeek) {
   const start = new Date(startDate);
   const maxLookahead = 7;
 
@@ -143,7 +186,7 @@ flattenObject(obj, prefix = '', result = {}) {
     }
   }
 
-  return start.toDate(); // fallback if no match (shouldn't happen)
+  return start; // fallback
 }
 
 addDaysUTC(date, days) {
