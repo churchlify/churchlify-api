@@ -478,7 +478,7 @@ router.get('/stripe/session/:id', async (req, res) => {
         id: sub.id,
         status: sub.status,
         start_date: new Date(sub.start_date * 1000),
-        current_period_end: new Date(sub.current_period_end * 1000) || new Date(sub.billing_cycle_anchor * 1000),
+        current_period_end: new Date((sub.current_period_end ?? sub.billing_cycle_anchor) * 1000),
         cancel_at_period_end: sub.cancel_at_period_end,
       };
     }
@@ -973,6 +973,7 @@ router.post('/paypal/pay', async (req, res) => {
         }),
       });
       const plan = await planRes.json();
+      const fullName = `${donor.firstName || ''} ${donor.lastName || ''}`.trim();
 
       // Step 3️⃣ Create Subscription
       const subscriptionRes = await fetch(`${PAYPAL_API}/v1/billing/subscriptions`, {
@@ -984,7 +985,7 @@ router.post('/paypal/pay', async (req, res) => {
         body: JSON.stringify({
           plan_id: plan.id,
           subscriber: {
-            name: { given_name: `${donor.firstName} ${donor.lastName}` || 'Donor' },
+            name: { given_name: fullName || 'Donor' },
             email_address: donor.emailAddress,
           },
           application_context: {
@@ -1083,11 +1084,11 @@ router.post('/paystack/pay', async (req, res) => {
     isRecurring,
     amount: totalAmount
   };
- 
+
   let resultData;
   if (isRecurring) {
       const plan = await getOrCreatePlan({ churchId, name: `churchlify_${Date.now()} Plan`, amount: totalAmount, interval: `${recurring.interval.replace('year','annual')}ly`, currency: 'NGN'});
-      const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress, 
+      const subRes = await axios.post( `${PAYSTACK_API}/subscription`,{customer: donor.emailAddress,
         plan: plan.planCode, metadata: { donor, items, source: 'Churchlify Platform',churchId,}, },
         {
           headers: {Authorization: `Bearer ${secretkey}`,'Content-Type': 'application/json',},

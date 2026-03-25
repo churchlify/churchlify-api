@@ -47,12 +47,12 @@ router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     const deletedModule = await Module.findByIdAndDelete(id);
     if (!deletedModule) {return res.status(404).json({ error: 'Module not found' });}
-    
+
     // Invalidate church's module list cache
     if (deletedModule.church) {
       await delCache(deletedModule.church.toString(), 'module:list');
     }
-    
+
     res.status(200).json({ message: 'Module deleted successfully', module: deletedModule });
   } catch (err) {
     res.status(500).json({ error: err.message });

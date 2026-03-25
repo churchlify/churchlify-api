@@ -196,7 +196,7 @@ app.use('/livestream', livestreamRoutes);
 app.use((req, res, next) => {
     const error = new Error(`Not Found: ${req.originalUrl}`);
     error.status = 404;
-    next(error); 
+    next(error);
 });
 app.use(errorHandler);
 
@@ -206,9 +206,9 @@ app.use(errorHandler);
 
   // Wait for Redis to be ready before starting server
   const redis = require('./common/redis.connection');
-  
+
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  
+
   let redisReady = false;
   let attempts = 0;
   const maxAttempts = 30;
@@ -220,7 +220,7 @@ app.use(errorHandler);
       console.log('✅ Redis: Readiness check passed');
     } catch (err) {
       attempts++;
-      console.log(`⏳ Redis: Waiting for readiness... attempt ${attempts}/${maxAttempts}`);
+      console.log(`⏳ Redis: Waiting for readiness... attempt ${attempts}/${maxAttempts} error: ${err.message}  `);
       await sleep(1000);
     }
   }
@@ -238,41 +238,41 @@ app.use(errorHandler);
 
   // Graceful shutdown
   const mongooseConnection = require('mongoose').connection;
-  
+
   process.on('SIGINT', async () => {
     console.log('\n🛑 Shutting down gracefully...');
-    
+
     try {
       await mongooseConnection.close();
       console.log('✅ MongoDB connection closed');
     } catch (err) {
       console.error('❌ Error closing MongoDB:', err.message);
     }
-    
+
     try {
       await redis.quit();
       console.log('✅ Redis connection closed');
     } catch (err) {
       console.error('❌ Error closing Redis:', err.message);
     }
-    
+
     server.close(() => {
       console.log('✅ HTTP server closed');
       process.exit(0);
     });
   });
-  
+
   // Also handle SIGTERM for container shutdowns
   process.on('SIGTERM', async () => {
     console.log('\n🛑 SIGTERM received, shutting down...');
-    
+
     try {
       await mongooseConnection.close();
       await redis.quit();
     } catch (err) {
       console.error('Error during shutdown:', err.message);
     }
-    
+
     server.close(() => process.exit(0));
   });
 })();

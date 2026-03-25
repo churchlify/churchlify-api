@@ -18,24 +18,24 @@ router.post('/create', uploadImage, validateDevotion(), async(req, res) => {
     const { church, title, scripture, content, date, author, tags, isPublished } = req.body;
     try {
       let imageUrl = null;
-      
+
       // Handle image upload if provided
       if (req.file) {
         imageUrl = await uploadToMinio(req.file);
       }
 
-      const newItem = new Devotion({ 
-        church, 
-        title, 
-        scripture, 
-        content, 
-        date, 
-        author, 
-        tags, 
+      const newItem = new Devotion({
+        church,
+        title,
+        scripture,
+        content,
+        date,
+        author,
+        tags,
         isPublished,
         image: imageUrl
       });
-      
+
       await newItem.save();
       res.status(201).json({ message: 'Devotion registered successfully', devotion: newItem });
     } catch (err) {

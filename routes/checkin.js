@@ -1,606 +1,88 @@
-/*
-#swagger.tags = ['Checkin']
-*/
-// routes/checkin.js
-const {authenticateFirebaseToken} = require('../middlewares/auth');
-const moment = require('moment-timezone');
-const EventInstance = require('../models/eventinstance');
-const Church = require('../models/church');
+// routes/checkin.routes.js
 const express = require('express');
-const CheckIn = require('../models/checkin');
-const Kid = require('../models/kid');
-const User = require('../models/user');
-const { getIO } = require('../config/socket');
 const router = express.Router();
+
+const { authenticateFirebaseToken } = require('../middlewares/auth');
+const attachUser = require('../middlewares/attachUser');
+
+const checkinService = require('../services/checkin.service');
+
 router.use(express.json());
+router.use(authenticateFirebaseToken, attachUser);
 
-// Helper function to get current user from Firebase token
-async function getCurrentUser(req) {
-  const firebaseUid = req.user?.uid;
-  if (!firebaseUid) {
-    return null;
-  }
-  return User.findOne({ firebaseId: firebaseUid }).lean();
-}
-
-async function getActiveCheckInForUser(userId) {
-  const now = new Date();
-
-  const checkIn = await CheckIn.findOne({
-    requestedBy: userId,
-    'children.status': { $in: ['check_in_request', 'dropped_off'] }
-  })
-  .populate('children.child', 'firstName lastName')
-  .populate('eventInstance', 'title date startTime endTime')
-  .lean();
-
-  if (!checkIn) {return null;}
-
-  checkIn.children = checkIn.children.filter(child => {
-    if (child.status !== 'check_in_request') {return true; }
-    return child.expiresAt && new Date(child.expiresAt) > now;
-  });
-
-  // If no children are left active after filtering, treat the whole check-in as inactive
-  return checkIn.children.length > 0 ? checkIn : null;
-}
-
-// Generate a random 4-digit pickup code
-function generatePickupCode() {
-  return Math.floor(1000 + Math.random() * 9000).toString();
-}
-
-/**
- * Finds the currently active event instance for a church.
- * @param {string} churchId - The ID of the church.
- * @param {string} [preferredEventId] - Optional ID passed from the client.
- */
-async function getActiveEvent(churchId, preferredEventId = null) {
-  const church = await Church.findById(churchId).select('timeZone').lean();
-  const churchTimezone = church?.timeZone || 'UTC';
-  const nowInChurchTz = moment.tz(churchTimezone);
-
-  // If client sent an ID, verify it exists and is for this church
-  if (preferredEventId) {
-    const event = await EventInstance.findOne({ _id: preferredEventId, church: churchId }).lean();
-    if (event){ return event;}
-  }
-
-  // Otherwise, auto-detect based on current time window
-  const dateStr = nowInChurchTz.format('YYYY-MM-DD');
-  const startOfDay = moment.utc(dateStr).startOf('day').toDate();
-  const endOfDay = moment.utc(dateStr).endOf('day').toDate();
-
-  const todayInstances = await EventInstance.find({
-    church: churchId,
-    date: { $gte: startOfDay, $lte: endOfDay }
-  }).lean();
-
-  return todayInstances.find(instance => {
-    if (instance.isCheckinOpen){ return true;}
-    
-    const literalDate = new Date(instance.date).toISOString().split('T')[0];
-    const eventStart = moment.tz(`${literalDate} ${instance.startTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
-    const eventEnd = moment.tz(`${literalDate} ${instance.endTime}`, 'YYYY-MM-DD HH:mm', churchTimezone);
-    
-    // Check-in window: 2 hours before start until the end of the event
-    return nowInChurchTz.isBetween(eventStart.clone().subtract(2, 'hours'), eventEnd);
-  });
-}
-
-/*
-#swagger.tags = ['Checkin']
-#swagger.description = 'Returns the currently active event instance for the user\'s church based on the time window.'
-*/
-router.get('/current-event', authenticateFirebaseToken, async (req, res) => {
+// Get current active event
+router.get('/current-event', async (req, res) => {
   try {
-    const currentUser = await getCurrentUser(req);
-    if (!currentUser) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    const event = await checkinService.getActiveEvent(req.currentUser);
+
+    if (!event) {
+      return res.json({ hasActiveEvent: false });
     }
 
-    // Use the helper function we extracted earlier
-    const activeEvent = await getActiveEvent(currentUser.church);
-
-    if (!activeEvent) {
-      return res.status(200).json({ 
-        hasActiveEvent: false, 
-        message: 'No events are currently open for check-in.' 
-      });
-    }
-
-    res.status(200).json({
-      hasActiveEvent: true,
-      event: {
-        id: activeEvent._id,
-        title: activeEvent.title,
-        date: activeEvent.date,
-        startTime: activeEvent.startTime,
-        endTime: activeEvent.endTime,
-        isCheckinOpen: activeEvent.isCheckinOpen
-      }
-    });
+    res.json({ hasActiveEvent: true, event });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: `Internal server error- ${err.message}`  });
   }
 });
 
-/*
-#swagger.tags = ['Checkin']
-#swagger.description = 'Checks if the user has a pending or active check-in session.'
-*/
-router.get('/active', authenticateFirebaseToken, async (req, res) => {
+// Active check-in
+router.get('/active', async (req, res) => {
   try {
-    const currentUser = await getCurrentUser(req);
-     if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
-    const activeEvent = await getActiveEvent(currentUser.church);
-      if (!activeEvent) {
-      return res.status(400).json({ message: 'No events are currently open for check-in.' });
-    }
- 
-    const activeCheckIn = await CheckIn.findOne({
-      requestedBy: currentUser._id,
-      eventInstance: activeEvent._id, // Strict match to the specific event
-      'children.status': { $in: ['check_in_request', 'dropped_off'] }
-    })
-    .populate('children.child', 'firstName lastName')
-    .lean();
-
-    if (!activeCheckIn) {
-      return res.status(200).json({ hasActiveCheckIn: false });
-    }
-
-    // Apply your new child-level expiry logic
-    const now = new Date();
-    activeCheckIn.children = activeCheckIn.children.filter(child => {
-      if (child.status !== 'check_in_request') {return true;}
-      return child.expiresAt && new Date(child.expiresAt) > now;
-    });
-
-    if (activeCheckIn.children.length === 0) {
-      return res.status(200).json({ hasActiveCheckIn: false, message: 'Requests expired' });
-    }
-
-    res.status(200).json({ hasActiveCheckIn: true, checkIn: activeCheckIn });
+    const result = await checkinService.getActiveCheckIn(req.currentUser);
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: `Internal server error - ${err.message}` });
   }
 });
 
-// isAutoCheckinWindowOpen function removed (unused)
-//initiate drop-off
-/*
-#swagger.tags = ['Checkin']
-*/
-/*
-#swagger.tags = ['Checkin']
-*/
-router.post('/initiate', authenticateFirebaseToken, async (req, res) => {
-  const { child, eventId } = req.body; // eventId is now optional from client
-
+// Initiate check-in
+router.post('/initiate', async (req, res) => {
   try {
-    const currentUser = await getCurrentUser(req);
-    if (!currentUser){ return res.status(401).json({ error: 'Unauthorized' });}
-
-    // 1. Get the Event (using our helper)
-    const activeEvent = await getActiveEvent(currentUser.church, eventId);
-    if (!activeEvent) {
-      return res.status(400).json({ message: 'No events are currently open for check-in.' });
-    }
-
-    // 2. Prevent multiple active sessions for THIS specific event
-    const existing = await getActiveCheckInForUser(currentUser._id, activeEvent._id);
-    if (existing) {
-      return res.status(400).json({ 
-        message: 'You already have an active check-in session for this event.', 
-        checkInId: existing._id 
-      });
-    }
-
-    // 3. Validate Children
-    if (!Array.isArray(child) || child.length === 0) {
-      return res.status(400).json({ error: 'No children selected' });
-    }
-
-    const kids = await Kid.find({ _id: { $in: child } });
-    const unauthorizedKids = kids.filter(k => String(k.parent) !== String(currentUser._id));
-    
-    if (unauthorizedKids.length > 0 || kids.length !== child.length) {
-      return res.status(403).json({ error: 'Validation failed for one or more children' });
-    }
-
-    // 4. Create Check-In with individual expiry
-    const expiryTime = new Date(Date.now() + 15 * 60000); 
-    const newCheckIn = new CheckIn({
-      eventInstance: activeEvent._id,
-      requestedBy: currentUser._id,
-      pickupCode: generatePickupCode(),
-      children: child.map(id => ({ 
-        child: id, 
-        status: 'check_in_request', 
-        expiresAt: expiryTime 
-      }))
-    });
-
-    await newCheckIn.save();
-    await newCheckIn.populate('children.child', 'firstName lastName');
-
-    // 5. Socket Emission
-    try {
-      getIO().emit('checkin:initiated', {
-        checkInId: newCheckIn._id,
-        eventInstance: activeEvent._id,
-        eventTitle: activeEvent.title,
-        children: newCheckIn.children.map(c => ({
-          childId: c.child._id,
-          childName: `${c.child.firstName} ${c.child.lastName}`,
-          status: c.status
-        }))
-      });
-    } catch (err) { console.error('Socket fail:', err.message); }
-
-    res.status(201).json({ message: 'Check-in initiated', checkIn: newCheckIn });
-
+    const result = await checkinService.initiateCheckIn(req.currentUser, req.body);
+    res.status(201).json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({ error: err.message });
   }
 });
 
-// Confirm drop-off (for church staff/volunteers)
-/*
-#swagger.tags = ['Checkin']
-*/
-router.patch('/:id/confirm-dropoff', authenticateFirebaseToken, async (req, res) => {
-    const { childIds } = req.body; // childIds = array of kid IDs to confirm drop-off
-    
-    try {
-      const currentUser = await getCurrentUser(req);
-      if (!currentUser) {
-        return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-      }
-
-      // Validate input
-      if (!Array.isArray(childIds) || childIds.length === 0) {
-        return res.status(400).json({ error: 'childIds array is required' });
-      }
-
-      const checkIn = await CheckIn.findById(req.params.id)
-        .populate('children.child');
-        
-      if (!checkIn) {
-        return res.status(404).json({ message: 'Check-in not found' });
-      }
-
-      // Update status for specified children from check_in_request to dropped_off
-      let confirmedCount = 0;
-      checkIn.children.forEach(child => {
-        if (childIds.includes(String(child.child._id)) && child.status === 'check_in_request') {
-          child.status = 'dropped_off';
-          child.droppedOffBy = currentUser._id;
-          child.droppedOffAt = new Date();
-          confirmedCount++;
-        }
-      });
-
-      if (confirmedCount === 0) {
-        return res.status(400).json({ 
-          error: 'None of the specified children are pending confirmation' 
-        });
-      }
-
-      await checkIn.save();
-      await checkIn.populate('children.child', 'firstName lastName');
-      
-      // Emit WebSocket event for real-time updates
-      try {
-        const io = getIO();
-        io.emit('checkin:dropoff-confirmed', {
-          checkInId: checkIn._id,
-          eventInstance: checkIn.eventInstance,
-          children: checkIn.children
-            .filter(c => childIds.includes(String(c.child._id)))
-            .map(c => ({
-              childId: c.child._id,
-              childName: `${c.child.firstName} ${c.child.lastName}`,
-              status: c.status,
-              droppedOffBy: currentUser._id,
-              droppedOffAt: c.droppedOffAt
-            })),
-          confirmedBy: currentUser._id,
-          timestamp: new Date()
-        });
-      } catch (socketErr) {
-        console.error('Socket emission failed:', socketErr.message);
-      }
-      
-      res.json({
-        message: `Successfully confirmed drop-off for ${confirmedCount} child(ren)`,
-        checkIn
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-
-  // Update status (for church staff/volunteers)
-  /*
-#swagger.tags = ['Checkin']
-*/
-router.patch('/:id/pickup', authenticateFirebaseToken, async (req, res) => {
-    const { childIds, pickupCode } = req.body; // childIds = array of kid IDs to pick up
-    
-    try {
-      const currentUser = await getCurrentUser(req);
-      if (!currentUser) {
-        return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-      }
-
-      // Validate input
-      if (!Array.isArray(childIds) || childIds.length === 0) {
-        return res.status(400).json({ error: 'childIds array is required' });
-      }
-
-      const checkIn = await CheckIn.findById(req.params.id)
-        .populate('children.child');
-        
-      if (!checkIn) {
-        return res.status(404).json({ message: 'Check-in not found' });
-      }
-
-      // SECURITY: Verify pickup code or parent authorization
-      const childrenToPickup = checkIn.children.filter(c => 
-        childIds.includes(String(c.child._id))
-      );
-
-      if (childrenToPickup.length === 0) {
-        return res.status(400).json({ error: 'None of the specified children are in this check-in' });
-      }
-
-      // Check if user is the parent of ANY of the kids
-      const isParent = checkIn.children.some(c => 
-        String(c.child.parent) === String(currentUser._id)
-      );
-
-      if (!isParent) {
-        // If not parent, must be church staff with valid pickup code
-        if (!pickupCode || pickupCode !== checkIn.pickupCode) {
-          return res.status(403).json({ 
-            error: 'Invalid pickup code. Only the parent or authorized staff with the correct code can complete pickup.' 
-          });
-        }
-      }
-
-      // Update status for specified children
-      let pickedUpCount = 0;
-      checkIn.children.forEach(child => {
-        if (childIds.includes(String(child.child._id)) && child.status === 'dropped_off') {
-          child.status = 'picked_up';
-          child.pickedUpBy = currentUser._id;
-          child.pickedUpAt = new Date();
-          pickedUpCount++;
-        }
-      });
-
-      await checkIn.save();
-      
-      // Emit WebSocket event for real-time updates
-      try {
-        const io = getIO();
-        io.emit('checkin:picked-up', {
-          checkInId: checkIn._id,
-          eventInstance: checkIn.eventInstance,
-          children: checkIn.children
-            .filter(c => childIds.includes(String(c.child._id)) && c.status === 'picked_up')
-            .map(c => ({
-              childId: c.child._id,
-              childName: `${c.child.firstName} ${c.child.lastName}`,
-              status: c.status,
-              pickedUpBy: currentUser._id,
-              pickedUpAt: c.pickedUpAt
-            })),
-          pickedUpBy: currentUser._id,
-          timestamp: new Date()
-        });
-      } catch (socketErr) {
-        console.error('Socket emission failed:', socketErr.message);
-      }
-      
-      res.json({
-        message: `Successfully picked up ${pickedUpCount} child(ren)`,
-        checkIn
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-/*
-#swagger.tags = ['Checkin']
-*/
-router.get('/find/:id', authenticateFirebaseToken, async(req, res) => {
-    try {
-      const currentUser = await getCurrentUser(req);
-      if (!currentUser) {
-        return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-      }
-
-      const { id } = req.params;
-      const checkin = await CheckIn.findById(id)
-        .populate('children.child')
-        .populate('requestedBy', 'firstName lastName')
-        .populate('children.droppedOffBy', 'firstName lastName')
-        .populate('children.pickedUpBy', 'firstName lastName')
-        .populate('eventInstance', 'title date')
-        .lean();
-        
-      if (!checkin) {
-        return res.status(404).json({ message: `CheckIn with id ${id} not found` });
-      }
-
-      // SECURITY: Only parent or church staff can view check-in details
-      const kidIds = checkin.children.map(c => c.child._id);
-      const kids = await Kid.find({ _id: { $in: kidIds } }).lean();
-      const isParent = kids.some(kid => 
-        String(kid.parent) === String(currentUser._id)
-      );
-      const isChurchStaff = String(currentUser.church) === String(kids[0]?.church);
-
-      if (!isParent && !isChurchStaff) {
-        return res.status(403).json({ error: 'Not authorized to view this check-in' });
-      }
-
-      // Hide pickup code from non-parents
-      if (!isParent) {
-        delete checkin.pickupCode;
-      }
-
-      res.json({ checkin });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-});
-/*
-#swagger.tags = ['Checkin']
-*/
-router.get('/search', authenticateFirebaseToken, async (req, res) => {
-    const { pickupCode, lastName, eventId } = req.query;
-    const currentUser = await getCurrentUser(req);
-     if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
-    
-     const activeEvent = await getActiveEvent(currentUser.church, eventId);
-    if (!activeEvent) {
-      return res.status(400).json({ message: 'No events are currently open for check-in.' });
-    }
-
-    let checkinQuery = { eventInstance: activeEvent._id };
-
-    if (pickupCode) {checkinQuery.pickupCode = pickupCode;}
-    
-    if (lastName) {
-        const kids = await Kid.find({ 
-            lastName: { $regex: new RegExp(`^${lastName}$`, 'i') } 
-        }).select('_id');
-        checkinQuery['children.child'] = { $in: kids.map(k => k._id) };
-    }
-    console.log('Check-in search query:', checkinQuery);
-
-    const checkins = await CheckIn.find(checkinQuery)
-      .populate('children.child', 'firstName lastName')
-      .populate('requestedBy', 'firstName lastName')
-      .lean();
-
-    res.status(200).json({ checkIns: checkins });
+// Confirm drop-off
+router.patch('/:id/confirm-dropoff', async (req, res) => {
+  try {
+    const result = await checkinService.confirmDropoff(
+      req.currentUser,
+      req.params.id,
+      req.body.childIds
+    );
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 
-/*
-#swagger.tags = ['Checkin']
-*/
-router.get('/list', authenticateFirebaseToken, async(req, res) => {
-    try {
-        const currentUser = await getCurrentUser(req);
-        if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
-
-        // Only show check-ins for the current user's church
-        const checkins = await CheckIn.find({ eventInstance: { $exists: true } })
-          .select('children expiresAt eventInstance requestedBy createdAt pickupCode')
-          .populate({
-            path: 'eventInstance',
-            match: { church: currentUser.church },
-            select: 'title date church'
-          })
-          .populate('children.child', 'firstName lastName')
-          .populate('requestedBy', 'firstName lastName')
-          .lean();
-
-        // Filter out null eventInstances (from different churches)
-        const filteredCheckins = checkins.filter(c => c.eventInstance !== null);
-
-        res.status(200).json({ checkins: filteredCheckins });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+// Pickup
+router.patch('/:id/pickup', async (req, res) => {
+  try {
+    const result = await checkinService.pickupChildren(
+      req.currentUser,
+      req.params.id,
+      req.body
+    );
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
-/*
-#swagger.tags = ['Checkin']
-*/
-router.get('/list/:child', authenticateFirebaseToken, async(req, res) => {
-    try {
-        const currentUser = await getCurrentUser(req);
-        if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
 
-        const { child } = req.params;
-        
-        // SECURITY: Verify user is the parent of this child
-        const kidData = await Kid.findById(child).lean();
-        if (!kidData) {
-          return res.status(404).json({ error: 'Child not found' });
-        }
-
-        if (String(kidData.parent) !== String(currentUser._id)) {
-          return res.status(403).json({ error: 'Not authorized to view check-ins for this child' });
-        }
-
-        const checkins = await CheckIn.find({ 'children.child': child })
-          .select('children expiresAt createdAt eventInstance')
-          .populate('eventInstance', 'title date')
-          .populate('children.child', 'firstName lastName')
-          .populate('children.droppedOffBy', 'firstName lastName')
-          .populate('children.pickedUpBy', 'firstName lastName')
-          .sort({ createdAt: -1 })
-          .lean();
-        
-        // Filter to show only this child's data from each check-in
-        const filtered = checkins.map(c => ({
-          ...c,
-          children: c.children.filter(ch => String(ch.child._id) === String(child))
-        }));
-          
-        res.status(200).json({ checkins: filtered });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+router.get('/search', async (req, res) => {
+  try {
+    const result = await checkinService.searchCheckins(
+      req.currentUser,
+      req.query
+    );
+    res.json(result);
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
-/*
-#swagger.tags = ['Checkin']
-*/
-router.delete('/delete/:id', authenticateFirebaseToken, async (req, res) => {
-    try {
-        const currentUser = await getCurrentUser(req);
-        if (!currentUser) {
-          return res.status(401).json({ error: 'Unable to resolve authenticated user profile' });
-        }
 
-        const { id } = req.params;
-        const checkInRecord = await CheckIn.findById(id).populate('children.child').lean();
-        
-        if (!checkInRecord) {
-            return res.status(404).json({ error: 'Check in record not found' });
-        }
-
-        // SECURITY: Only parent or church admin can delete
-        const kidIds = checkInRecord.children.map(c => c.child._id);
-        const kids = await Kid.find({ _id: { $in: kidIds } }).lean();
-        const isParent = kids.some(kid => 
-          String(kid.parent) === String(currentUser._id)
-        );
-        const isAdmin = currentUser.role === 'admin' || currentUser.role === 'super' || currentUser.church === currentUser.adminAt;
-
-        if (!isParent && !isAdmin) {
-          return res.status(403).json({ error: 'Not authorized to delete this check-in record' });
-        }
-
-        const deletedItem = await CheckIn.findByIdAndDelete(id);
-        res.status(200).json({ message: 'Check in record deleted successfully', deletedItem });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 module.exports = router;

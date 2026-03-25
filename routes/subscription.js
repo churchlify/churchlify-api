@@ -48,12 +48,12 @@ router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     const deletedSubscription = await Subscription.findByIdAndDelete(id);
     if (!deletedSubscription) {return res.status(404).json({ error: 'Subscription not found' });}
-    
+
     // Invalidate church's subscription list cache
     if (deletedSubscription.church) {
       await delCache(deletedSubscription.church.toString(), 'subscription:list');
     }
-    
+
     res.status(200).json({ message: 'Subscription deleted successfully', subscription: deletedSubscription });
   } catch (err) {
     res.status(500).json({ error: err.message });

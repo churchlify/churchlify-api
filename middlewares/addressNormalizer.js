@@ -70,7 +70,8 @@ function parseAddressJsonString(rawAddress) {
       return { ok: false, error: 'Address must be a valid JSON object.' };
     }
     return { ok: true, value: parsed };
-  } catch (error) {
+  } catch (_error) {
+    console.warn('Failed to parse address JSON string', _error.message);
     return { ok: false, error: 'Invalid address JSON payload.' };
   }
 }
@@ -108,7 +109,8 @@ function normalizeAddressPayload(req, res, next) {
         if (Array.isArray(parsedCoordinates)) {
           value = parsedCoordinates.map(coerceCoordinateValue);
         }
-      } catch (error) {
+      } catch (_error) {
+        console.warn(`Failed to parse coordinates for key: ${key}`, _error.message);
         value = value.split(',').map((item) => coerceCoordinateValue(item.trim()));
       }
     }

@@ -9,7 +9,7 @@ notificationQueue.on('error', (error) => {
   console.error('Queue error:', error);
 });
 
-module.exports = { 
-    notificationQueue, 
-    connection 
+module.exports = {
+    notificationQueue,
+    connection
 };

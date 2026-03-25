@@ -9,7 +9,8 @@
     "mediasoup:e2e": "npm --prefix mediasoup run e2e:two-peer",
     "gen-doc": "node swagger/generate-swagger.js",
     "loadtest": "artillery run test/load-test.yml",
-    "lint": "jshint .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "validate": "npm ls",
     "build-indexes": "node removeIndexes.js",
     "verify-indexes": "node verifyIndexes.js"

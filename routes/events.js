@@ -57,7 +57,7 @@ router.post('/create', uploadImage, validateEvent(), async(req, res) => {
             } else {
                 throw new Error('Invalid location: must be a venue ID or venue object with name and address');
             }
-        
+
         // Handle flier image upload if provided
         let flierUrl = null;
         if (req.file) {
@@ -131,17 +131,17 @@ router.get('/upcoming', attachTimezone, async (req, res) => {
 
         // 1. Get the current time in the CHURCH'S timezone
         const now = new Date();
-        
+
         // 2. Format "today" to match your DB's ISO format (YYYY-MM-DDT00:00:00.000Z)
         const todayString = now.toLocaleDateString('en-CA', { timeZone: timezone }); // YYYY-MM-DD
         const today = new Date(`${todayString}T00:00:00.000Z`);
 
         // 3. Format "currentTime" as HH:MM in the CHURCH'S timezone
-        const currentTime = now.toLocaleTimeString('en-GB', { 
-            hour: '2-digit', 
-            minute: '2-digit', 
-            hour12: false, 
-            timeZone: timezone 
+        const currentTime = now.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: timezone
         });
 
         let filter = {
@@ -153,7 +153,7 @@ router.get('/upcoming', attachTimezone, async (req, res) => {
         };
 
         console.log(`Timezone: ${timezone} | Today: ${todayString} | Now: ${currentTime}`);
-        
+
         const event = await EventInstance.findOne(filter)
             .populate('location')
             .select('title date startTime location isCheckinOpen')
@@ -282,12 +282,12 @@ router.delete('/delete/:id', async (req, res) => {
          // Delete the base event
         const deletedEvent = await Event.findByIdAndDelete(id);
         if (!deletedEvent) {return res.status(404).json({ error: 'Event not found' });}
-        
+
         // Delete associated flier image if it exists
         if (deletedEvent.flier) {
             await deleteFile(deletedEvent.flier);
         }
-        
+
         await EventInstance.deleteMany({ eventId: id });   // Delete all cached instances
         res.status(200).json({ message: 'Event deleted successfully', event: deletedEvent });
     } catch (err) {

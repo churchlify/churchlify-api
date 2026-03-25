@@ -12,10 +12,10 @@ const ScheduleRole = require('../models/scheduleRole');
 const User = require('../models/user');
 const { sendPushNotification } = require('../common/notification.service');
 const { parseChurchDate } = require('../common/timezone.helper');
-const { 
-  requireSuperOrAdminOrMinistryLeader, 
+const {
+  requireSuperOrAdminOrMinistryLeader,
   requireSuperOrAdminOrResourceMinistryLeader,
-  requireMinistryAccess 
+  requireMinistryAccess
 } = require('../middlewares/permissions');
 
 const { validateScheduleRole, validateScheduleAssignment, validateScheduleTemplate, validateAutoSchedule, validateAvailabilityBlock, validateAssignmentResponse } = require('../middlewares/validators');
@@ -1131,12 +1131,12 @@ router.post('/auto-schedule', requireSuperOrAdminOrMinistryLeader, validateAutoS
           for (let attempts = 0; attempts < pool.users.length; attempts++) {
             const candidateIndex = (pool.pointer + attempts) % pool.users.length;
             const candidateUserId = pool.users[candidateIndex];
-            
+
             // Skip if user already assigned to this role for this instance
             if (assignedUsersInRole.has(candidateUserId)) {
               continue;
             }
-            
+
             // Check for availability blocks
             const hasBlockConflict = await AvailabilityBlock.findOne({
               userId: candidateUserId,
@@ -1148,12 +1148,12 @@ router.post('/auto-schedule', requireSuperOrAdminOrMinistryLeader, validateAutoS
               startDate: { $lte: instance.date },
               endDate: { $gte: instance.date }
             }).lean();
-            
+
             if (hasBlockConflict) {
               // Skip this candidate due to availability block
               continue;
             }
-            
+
             chosenUserId = candidateUserId;
             pool.pointer = (candidateIndex + 1) % pool.users.length;
             break;
@@ -1315,7 +1315,7 @@ router.get('/my-assignments', async (req, res) => {
     // Validate month and year
     const monthNum = parseInt(month);
     const yearNum = parseInt(year);
-    
+
     if (!monthNum || !yearNum || monthNum < 1 || monthNum > 12) {
       return res.status(400).json({ message: 'Valid month (1-12) and year are required' });
     }
@@ -1519,7 +1519,7 @@ router.patch('/assignments/:id/respond', validateAssignmentResponse(), async (re
         const userName = `${currentUser.firstName} ${currentUser.lastName}`;
         const roleName = updatedAssignment.roleId?.name || 'Unknown Role';
         const statusText = responseStatus === 'accepted' ? 'accepted' : 'declined';
-        
+
         await sendPushNotification({
           token: leaderUser.fcmToken,
           title: `Assignment ${statusText}`,
@@ -1632,8 +1632,8 @@ router.post('/availability/block', validateAvailabilityBlock(), async (req, res)
     }
 
     // Get church timezone for proper date parsing
-    const timezone = currentUser.church ? 
-      (await require('../models/church').findById(currentUser.church).select('timeZone').lean())?.timeZone || 'UTC' 
+    const timezone = currentUser.church ?
+      (await require('../models/church').findById(currentUser.church).select('timeZone').lean())?.timeZone || 'UTC'
       : 'UTC';
 
     const blockData = {

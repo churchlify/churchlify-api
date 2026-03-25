@@ -28,77 +28,81 @@ const fetchEmails = async (recipients, type) => {
 
   let emails;
 
-  switch (recipientType) {
-    case 'all':
-      if (!church) {
-        throw new Error('Church ID is required for all recipient type.');
-      }
-      emails = await Users.find(
-        { church: church },
-        { emailAddress: 1, _id: 0 }
-      );
-      break;
-    case 'ministries':
-      emails = await Users.aggregate([
-        {
-          $match: {
-            _id: {
-              $in: await Assignments.find({
-                ministryId: { $in: recipients },
-              }).distinct('userId'),
-            },
-          },
-        },
-        { $project: { emailAddress: 1, _id: 0 } },
-      ]);
-      break;
-    case 'fellowships':
-      emails = await Users.aggregate([
-        {
-          $match: {
-            _id: {
-              $in: await Assignments.find({
-                fellowshipId: { $in: recipients },
-              }).distinct('userId'),
-            },
-          },
-        },
-        { $project: { emailAddress: 1, _id: 0 } },
-      ]);
-      break;
-
-    case 'leaders':
-      if (!church) {
-        throw new Error('Church ID is required for leaders recipient type.');
-      }
-      const allChurchMinistryIds = await Ministry.find({ church }).distinct(
-        '_id'
-      );
-      const allChurchFellowshipIds = await Fellowship.find({ church }).distinct(
-        '_id'
-      );
-      const leaderUserIds = await Assignments.find({
-        role: 'leader',
-        $or: [
-          { ministryId: { $in: allChurchMinistryIds } },
-          { fellowshipId: { $in: allChurchFellowshipIds } },
-        ],
-      }).distinct('userId');
-
-      emails = await Users.find(
-        {
-          $or: [{ _id: { $in: leaderUserIds } }, { role: 'admin', church }],
-        },
-        { emailAddress: 1, _id: 0 }
-      );
-      break;
-
-    default:
-      emails = await Users.find(
-        { church: church },
-        { emailAddress: 1, _id: 0 }
-      );
+switch (recipientType) {
+  case 'all': {
+    if (!church) {
+      throw new Error('Church ID is required for all recipient type.');
+    }
+    emails = await Users.find(
+      { church: church },
+      { emailAddress: 1, _id: 0 }
+    );
+    break;
   }
+  case 'ministries': {
+    emails = await Users.aggregate([
+      {
+        $match: {
+          _id: {
+            $in: await Assignments.find({
+              ministryId: { $in: recipients },
+            }).distinct('userId'),
+          },
+        },
+      },
+      { $project: { emailAddress: 1, _id: 0 } },
+    ]);
+    break;
+  }
+  case 'fellowships': {
+    emails = await Users.aggregate([
+      {
+        $match: {
+          _id: {
+            $in: await Assignments.find({
+              fellowshipId: { $in: recipients },
+            }).distinct('userId'),
+          },
+        },
+      },
+      { $project: { emailAddress: 1, _id: 0 } },
+    ]);
+    break;
+  }
+  case 'leaders': {
+    if (!church) {
+      throw new Error('Church ID is required for leaders recipient type.');
+    }
+    const allChurchMinistryIds = await Ministry.find({ church }).distinct(
+      '_id'
+    );
+    const allChurchFellowshipIds = await Fellowship.find({ church }).distinct(
+      '_id'
+    );
+    const leaderUserIds = await Assignments.find({
+      role: 'leader',
+      $or: [
+        { ministryId: { $in: allChurchMinistryIds } },
+        { fellowshipId: { $in: allChurchFellowshipIds } },
+      ],
+    }).distinct('userId');
+
+    emails = await Users.find(
+      {
+        $or: [{ _id: { $in: leaderUserIds } }, { role: 'admin', church }],
+      },
+      { emailAddress: 1, _id: 0 }
+    );
+    break;
+  }
+  default: {
+    emails = await Users.find(
+      { church: church },
+      { emailAddress: 1, _id: 0 }
+    );
+    break;
+  }
+}
   return emails;
 };
 

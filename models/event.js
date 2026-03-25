@@ -11,7 +11,7 @@ const eventSchema = new mongoose.Schema({
     description: String,
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
-    startTime: { type: String, required: true }, 
+    startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     location: { type: mongoose.Schema.Types.ObjectId, ref: 'Venue', required: false },
     flier: { type: String, required: false },
@@ -23,7 +23,7 @@ const eventSchema = new mongoose.Schema({
         frequency: { type: String, enum: ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'], required: function() { return this.isRecurring; } },
         interval: { type: Number, default: 1 }, // e.g. every 1 week
         daysOfWeek: [Number], // For weekly recurrence (0 = Sun, 1 = Mon, etc.)
-        endDate: Date, 
+        endDate: Date,
     },
 }, { timestamps: true });
 

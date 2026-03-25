@@ -51,7 +51,7 @@ function parseChurchDate(dateString, timezone = 'UTC') {
   if (!dateString) {
     return null;
   }
-  
+
   // If already a Date object, assume it's in the intended timezone
   if (dateString instanceof Date) {
     return dateString;
@@ -72,7 +72,7 @@ function parseChurchDateTime(dateString, timeString, timezone = 'UTC') {
   if (!dateString || !timeString) {
     return null;
   }
-  
+
   const dateTimeString = `${dateString} ${timeString}`;
   return moment.tz(dateTimeString, 'YYYY-MM-DD HH:mm', timezone).toDate();
 }
@@ -89,13 +89,13 @@ function getMonthBoundaries(year, month, timezone = 'UTC') {
   const startDate = moment.tz(`${year}-${String(month).padStart(2, '0')}-01`, timezone)
     .startOf('day')
     .toDate();
-  
+
   // End of month in church timezone -> convert to UTC
   const endDate = moment.tz(`${year}-${String(month).padStart(2, '0')}-01`, timezone)
     .endOf('month')
     .endOf('day')
     .toDate();
-  
+
   return { startDate, endDate };
 }
 
@@ -107,7 +107,7 @@ function getMonthBoundaries(year, month, timezone = 'UTC') {
  */
 function getDayBoundaries(date, timezone = 'UTC') {
   const m = moment.tz(date, timezone);
-  
+
   return {
     startOfDay: m.clone().startOf('day').toDate(),
     endOfDay: m.clone().endOf('day').toDate()
@@ -125,7 +125,7 @@ function formatInChurchTz(utcDate, timezone = 'UTC', format = null) {
   if (!utcDate) {
     return null;
   }
-  
+
   const m = moment.tz(utcDate, timezone);
   return format ? m.format(format) : m;
 }

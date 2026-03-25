@@ -13,14 +13,14 @@ async function checkYouTubeAPI(channelId, apiKey) {
   try {
     const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&eventType=live&key=${apiKey}`;
     const response = await axios.get(url);
-    
+
     const liveVideo = response.data.items[0];
     if (liveVideo) {
-      return { 
-        live: true, 
-        videoId: liveVideo.id.videoId, 
+      return {
+        live: true,
+        videoId: liveVideo.id.videoId,
         title: liveVideo.snippet.title,
-        source: 'youtube-api' 
+        source: 'youtube-api'
       };
     }
   } catch (err) {
@@ -94,9 +94,9 @@ router.get('/feed', async (req, res) => {
     if (!setting?.value) {
       return res.status(404).json({ error: 'YouTube channel setting not found' });
     }
-    
+
     const api_key = await Settings.findOne({ church: churchId, key: 'youtube_api_key' }).lean();
-    const YOUTUBE_API_KEY = api_key?.value || process.env.YOUTUBE_API_KEY;  
+    const YOUTUBE_API_KEY = api_key?.value || process.env.YOUTUBE_API_KEY;
 
     const response = await detectLiveStream(setting.value, churchId, YOUTUBE_API_KEY );
     res.json(response);

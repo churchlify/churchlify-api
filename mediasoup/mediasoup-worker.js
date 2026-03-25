@@ -64,8 +64,9 @@ function safeClose(entity) {
     if (typeof entity.close === 'function' && !entity.closed) {
       entity.close();
     }
-  } catch (_) {
+  } catch (err) {
     // Intentionally ignore close errors during cleanup.
+    console.warn('Safe close warning:', err.message);
   }
 }
 
@@ -89,8 +90,8 @@ function parseJsonBody(req) {
 
       try {
         resolve(JSON.parse(data));
-      } catch (_) {
-        reject(new HttpError(400, 'Invalid JSON body'));
+      } catch (err) {
+        reject(new HttpError(400, `Invalid JSON body: ${err.message}`));
       }
     });
 

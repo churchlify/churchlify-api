@@ -19,7 +19,7 @@ const donationSchema = new mongoose.Schema({
   isRecurring: { type: Boolean, default: false },
   isTestMode: { type: Boolean, default: false },
   platform: { type: String, enum: ['stripe', 'paystack'], required: true, index: true },
-  transactionReferenceId: { type: String, required: false, unique: true, sparse: true }, 
+  transactionReferenceId: { type: String, required: false, unique: true, sparse: true },
   subscriptionId: { type: String,  required: false },
   customerId: { type: String, required: false},
   status: { type: String, enum: ['initiated', 'processing', 'succeeded', 'failed', 'refunded', 'requires_action'], default: 'initiated', index: true },

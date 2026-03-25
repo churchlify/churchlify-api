@@ -94,12 +94,12 @@ router.delete('/delete/:id', async (req, res) => {
         const { id } = req.params;
         const deletedItem = await Event.findByIdAndDelete(id);
         if (!deletedItem) {return res.status(404).json({ error: 'Event not found' });}
-        
+
         // Invalidate church's event list cache
         if (deletedItem.church) {
             await delCache(deletedItem.church.toString(), 'events:list');
         }
-        
+
         res.status(200).json({ message: 'Event deleted successfully', event: deletedItem });
     } catch (err) {
         res.status(500).json({ error: err.message });

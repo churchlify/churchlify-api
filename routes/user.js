@@ -35,27 +35,27 @@ function parseRetainDays(value) {
 */
 router.post('/create', uploadImage, normalizeAddressPayload, validateUser(), async (req, res) => {
     const {
-        church, firstName, lastName, emailAddress, phoneNumber, address, gender, 
+        church, firstName, lastName, emailAddress, phoneNumber, address, gender,
         dateOfBirth, isMarried, anniversaryDate, firebaseId, pushToken, role,
     } = req.body;
 
     const newUser = {
-        church, firstName, lastName, emailAddress, phoneNumber, address, gender, 
+        church, firstName, lastName, emailAddress, phoneNumber, address, gender,
         dateOfBirth, isMarried, anniversaryDate, firebaseId, pushToken, role,
     };
     let uploadedPhotoUrl = null;
-    
+
     try {
         const existingEmail = await User.findOne({ emailAddress });
         if (existingEmail) {
-            return res.status(422).json({ 
+            return res.status(422).json({
                 errors: [{
                     type: 'auth_existing_email',
                     msg: `Record with email ${emailAddress} already exists.`,
                 }],
             });
         }
-        
+
         const existingPhone = await User.findOne({ phoneNumber });
         if (existingPhone) {
             return res.status(422).json({
@@ -77,9 +77,9 @@ router.post('/create', uploadImage, normalizeAddressPayload, validateUser(), asy
         const newItem = new User(newUser);
         await newItem.save();
 
-        res.status(201).json({ 
-            message: 'User registered successfully', 
-            user: newItem 
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: newItem
         });
 
     } catch (err) {
@@ -234,9 +234,9 @@ router.patch('/update/:id', uploadImage, normalizeAddressPayload, async (req, re
 
         // Validate unique email if it's being updated
         if (updateObject.emailAddress) {
-            const emailExists = await User.findOne({ 
+            const emailExists = await User.findOne({
                 emailAddress: updateObject.emailAddress,
-                _id: { $ne: id } 
+                _id: { $ne: id }
             });
             if (emailExists) {
             if (newPhotoUrl) {
@@ -275,7 +275,7 @@ router.patch('/update/:id', uploadImage, normalizeAddressPayload, async (req, re
             console.error('Failed to cleanup replaced user photo:', cleanupErr);
           }
         }
-        
+
         res.status(200).json({
             message: 'User record updated successfully',
             user: transactionalUpdatedUser

@@ -1,18 +1,18 @@
 // hooks/userHooks.js
-const TopicManager = require("../common/push.helper");
+const TopicManager = require('../common/push.helper');
 let Church;
 let Assignment;
 
 function getChurchModel() {
   if (!Church) {
-    Church = require("../models/church");
+    Church = require('../models/church');
   }
   return Church;
 }
 
 function getAssignmentModel() {
   if (!Assignment) {
-    Assignment = require("../models/assignment");
+    Assignment = require('../models/assignment');
   }
   return Assignment;
 }
@@ -24,7 +24,7 @@ function buildTopicsForUser(userId, churchId) {
     for (const assignment of assignments) {
       if (assignment.ministryId){ topics.add(TopicManager.topics.ministry(assignment.ministryId));}
       if (assignment.fellowshipId){ topics.add(TopicManager.topics.fellowship(assignment.fellowshipId));}
-      if (assignment.role === "leader"){ topics.add(TopicManager.topics.leaders(churchId));}
+      if (assignment.role === 'leader'){ topics.add(TopicManager.topics.leaders(churchId));}
     }
     return [...topics];
   });
@@ -32,15 +32,15 @@ function buildTopicsForUser(userId, churchId) {
 
 function applyUserHooks(schema) {
   // ✅ Validate church references
-  schema.pre("save", async function (next) {
-    if (!this.isNew && !this.isModified("church")) {return next();}
+  schema.pre('save', async function (next) {
+    if (!this.isNew && !this.isModified('church')) {return next();}
     const churchId = this.church;
     if (!churchId){ return next();}
 
     try {
       const ChurchModel = getChurchModel();
       const churchExists = await ChurchModel.findById(churchId);
-      if (!churchExists){ return next(new Error("Invalid Church reference. Church not found."));}
+      if (!churchExists){ return next(new Error('Invalid Church reference. Church not found.'));}
       next();
     } catch (err) {
       next(err);
@@ -48,14 +48,14 @@ function applyUserHooks(schema) {
   });
 
   // ✅ Track previous pushToken
-  schema.pre("save", function (next) {
-    if (!this.isNew && this.isModified("pushToken")) {
-      this._previousPushToken = this.get("pushToken");
+  schema.pre('save', function (next) {
+    if (!this.isNew && this.isModified('pushToken')) {
+      this._previousPushToken = this.get('pushToken');
     }
     next();
   });
 
-  schema.pre("findOneAndUpdate", async function (next) {
+  schema.pre('findOneAndUpdate', async function (next) {
     const update = this.getUpdate();
     const churchId = update.$set ? update.$set.church : null;
     if (!churchId) {return next();}
@@ -63,7 +63,7 @@ function applyUserHooks(schema) {
     try {
       const ChurchModel = getChurchModel();
       const churchExists = await ChurchModel.findById(churchId);
-      if (!churchExists){ return next(new Error("Invalid Church reference in update. Church not found."));}
+      if (!churchExists){ return next(new Error('Invalid Church reference in update. Church not found.'));}
       next();
     } catch (err) {
       next(err);
@@ -71,7 +71,7 @@ function applyUserHooks(schema) {
   });
 
   // ✅ Handle subscriptions/unsubscriptions
-  schema.post("save", async function (doc) {
+  schema.post('save', async function (doc) {
     const userId = doc._id;
     try {
       // Unsubscribe old token if changed
@@ -91,7 +91,7 @@ function applyUserHooks(schema) {
     }
   });
 
-  schema.post("findOneAndUpdate", async function (doc) {
+  schema.post('findOneAndUpdate', async function (doc) {
     if (!doc){ return;}
     const userId = doc._id;
 
@@ -109,7 +109,7 @@ function applyUserHooks(schema) {
     }
   });
 
-  schema.post("findOneAndDelete", async function (doc) {
+  schema.post('findOneAndDelete', async function (doc) {
     if (!doc || !doc.pushToken){ return;}
     const userId = doc._id;
 

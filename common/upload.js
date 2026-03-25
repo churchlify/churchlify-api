@@ -115,7 +115,7 @@ const deleteFile = async (fileUrl, options = {}) => {
       Key: fileName,
     }));
   } catch (error) {
-    console.error(`MinIO Delete Error:`, error.message);
+    console.error('MinIO Delete Error:', error.message);
     if (throwOnError) {
       throw error;
     }

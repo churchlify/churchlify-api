@@ -14,10 +14,10 @@ exports.logAuditTrails = (req, res, next) => {
         delete safeHeaders.authorization;
         const headersToLog = JSON.stringify(safeHeaders);
         let payloadToLog;
-        
+
         const contentType = req.headers['content-type'];
         const isFileUpload = contentType && contentType.startsWith('multipart/form-data');
-        
+
         if (isFileUpload || !req.body || Object.keys(req.body).length === 0) {
             payloadToLog = JSON.stringify({ status: 'Unparsed/File Body', size: req.headers['content-length'] });
         } else {
@@ -27,14 +27,14 @@ exports.logAuditTrails = (req, res, next) => {
         res.json = async function (body) {
             try {
                 const statusCode = res.statusCode;
-                
+
                 if (statusCode < 401) {
                     await AuditTrail.create({
                         url: req.originalUrl,
                         activity: methodMappers[req.method] + ' ' + req.originalUrl.split('/')[req.originalUrl.split('/').length - 1] || '',
                         params: JSON.stringify(req.params),
                         query: JSON.stringify(req.query),
-                        payload: payloadToLog, 
+                        payload: payloadToLog,
                         headers: headersToLog,
                         response: JSON.stringify(body),
                         status: statusCode
@@ -46,7 +46,7 @@ exports.logAuditTrails = (req, res, next) => {
                 console.error('Audit Trail Save FAILED:', auditError.message);
             }
             return originalJson.call(this, body);
-        };     
+        };
         next();
     } catch (error) {
         console.error('>>>>> An error occurred setting up audit middleware: >>>>>>>>', error.message);

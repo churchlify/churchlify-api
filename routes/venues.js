@@ -57,12 +57,12 @@ router.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     const deletedVenue = await Venue.findByIdAndDelete(id);
     if (!deletedVenue) {return res.status(404).json({ error: 'Venue not found' });}
-    
+
     // Invalidate church's venue list cache
     if (deletedVenue.church) {
       await delCache(deletedVenue.church.toString(), 'venues:list');
     }
-    
+
     res.status(200).json({ message: 'Venue deleted successfully', venue: deletedVenue });
   } catch (err) {
     res.status(500).json({ error: err.message });

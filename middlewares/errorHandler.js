@@ -37,9 +37,9 @@ function errorHandler(err, req, res, next) {
       });
     }
 
-    return res.status(400).json({ 
+    return res.status(400).json({
       type: 'upload_error',
-      message: err.message 
+      message: err.message
     });
   }
 

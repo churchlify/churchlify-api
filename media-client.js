@@ -1,5 +1,5 @@
 // mediasoup/media-worker.js
-/* global AbortController, fetch */
+/* global */
 const { createWorker } = require('mediasoup');
 const redisClient = require('./common/redis.connection');
 

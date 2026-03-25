@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const NotificationStatusSchema = new mongoose.Schema({
-    batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Notifications', required: true }, 
-    recipient: { type: String, required: true }, 
-    status: { type: String, default: 'sent', required: true }, 
-    details: { type: mongoose.Schema.Types.Mixed }, 
-    deliveryTime: { type: Date }, 
-    providerMessageId: { type: String }, 
+    batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Notifications', required: true },
+    recipient: { type: String, required: true },
+    status: { type: String, default: 'sent', required: true },
+    details: { type: mongoose.Schema.Types.Mixed },
+    deliveryTime: { type: Date },
+    providerMessageId: { type: String },
 },{timestamps: true});
 
 

@@ -1,17 +1,17 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 router.use(express.json());
-const mongoose = require("mongoose");
-const Donation = require("../models/donations");
-const { getPaymentSettings } = require("../common/payment");
-const Stripe = require("stripe");
-const crypto = require("crypto");
+const mongoose = require('mongoose');
+const Donation = require('../models/donations');
+const { getPaymentSettings } = require('../common/payment');
+const Stripe = require('stripe');
+const crypto = require('crypto');
 let currentOtp = null;
 let otpExpiry = null;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getCaseInsensitiveValue = (obj, keys) => {
-  if (!obj || typeof obj !== "object") {
+  if (!obj || typeof obj !== 'object') {
     return undefined;
   }
 
@@ -22,7 +22,7 @@ const getCaseInsensitiveValue = (obj, keys) => {
 
   for (const key of keys) {
     const value = normalized[String(key).toLowerCase()];
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
       return value;
     }
   }
@@ -33,7 +33,7 @@ const getCaseInsensitiveValue = (obj, keys) => {
 const resolveChurchIdFromStripePayload = async (payload) => {
   const dataObject = payload && payload.data && payload.data.object ? payload.data.object : {};
   const metadata = dataObject && dataObject.metadata;
-  const metadataChurchId = getCaseInsensitiveValue(metadata, ["churchId"]);
+  const metadataChurchId = getCaseInsensitiveValue(metadata, ['churchId']);
   if (metadataChurchId) {
     return String(metadataChurchId);
   }
@@ -52,22 +52,22 @@ const resolveChurchIdFromStripePayload = async (payload) => {
 
   pushUnique(referenceCandidates, dataObject.id);
   pushUnique(referenceCandidates, dataObject.payment_intent);
-  if (dataObject.latest_invoice && typeof dataObject.latest_invoice === "object") {
+  if (dataObject.latest_invoice && typeof dataObject.latest_invoice === 'object') {
     pushUnique(referenceCandidates, dataObject.latest_invoice.payment_intent);
   }
 
   pushUnique(subscriptionCandidates, dataObject.subscription);
-  if (payload && payload.type && String(payload.type).startsWith("customer.subscription.")) {
+  if (payload && payload.type && String(payload.type).startsWith('customer.subscription.')) {
     pushUnique(subscriptionCandidates, dataObject.id);
   }
 
   if (referenceCandidates.length) {
     const byReference = await Donation.findOne({
-      platform: "stripe",
+      platform: 'stripe',
       transactionReferenceId: { $in: referenceCandidates }
     })
       .sort({ createdAt: -1 })
-      .select("churchId")
+      .select('churchId')
       .lean();
 
     if (byReference && byReference.churchId) {
@@ -77,11 +77,11 @@ const resolveChurchIdFromStripePayload = async (payload) => {
 
   if (subscriptionCandidates.length) {
     const bySubscription = await Donation.findOne({
-      platform: "stripe",
+      platform: 'stripe',
       subscriptionId: { $in: subscriptionCandidates }
     })
       .sort({ createdAt: -1 })
-      .select("churchId")
+      .select('churchId')
       .lean();
 
     if (bySubscription && bySubscription.churchId) {
@@ -94,28 +94,28 @@ const resolveChurchIdFromStripePayload = async (payload) => {
 
 const mapStripeStatus = (eventType, dataObject) => {
   switch (eventType) {
-    case "payment_intent.succeeded":
-    case "charge.succeeded":
-    case "invoice.paid":
-    case "invoice.payment_succeeded":
-      return "succeeded";
-    case "payment_intent.payment_failed":
-    case "charge.failed":
-    case "invoice.payment_failed":
-    case "customer.subscription.deleted":
-      return "failed";
-    case "customer.subscription.created":
-      return "processing";
-    case "charge.updated": {
-      const chargeStatus = String(dataObject && dataObject.status ? dataObject.status : "").toLowerCase();
-      if (chargeStatus === "succeeded") {
-        return "succeeded";
+    case 'payment_intent.succeeded':
+    case 'charge.succeeded':
+    case 'invoice.paid':
+    case 'invoice.payment_succeeded':
+      return 'succeeded';
+    case 'payment_intent.payment_failed':
+    case 'charge.failed':
+    case 'invoice.payment_failed':
+    case 'customer.subscription.deleted':
+      return 'failed';
+    case 'customer.subscription.created':
+      return 'processing';
+    case 'charge.updated': {
+      const chargeStatus = String(dataObject && dataObject.status ? dataObject.status : '').toLowerCase();
+      if (chargeStatus === 'succeeded') {
+        return 'succeeded';
       }
-      if (chargeStatus === "failed") {
-        return "failed";
+      if (chargeStatus === 'failed') {
+        return 'failed';
       }
-      if (chargeStatus === "pending") {
-        return "processing";
+      if (chargeStatus === 'pending') {
+        return 'processing';
       }
       return null;
     }
@@ -126,7 +126,7 @@ const mapStripeStatus = (eventType, dataObject) => {
 
 const getStripeReferenceCandidates = (eventType, dataObject) => {
   const candidates = [];
-  const normalizedEventType = String(eventType || "");
+  const normalizedEventType = String(eventType || '');
   const pushUnique = (value) => {
     if (!value) {
       return;
@@ -140,24 +140,24 @@ const getStripeReferenceCandidates = (eventType, dataObject) => {
   pushUnique(dataObject && dataObject.payment_intent);
   pushUnique(dataObject && dataObject.latest_charge);
   pushUnique(dataObject && dataObject.charge);
-  if (dataObject && dataObject.latest_invoice && typeof dataObject.latest_invoice === "object") {
+  if (dataObject && dataObject.latest_invoice && typeof dataObject.latest_invoice === 'object') {
     pushUnique(dataObject.latest_invoice.id);
     pushUnique(dataObject.latest_invoice.charge);
     pushUnique(dataObject.latest_invoice.latest_charge);
     pushUnique(dataObject.latest_invoice.payment_intent);
   }
 
-  if (normalizedEventType.startsWith("invoice.")) {
+  if (normalizedEventType.startsWith('invoice.')) {
     // When donation reference falls back to invoice id, invoice webhooks must match directly.
     pushUnique(dataObject && dataObject.id);
   }
 
-  if (normalizedEventType.startsWith("charge.")) {
+  if (normalizedEventType.startsWith('charge.')) {
     // Charge webhooks identify the charge by object id.
     pushUnique(dataObject && dataObject.id);
   }
 
-  if (normalizedEventType.startsWith("payment_intent.")) {
+  if (normalizedEventType.startsWith('payment_intent.')) {
     pushUnique(dataObject && dataObject.id);
   }
 
@@ -177,7 +177,7 @@ const getStripeSubscriptionCandidates = (eventType, dataObject) => {
   };
 
   pushUnique(dataObject && dataObject.subscription);
-  if (eventType && String(eventType).startsWith("customer.subscription.")) {
+  if (eventType && String(eventType).startsWith('customer.subscription.')) {
     pushUnique(dataObject && dataObject.id);
   }
 
@@ -197,17 +197,17 @@ const updateDonationFromStripeEvent = async (event, churchId) => {
 
   const updateSet = {
     webhookReceivedAt: new Date(),
-    "platformDetails.stripe.lastEvent": eventType || null,
-    "platformDetails.stripe.chargeStatus": dataObject && dataObject.status ? dataObject.status : null,
-    "platformDetails.stripe.paymentIntentId": dataObject && dataObject.payment_intent ? dataObject.payment_intent : null,
-    "platformDetails.stripe.subscriptionId": dataObject && dataObject.subscription ? dataObject.subscription : null,
+    'platformDetails.stripe.lastEvent': eventType || null,
+    'platformDetails.stripe.chargeStatus': dataObject && dataObject.status ? dataObject.status : null,
+    'platformDetails.stripe.paymentIntentId': dataObject && dataObject.payment_intent ? dataObject.payment_intent : null,
+    'platformDetails.stripe.subscriptionId': dataObject && dataObject.subscription ? dataObject.subscription : null,
   };
 
   if (mappedStatus) {
     updateSet.status = mappedStatus;
   }
 
-  if (mappedStatus === "succeeded") {
+  if (mappedStatus === 'succeeded') {
     const createdAt = dataObject && dataObject.created ? Number(dataObject.created) : null;
     updateSet.completedAt = Number.isFinite(createdAt) ? new Date(createdAt * 1000) : new Date();
   }
@@ -217,7 +217,7 @@ const updateDonationFromStripeEvent = async (event, churchId) => {
   let donation = null;
   if (referenceCandidates.length) {
     const referenceFilter = {
-      platform: "stripe",
+      platform: 'stripe',
       transactionReferenceId: { $in: referenceCandidates }
     };
     if (churchId) {
@@ -228,20 +228,20 @@ const updateDonationFromStripeEvent = async (event, churchId) => {
       referenceFilter,
       update,
       { new: true, sort: { createdAt: -1 } }
-    ).select("_id status transactionReferenceId subscriptionId");
+    ).select('_id status transactionReferenceId subscriptionId');
 
     if (!donation && churchId) {
       donation = await Donation.findOneAndUpdate(
-        { platform: "stripe", transactionReferenceId: { $in: referenceCandidates } },
+        { platform: 'stripe', transactionReferenceId: { $in: referenceCandidates } },
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
     }
   }
 
   if (!donation && subscriptionCandidates.length) {
     const subscriptionFilter = {
-      platform: "stripe",
+      platform: 'stripe',
       subscriptionId: { $in: subscriptionCandidates }
     };
     if (churchId) {
@@ -252,14 +252,14 @@ const updateDonationFromStripeEvent = async (event, churchId) => {
       subscriptionFilter,
       update,
       { new: true, sort: { createdAt: -1 } }
-    ).select("_id status transactionReferenceId subscriptionId");
+    ).select('_id status transactionReferenceId subscriptionId');
 
     if (!donation && churchId) {
       donation = await Donation.findOneAndUpdate(
-        { platform: "stripe", subscriptionId: { $in: subscriptionCandidates } },
+        { platform: 'stripe', subscriptionId: { $in: subscriptionCandidates } },
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
     }
   }
 
@@ -268,7 +268,7 @@ const updateDonationFromStripeEvent = async (event, churchId) => {
 
 const getMetadataChurchId = (event) => {
   const metadata = event && event.data && event.data.metadata;
-  if (!metadata || typeof metadata !== "object") {
+  if (!metadata || typeof metadata !== 'object') {
     return null;
   }
 
@@ -280,7 +280,7 @@ const getMetadataChurchId = (event) => {
   const customFields = metadata.custom_fields;
   if (Array.isArray(customFields)) {
     const match = customFields.find((field) =>
-      field && (field.variable_name === "churchId" || field.display_name === "churchId")
+      field && (field.variable_name === 'churchId' || field.display_name === 'churchId')
     );
     if (match && match.value) {
       return String(match.value);
@@ -291,7 +291,7 @@ const getMetadataChurchId = (event) => {
 };
 
 const getSubscriptionCode = (data) => {
-  if (!data || typeof data !== "object") {
+  if (!data || typeof data !== 'object') {
     return null;
   }
 
@@ -299,7 +299,7 @@ const getSubscriptionCode = (data) => {
     return String(data.subscription_code);
   }
 
-  if (typeof data.subscription === "string" && data.subscription.trim() !== "") {
+  if (typeof data.subscription === 'string' && data.subscription.trim() !== '') {
     return String(data.subscription);
   }
 
@@ -312,18 +312,18 @@ const getSubscriptionCode = (data) => {
 
 const mapPaystackStatus = (eventType) => {
   switch (eventType) {
-    case "charge.success":
-      return "succeeded";
-    case "charge.failed":
-    case "subscription.not_renewed":
-    case "subscription.disable":
-      return "failed";
+    case 'charge.success':
+      return 'succeeded';
+    case 'charge.failed':
+    case 'subscription.not_renewed':
+    case 'subscription.disable':
+      return 'failed';
     default:
       return null;
   }
 };
 
-const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getExpectedMajorAmount = (data) => {
   const minorAmount = Number(data && data.amount);
@@ -348,11 +348,11 @@ const getPaystackCustomerCandidates = (data) => {
     }
   };
 
-  if (typeof data.customer === "string") {
+  if (typeof data.customer === 'string') {
     pushUnique(data.customer);
   }
 
-  if (data.customer && typeof data.customer === "object") {
+  if (data.customer && typeof data.customer === 'object') {
     pushUnique(data.customer.customer_code);
     pushUnique(data.customer.id);
     pushUnique(data.customer.email);
@@ -374,18 +374,18 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
 
   const updateSet = {
     webhookReceivedAt: new Date(),
-    "platformDetails.paystack.lastEvent": event && event.event,
-    "platformDetails.paystack.reference": reference,
-    "platformDetails.paystack.subscriptionCode": subscriptionCode,
-    "platformDetails.paystack.gatewayResponse": data.gateway_response || null,
-    "platformDetails.paystack.paidAt": data.paid_at || data.paidAt || null,
+    'platformDetails.paystack.lastEvent': event && event.event,
+    'platformDetails.paystack.reference': reference,
+    'platformDetails.paystack.subscriptionCode': subscriptionCode,
+    'platformDetails.paystack.gatewayResponse': data.gateway_response || null,
+    'platformDetails.paystack.paidAt': data.paid_at || data.paidAt || null,
   };
 
   if (mappedStatus) {
     updateSet.status = mappedStatus;
   }
 
-  if (event && event.event === "charge.success") {
+  if (event && event.event === 'charge.success') {
     const paidAt = data.paid_at || data.paidAt;
     updateSet.completedAt = paidAt ? new Date(paidAt) : new Date();
   }
@@ -394,7 +394,7 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
 
   let donation = null;
   if (reference) {
-    const exactFilter = { platform: "paystack", transactionReferenceId: reference };
+    const exactFilter = { platform: 'paystack', transactionReferenceId: reference };
     if (churchId) {
       exactFilter.churchId = churchId;
     }
@@ -402,22 +402,22 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
       exactFilter,
       update,
       { new: true, sort: { createdAt: -1 } }
-    ).select("_id status transactionReferenceId subscriptionId");
+    ).select('_id status transactionReferenceId subscriptionId');
 
     if (!donation && churchId) {
       donation = await Donation.findOneAndUpdate(
-        { platform: "paystack", transactionReferenceId: reference },
+        { platform: 'paystack', transactionReferenceId: reference },
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
     }
   }
 
   if (!donation && reference) {
-    const prefixedPattern = new RegExp(`^churchlify_${escapeRegExp(reference)}(_|$)`, "i");
+    const prefixedPattern = new RegExp(`^churchlify_${escapeRegExp(reference)}(_|$)`, 'i');
     const fallbackFilter = {
-      platform: "paystack",
-      status: { $in: ["processing", "initiated"] },
+      platform: 'paystack',
+      status: { $in: ['processing', 'initiated'] },
       transactionReferenceId: prefixedPattern
     };
     if (churchId) {
@@ -431,12 +431,12 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
       fallbackFilter,
       update,
       { new: true, sort: { createdAt: -1 } }
-    ).select("_id status transactionReferenceId subscriptionId");
+    ).select('_id status transactionReferenceId subscriptionId');
 
     if (!donation && churchId) {
       const fallbackNoChurchFilter = {
-        platform: "paystack",
-        status: { $in: ["processing", "initiated"] },
+        platform: 'paystack',
+        status: { $in: ['processing', 'initiated'] },
         transactionReferenceId: prefixedPattern
       };
       if (expectedMajorAmount !== null) {
@@ -446,17 +446,17 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
         fallbackNoChurchFilter,
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
     }
   }
 
-  if (!donation && reference && reference.startsWith("churchlify_")) {
-    const parts = reference.split("_");
+  if (!donation && reference && reference.startsWith('churchlify_')) {
+    const parts = reference.split('_');
     const rawReference = parts.length >= 2 ? parts[1] : null;
     if (rawReference) {
       const rawFilter = {
-        platform: "paystack",
-        status: { $in: ["processing", "initiated"] },
+        platform: 'paystack',
+        status: { $in: ['processing', 'initiated'] },
         transactionReferenceId: rawReference
       };
       if (churchId) {
@@ -470,12 +470,12 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
         rawFilter,
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
 
         if (!donation && churchId) {
           const rawNoChurchFilter = {
-            platform: "paystack",
-            status: { $in: ["processing", "initiated"] },
+            platform: 'paystack',
+            status: { $in: ['processing', 'initiated'] },
             transactionReferenceId: rawReference
           };
           if (expectedMajorAmount !== null) {
@@ -486,13 +486,13 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
             rawNoChurchFilter,
             update,
             { new: true, sort: { createdAt: -1 } }
-          ).select("_id status transactionReferenceId subscriptionId");
+          ).select('_id status transactionReferenceId subscriptionId');
         }
     }
   }
 
   if (!donation && subscriptionCode) {
-    const subFilter = { platform: "paystack", subscriptionId: subscriptionCode };
+    const subFilter = { platform: 'paystack', subscriptionId: subscriptionCode };
     if (churchId) {
       subFilter.churchId = churchId;
     }
@@ -500,18 +500,18 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
       subFilter,
       update,
       { new: true, sort: { createdAt: -1 } }
-    ).select("_id status transactionReferenceId subscriptionId");
+    ).select('_id status transactionReferenceId subscriptionId');
 
     if (!donation && churchId) {
       donation = await Donation.findOneAndUpdate(
-        { platform: "paystack", subscriptionId: subscriptionCode },
+        { platform: 'paystack', subscriptionId: subscriptionCode },
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
     }
 
     if (!donation) {
-      const legacySubRefFilter = { platform: "paystack", transactionReferenceId: subscriptionCode };
+      const legacySubRefFilter = { platform: 'paystack', transactionReferenceId: subscriptionCode };
       if (churchId) {
         legacySubRefFilter.churchId = churchId;
       }
@@ -520,23 +520,23 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
         legacySubRefFilter,
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
 
       if (!donation && churchId) {
         donation = await Donation.findOneAndUpdate(
-          { platform: "paystack", transactionReferenceId: subscriptionCode },
+          { platform: 'paystack', transactionReferenceId: subscriptionCode },
           update,
           { new: true, sort: { createdAt: -1 } }
-        ).select("_id status transactionReferenceId subscriptionId");
+        ).select('_id status transactionReferenceId subscriptionId');
       }
     }
   }
 
-  if (!donation && event && event.event === "charge.success") {
+  if (!donation && event && event.event === 'charge.success') {
     const customerCandidates = getPaystackCustomerCandidates(data);
     if (customerCandidates.length) {
       const recurringCustomerFilter = {
-        platform: "paystack",
+        platform: 'paystack',
         isRecurring: true,
         customerId: { $in: customerCandidates }
       };
@@ -551,11 +551,11 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
         recurringCustomerFilter,
         update,
         { new: true, sort: { createdAt: -1 } }
-      ).select("_id status transactionReferenceId subscriptionId");
+      ).select('_id status transactionReferenceId subscriptionId');
 
       if (!donation && churchId) {
         const recurringNoChurchFilter = {
-          platform: "paystack",
+          platform: 'paystack',
           isRecurring: true,
           customerId: { $in: customerCandidates }
         };
@@ -567,7 +567,7 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
           recurringNoChurchFilter,
           update,
           { new: true, sort: { createdAt: -1 } }
-        ).select("_id status transactionReferenceId subscriptionId");
+        ).select('_id status transactionReferenceId subscriptionId');
       }
     }
   }
@@ -576,14 +576,14 @@ const updateDonationFromPaystackEventOnce = async (event, churchId) => {
 };
 
 const updateDonationFromPaystackEvent = async (event, churchId) => {
-  const shouldRetry = event && event.event === "charge.success";
+  const shouldRetry = event && event.event === 'charge.success';
   const maxAttempts = shouldRetry ? 6 : 1;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const donation = await updateDonationFromPaystackEventOnce(event, churchId);
     if (donation) {
       if (attempt > 1) {
-        console.log("Paystack webhook donation update matched on retry", { attempt });
+        console.log('Paystack webhook donation update matched on retry', { attempt });
       }
       return donation;
     }
@@ -606,7 +606,7 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
   const reference = data.reference;
   if (reference) {
     const byReference = await Donation.findOne({ transactionReferenceId: reference })
-      .select("churchId")
+      .select('churchId')
       .lean();
     if (byReference && byReference.churchId) {
       return String(byReference.churchId);
@@ -616,14 +616,14 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
   const subscriptionCode = getSubscriptionCode(data);
   if (subscriptionCode) {
     const bySubscription = await Donation.findOne({ subscriptionId: subscriptionCode })
-      .select("churchId")
+      .select('churchId')
       .lean();
     if (bySubscription && bySubscription.churchId) {
       return String(bySubscription.churchId);
     }
 
     const byLegacySubRef = await Donation.findOne({ transactionReferenceId: subscriptionCode })
-      .select("churchId")
+      .select('churchId')
       .lean();
     if (byLegacySubRef && byLegacySubRef.churchId) {
       return String(byLegacySubRef.churchId);
@@ -634,26 +634,26 @@ const resolveChurchIdFromPaystackEvent = async (event) => {
 };
 
 // The actual webhook endpoint
-router.post("/stripe", async (req, res) => {
-  const signature = req.headers["stripe-signature"];
+router.post('/stripe', async (req, res) => {
+  const signature = req.headers['stripe-signature'];
   let stripeChurchId = null;
 
   if (!signature) {
-    console.error("Stripe Webhook Error: Missing stripe-signature header");
-    return res.status(400).send("Signature missing");
+    console.error('Stripe Webhook Error: Missing stripe-signature header');
+    return res.status(400).send('Signature missing');
   }
 
   if (!Buffer.isBuffer(req.rawBody)) {
-    console.error("Stripe Webhook Error: Expected raw webhook payload buffer");
-    return res.status(400).send("Invalid body format");
+    console.error('Stripe Webhook Error: Expected raw webhook payload buffer');
+    return res.status(400).send('Invalid body format');
   }
 
   let payload;
   try {
-    payload = JSON.parse(req.rawBody.toString("utf8"));
+    payload = JSON.parse(req.rawBody.toString('utf8'));
   } catch (err) {
-    console.error("Stripe Webhook Error: Invalid JSON payload", err.message);
-    return res.status(400).send("Invalid payload");
+    console.error('Stripe Webhook Error: Invalid JSON payload', err.message);
+    return res.status(400).send('Invalid payload');
   }
 
   let webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -670,20 +670,20 @@ router.post("/stripe", async (req, res) => {
       if (stripeChurchId) {
         const paymentCardSettings = await getPaymentSettings(stripeChurchId);
         webhookSecret = getCaseInsensitiveValue(paymentCardSettings, [
-          "whsec",
-          "webhookSecret",
-          "webhook_secret",
-          "stripeWebhookSecret"
+          'whsec',
+          'webhookSecret',
+          'webhook_secret',
+          'stripeWebhookSecret'
         ]);
       }
     } catch (err) {
-      console.error("Stripe Webhook Error: Failed loading church webhook secret", err.message);
+      console.error('Stripe Webhook Error: Failed loading church webhook secret', err.message);
     }
   }
 
   if (!webhookSecret) {
-    console.error("Stripe Webhook Error: Missing signing secret (env or payment_card.value.whsec)");
-    return res.status(500).send("Stripe webhook not configured");
+    console.error('Stripe Webhook Error: Missing signing secret (env or payment_card.value.whsec)');
+    return res.status(500).send('Stripe webhook not configured');
   }
 
   let event;
@@ -704,14 +704,14 @@ router.post("/stripe", async (req, res) => {
 
   const updatedDonation = await updateDonationFromStripeEvent(event, stripeChurchId);
   if (updatedDonation) {
-    console.log("✅ Donation status updated from Stripe webhook", {
+    console.log('✅ Donation status updated from Stripe webhook', {
       donationId: updatedDonation._id,
       status: updatedDonation.status,
       reference: updatedDonation.transactionReferenceId,
       subscriptionId: updatedDonation.subscriptionId,
     });
   } else {
-    console.warn("Stripe webhook matched no donation", {
+    console.warn('Stripe webhook matched no donation', {
       eventType: event && event.type,
       churchId: stripeChurchId,
     });
@@ -720,35 +720,35 @@ router.post("/stripe", async (req, res) => {
   const dataObject = event.data.object;
   console.log({ dataObject });
   switch (event.type) {
-    case "payment_intent.succeeded":
+    case 'payment_intent.succeeded':
       console.log(`PaymentIntent successful: ${dataObject.id}`);
       break;
 
-    case "payment_intent.payment_failed":
+    case 'payment_intent.payment_failed':
       console.log(`PaymentIntent failed: ${dataObject.id}`);
       break;
-    case "charge.updated":
+    case 'charge.updated':
       console.log(`Charge updated: ${dataObject.id}`);
       break;
-    case "charge.succeeded":
+    case 'charge.succeeded':
       console.log(`Charge succeeded: ${dataObject.id}`);
       break;
-    case "charge.failed":
+    case 'charge.failed':
       console.log(`Charge failed: ${dataObject.id}`);
       break;
-    case "customer.subscription.created":
+    case 'customer.subscription.created':
       console.log(`Subscription created: ${dataObject.id}`);
       break;
-    case "invoice.paid":
+    case 'invoice.paid':
       console.log(`Invoice paid: ${dataObject.id}`);
       break;
-    case "invoice.payment_failed":
+    case 'invoice.payment_failed':
       console.log(`Invoice payment failed: ${dataObject.id}`);
       break;
-    case "invoice.payment_succeeded":
+    case 'invoice.payment_succeeded':
       console.log(`Invoice payment succeeded: ${dataObject.id}`);
       break;
-    case "customer.subscription.deleted":
+    case 'customer.subscription.deleted':
       console.log(`Subscription deleted: ${dataObject.id}`);
       break;
     default:
@@ -757,7 +757,7 @@ router.post("/stripe", async (req, res) => {
   res.json({ received: true });
 });
 
-router.post("/paystack", async (req, res) => {
+router.post('/paystack', async (req, res) => {
   try {
     let rawPayload = null;
     if (Buffer.isBuffer(req.rawBody)) {
@@ -767,22 +767,22 @@ router.post("/paystack", async (req, res) => {
     }
 
     if (!rawPayload) {
-      console.error("Expected raw webhook payload, got:", typeof req.body);
-      return res.status(400).send("Invalid body format");
+      console.error('Expected raw webhook payload, got:', typeof req.body);
+      return res.status(400).send('Invalid body format');
     }
 
-    const hash = req.headers["x-paystack-signature"];
-    const rawBody = rawPayload.toString("utf8");
+    const hash = req.headers['x-paystack-signature'];
+    const rawBody = rawPayload.toString('utf8');
     const event = JSON.parse(rawBody);
 
     if (!hash) {
-      console.error("Paystack Webhook Error: Missing signature header.");
-      return res.status(400).send("Signature missing");
+      console.error('Paystack Webhook Error: Missing signature header.');
+      return res.status(400).send('Signature missing');
     }
 
     const churchId = await resolveChurchIdFromPaystackEvent(event);
     if (!churchId) {
-      console.warn("Paystack Webhook: churchId missing; acknowledging without processing", {
+      console.warn('Paystack Webhook: churchId missing; acknowledging without processing', {
         eventType: event && event.event,
         reference: event && event.data && event.data.reference
       });
@@ -790,32 +790,32 @@ router.post("/paystack", async (req, res) => {
     }
 
     const decryptedData = await getPaymentSettings(churchId);
-    const paystackSecret = getCaseInsensitiveValue(decryptedData, ["secretKey", "secretkey"]);
+    const paystackSecret = getCaseInsensitiveValue(decryptedData, ['secretKey', 'secretkey']);
     if (!paystackSecret) {
-      console.error("Paystack Webhook Error: Missing paystack secret for church", churchId);
+      console.error('Paystack Webhook Error: Missing paystack secret for church', churchId);
       return res.sendStatus(200);
     }
 
     const calculatedHash = crypto
-      .createHmac("sha512", paystackSecret)
+      .createHmac('sha512', paystackSecret)
       .update(rawBody)
-      .digest("hex");
+      .digest('hex');
     if (calculatedHash !== hash) {
-      console.error("⚠️ Paystack Webhook Error: Signature mismatch!");
-      return res.status(400).send("Signature verification failed");
+      console.error('⚠️ Paystack Webhook Error: Signature mismatch!');
+      return res.status(400).send('Signature verification failed');
     }
-    console.log("✅ Paystack Webhook Verified. Event:", { event });
+    console.log('✅ Paystack Webhook Verified. Event:', { event });
 
     const updatedDonation = await updateDonationFromPaystackEvent(event, churchId);
     if (updatedDonation) {
-      console.log("✅ Donation status updated from Paystack webhook", {
+      console.log('✅ Donation status updated from Paystack webhook', {
         donationId: updatedDonation._id,
         status: updatedDonation.status,
         reference: updatedDonation.transactionReferenceId,
         subscriptionId: updatedDonation.subscriptionId,
       });
     } else {
-      console.warn("Paystack webhook matched no donation", {
+      console.warn('Paystack webhook matched no donation', {
         eventType: event && event.event,
         reference: event && event.data && event.data.reference,
         subscriptionCode: getSubscriptionCode(event && event.data),
@@ -823,20 +823,20 @@ router.post("/paystack", async (req, res) => {
     }
 
     switch (event.event) {
-      case "charge.success":
+      case 'charge.success':
         console.log(`Paystack Charge Success: ${event.data.reference}`);
         break;
-      case "subscription.create":
+      case 'subscription.create':
         console.log(
           `Paystack Subscription Created: ${event.data.subscription_code}`
         );
         break;
-      case "subscription.not_renewed":
+      case 'subscription.not_renewed':
         console.log(
           `Paystack Subscription Not Renewed: ${event.data.subscription_code}`
         );
         break;
-      case "subscription.disable":
+      case 'subscription.disable':
         console.log(
           `Paystack Subscription Disabled: ${event.data.subscription_code}`
         );
@@ -847,28 +847,28 @@ router.post("/paystack", async (req, res) => {
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("Webhook processing error:", err);
-    res.status(500).send("Internal error");
+    console.error('Webhook processing error:', err);
+    res.status(500).send('Internal error');
   }
 });
 
-router.post("/generate-otp", (req, res) => {
+router.post('/generate-otp', (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
   currentOtp = otp;
   otpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes validity
   // TODO: send OTP securely (email/SMS). For dev, just log it:
-  console.log("Generated OTP:", otp);
+  console.log('Generated OTP:', otp);
 
-  res.json({ message: "OTP generated and sent to admin" });
+  res.json({ message: 'OTP generated and sent to admin' });
 });
 
-router.delete("/clear-database", async (req, res) => {
+router.delete('/clear-database', async (req, res) => {
   const { otp } = req.body;
 
   if (!otp || parseInt(otp) !== parseInt(currentOtp) || Date.now() > otpExpiry) {
-    console.log("Invalid or expired OTP attempt:", !otp);
-    console.log("Invalid or expired OTP attempt:", otp !== currentOtp);
-    console.log("Invalid or expired OTP attempt:", Date.now() > otpExpiry);
+    console.log('Invalid or expired OTP attempt:', !otp);
+    console.log('Invalid or expired OTP attempt:', otp !== currentOtp);
+    console.log('Invalid or expired OTP attempt:', Date.now() > otpExpiry);
     return res
       .status(403)
       .json({
@@ -884,10 +884,10 @@ router.delete("/clear-database", async (req, res) => {
       console.log(`Cleared collection: ${name}`);
     }
 
-    res.json({ message: "All collections cleared successfully" });
+    res.json({ message: 'All collections cleared successfully' });
   } catch (err) {
-    console.error("Error clearing database:", err);
-    res.status(500).json({ error: "Failed to clear database" });
+    console.error('Error clearing database:', err);
+    res.status(500).json({ error: 'Failed to clear database' });
   }
 });
 

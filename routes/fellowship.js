@@ -124,7 +124,7 @@ router.delete('/delete/:id', requireSuperOrAdminOrResourceFellowshipLeader(Fello
         // invalidate cache for the church
         if(deletedFellowship.church){
             await require('../common/cache').del(deletedFellowship.church.toString(), 'fellowships:list');
-        } 
+        }
         res.status(200).json({ message: 'Fellowship deleted successfully', fellowship: deletedFellowship });
     } catch (err) {
         res.status(500).json({ error: err.message });

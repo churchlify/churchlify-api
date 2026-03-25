@@ -45,8 +45,8 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
         }
         await session.commitTransaction();
         session.endSession();
-        return res.status(201).json({ 
-            message: 'Church created and user updated successfully', 
+        return res.status(201).json({
+            message: 'Church created and user updated successfully',
             church: newChurch,
             user: updatedUser
         });
@@ -64,7 +64,7 @@ async function createChurchRecord(churchData, res, uploadedLogoUrl = null) {
             }
         }
         console.error('Transaction aborted:', error);
-        if (error.code === 11000) { 
+        if (error.code === 11000) {
             return res.status(409).json({ message: 'A record with this email or phone already exists.' });
         }
         return res.status(500).json({ error: error.message || 'Database transaction failed.' });
@@ -94,7 +94,7 @@ router.post('/create', uploadChurchImageStrict, normalizeAddressPayload, validat
       logoUrl = await uploadToMinio(req.file);
     }
 
-    await createChurchRecord({ 
+    await createChurchRecord({
         name, shortName, createdBy, emailAddress, phoneNumber, address, logo: logoUrl, timeZone,
         ...(themeSettings && { themeSettings })
         }, res, logoUrl);
@@ -131,7 +131,7 @@ router.patch('/update/:churchId', uploadChurchImageStrict, normalizeAddressPaylo
         const { churchId } = req.params;
         const updates = req.body;
         const updateObject = {};
-        
+
         const existingChurch = await Church.findById(churchId);
         if (!existingChurch) {
             return res.status(404).json({ errors: [{ msg: 'Church not found.' }] });
@@ -159,7 +159,7 @@ router.patch('/update/:churchId', uploadChurchImageStrict, normalizeAddressPaylo
                     updateObject.emailAddress ? { emailAddress: updateObject.emailAddress } : {},
                     updateObject.phoneNumber ? { phoneNumber: updateObject.phoneNumber } : {}
                 ],
-                _id: { $ne: churchId } 
+                _id: { $ne: churchId }
             });
             if (duplicate) {
                 const field = duplicate.emailAddress === updateObject.emailAddress ? 'Email' : 'Phone';
@@ -194,7 +194,7 @@ router.patch('/update/:churchId', uploadChurchImageStrict, normalizeAddressPaylo
         await session.commitTransaction();
         session.endSession();
         session = null;
-        
+
         return res.status(200).json({
             message: 'Church updated successfully',
             church: updatedChurch

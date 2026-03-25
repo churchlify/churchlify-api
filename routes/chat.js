@@ -63,7 +63,8 @@ function isRedisReady() {
 function getIoSafe() {
   try {
     return getIO();
-  } catch (_) {
+  } catch (_err) {
+    console.warn(`Socket.IO instance not available'- ${_err.message}` );
     return null;
   }
 }
@@ -126,7 +127,8 @@ async function getRoomSettings(roomId) {
 
     try {
       return sanitizeRoomSettings(JSON.parse(raw));
-    } catch (_) {
+    } catch (_err) {
+      console.warn(`Failed to parse room settings for ID: ${roomId}`, _err.message);
       return { ...DEFAULT_ROOM_SETTINGS };
     }
   }
@@ -1147,7 +1149,7 @@ router.get('/calls/history', async (req, res) => {
 router.post('/rooms', async (req, res) => {
   const { roomId } = req.body;
   if (!roomId) {return res.status(400).json({ error: 'roomId required' });}
-  
+
   if (isRedisReady()) {
     // Create room and set 1-hour TTL; auto-expires if not refreshed
     await redisClient.sadd(`room:${roomId}`, '__room__');

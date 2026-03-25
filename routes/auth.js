@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/mintToken', async (req, res) => {
- const idToken = req.body.idToken; 
+ const idToken = req.body.idToken;
   if (!idToken) {
     return res.status(400).send({ error: 'ID Token required.' });
   }
@@ -54,15 +54,15 @@ router.post('/mintToken', async (req, res) => {
     const uid = decodedToken.uid;
     const customToken = await auth.createCustomToken(uid);
     console.log(`Successfully minted Custom Token for user: ${uid}`);
-    return res.status(200).send({ 
-      customToken: customToken 
+    return res.status(200).send({
+      customToken: customToken
     });
 
   } catch (error) {
     console.error('Error minting custom token:', error);
-    return res.status(500).send({ 
+    return res.status(500).send({
       error: 'Failed to mint custom token.',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -87,8 +87,8 @@ router.post('/verify-url/', async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         res.json({ valid: true, data: decoded });
-    } catch (err) {
-        res.status(401).json({ valid: false, error: 'Invalid or expired token' });
+    } catch (_err) {
+        res.status(401).json({ valid: false, error: `Invalid or expired token- ${_err.message}`  });
     }
 });
 

@@ -136,9 +136,9 @@ const resetIndexesForAllModels = async () => {
   try {
     const mongoose = require('mongoose');
     const models = mongoose.models;
-    
+
     console.log('Syncing indexes for all models...');
-    
+
     for (const modelName in models) {
       const Model = models[modelName];
       try {

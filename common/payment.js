@@ -1,7 +1,7 @@
 const DonationPlan = require('../models/donationPlans');
 const Setting = require('../models/settings');
 const user = require('../models/user');
-const Donation = require('../models/donations'); 
+const Donation = require('../models/donations');
 const crypto = require('crypto');
 const {KEY_REGISTRY} = require('./key.registry');
 const IV_LENGTH = 16;
@@ -16,7 +16,7 @@ const ZERO_DECIMAL_CURRENCIES = new Set([
   'BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF',
   'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'
 ]);
- 
+
  const generateUniqueReference = (timestamp = Date.now()) => {
   const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
   return `churchlify_${timestamp}_${randomPart}`;
@@ -186,5 +186,5 @@ const isSecret = (item) => {
   return arrSecrets.some(sub => item.toLowerCase().includes(sub.toLowerCase()));
 };
 
-module.exports = {encrypt, decrypt, isSecret, getPaymentKey, getPaymentSettings, generateUniqueReference, 
+module.exports = {encrypt, decrypt, isSecret, getPaymentKey, getPaymentSettings, generateUniqueReference,
     getOrCreatePlan, getPayPalAccessToken, getPaypalClient, createDonation, getUser, arrSecrets, toMinorUnitAmount};

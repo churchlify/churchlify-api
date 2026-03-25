@@ -1,8 +1,8 @@
 const skipJsonForUploads = (req, res, next) => {
-    const isUploadRoute = req.path.startsWith('/church/create') || req.path.startsWith('/church/update'); 
+    const isUploadRoute = req.path.startsWith('/church/create') || req.path.startsWith('/church/update');
     const isMultipart = req.headers['content-type'] && req.headers['content-type'].startsWith('multipart/form-data');
     if (isUploadRoute && isMultipart) {
-        return next('route'); 
+        return next('route');
     }
     next();
 };
@@ -10,14 +10,14 @@ const skipJsonForUploads = (req, res, next) => {
 const reconstructNestedFields = (body) => {
   const result = {};
   console.log({ body });
-  
+
   Object.entries(body).forEach(([key, value]) => {
     if (typeof value === 'object' && value !== null) {
         console.warn(`Skipping key ${key}: Value is an object and cannot be parsed as a form data primitive.`);
         return; // Skip this key/value pair
     }
-    
-    const keys = key.split('.'); 
+
+    const keys = key.split('.');
     let current = result;
     keys.forEach((part, index) => {
       const arrayMatch = part.match(/^(.+)\[(\d+)\]$/);

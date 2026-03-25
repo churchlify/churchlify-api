@@ -37,12 +37,12 @@ const buildIndexes = async () => {
     try {
         log('🔧 Starting index build process...');
         log(`📡 Connecting to MongoDB: ${MONGO_URI}`);
-        
+
         await mongoose.connect(MONGO_URI, {
             autoIndex: true,
             maxPoolSize: 10,
         });
-        
+
         log('✅ Connected to MongoDB');
 
         let successCount = 0;
@@ -52,7 +52,7 @@ const buildIndexes = async () => {
             try {
                 const collectionName = Model.collection.name;
                 log(`\n📊 Building indexes for ${modelName} (${collectionName})...`);
-                
+
                 // Create indexes using background option (non-blocking)
                 const indexInfo = await Model.collection.createIndexes();
                 log(`   ✅ ${modelName}: Indexes created successfully`);
@@ -65,16 +65,16 @@ const buildIndexes = async () => {
         }
 
         log(`\n${'='.repeat(60)}`);
-        log(`📊 BUILD SUMMARY`);
+        log('📊 BUILD SUMMARY');
         log(`${'='.repeat(60)}`);
         log(`✅ Successful: ${successCount} collections`);
         log(`❌ Failed: ${errorCount} collections`);
         log(`${'='.repeat(60)}`);
 
         if (errorCount === 0) {
-            log(`\n🎉 All indexes built successfully!`);
+            log('\n🎉 All indexes built successfully!');
         } else {
-            log(`\n⚠️  Some collections had errors. Check log above.`);
+            log('\n⚠️  Some collections had errors. Check log above.');
         }
     } catch (error) {
         log(`\n💥 FATAL ERROR: ${error.message}`);

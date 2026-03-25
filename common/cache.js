@@ -18,7 +18,8 @@ async function get(churchId, key) {
   if (val == null) {return null;}
   try {
     return JSON.parse(val);
-  } catch (e) {
+  } catch (_e) {
+    console.warn(`Cache get warning: value for key ${k} is not valid JSON`, _e.message);
     return val;
   }
 }
@@ -44,7 +45,7 @@ async function del(churchId, keyPattern) {
   const pattern = tenantKey(churchId, keyPattern);
   let cursor = '0';
   const deleteKeys = [];
-  
+
   // Use SCAN to paginate without blocking
   try {
     do {
@@ -52,7 +53,7 @@ async function del(churchId, keyPattern) {
       cursor = nextCursor;
       deleteKeys.push(...keys);
     } while (cursor !== '0');
-    
+
     // Delete in batches to avoid memory spikes
     if (deleteKeys.length > 0) {
       for (let i = 0; i < deleteKeys.length; i += 1000) {

@@ -4,14 +4,16 @@ async function loadWebRtcRuntime() {
   try {
     const mod = await import('wrtc');
     return mod.default || mod;
-  } catch (_) {
+  } catch (err) {
     // fall through
+    console.warn('Failed to load `wrtc` module, trying `@roamhq/wrtc`...', err.message);
   }
 
   try {
     const mod = await import('@roamhq/wrtc');
     return mod.default || mod;
-  } catch (_) {
+  } catch (err) {
+    console.warn('Failed to load `@roamhq/wrtc` module...', err.message);
     // fall through
   }
 
@@ -177,8 +179,8 @@ function safeClose(entity) {
 
   try {
     entity.close();
-  } catch (_) {
-    // Ignore cleanup errors.
+  } catch (err) {
+    console.warn('Failed to close entity:', err.message);
   }
 }
 

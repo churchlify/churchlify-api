@@ -483,7 +483,7 @@ const validateAutoSchedule = () => [
 
     const validateVenue = () =>  [
         body('name').isString().withMessage('Venue name is required'),
-        body('address').optional().notEmpty().withMessage('Please provide a valid address'),    
+        body('address').optional().notEmpty().withMessage('Please provide a valid address'),
         (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {

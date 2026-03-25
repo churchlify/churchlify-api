@@ -1,10 +1,10 @@
 // hooks/assignmentHooks.js
-const TopicManager = require("../common/push.helper");
+const TopicManager = require('../common/push.helper');
 let User;
 
 function getUserModel() {
   if (!User) {
-    User = require("../models/user");
+    User = require('../models/user');
   }
   return User;
 }
@@ -17,14 +17,14 @@ function buildTopicsFromAssignment(doc, churchId) {
   if (doc.fellowshipId) {
     topics.add(TopicManager.topics.fellowship(doc.fellowshipId));
   }
-  if (doc.role === "leader") {
+  if (doc.role === 'leader') {
     topics.add(TopicManager.topics.leaders(doc.churchId));
   }
   return [...topics];
 }
 
 function applyAssignmentHooks(schema) {
-  schema.post("save", async function (doc) {
+  schema.post('save', async function (doc) {
     try {
       const UserModel = getUserModel();
       const user = await UserModel.findById(doc.userId);
@@ -34,24 +34,24 @@ function applyAssignmentHooks(schema) {
 
       const churchId = user.church;
       const topics = buildTopicsFromAssignment(doc, churchId);
-      if (doc.status === "approved") {
-        console.log("Subscribing user to topics after assignment save:", topics );
+      if (doc.status === 'approved') {
+        console.log('Subscribing user to topics after assignment save:', topics );
         await TopicManager.subscribeTokenToTopics(user.pushToken, topics);
         console.log(`[Hook:Assignment:save] User ${doc.userId} subscribed to topics.`);
       } else {
-        console.log( "Unsubscribing user to topics after assignment save:", topics);
+        console.log( 'Unsubscribing user to topics after assignment save:', topics);
         await TopicManager.unsubscribeTokenFromTopics(user.pushToken, topics);
         console.log(`[Hook:Assignment:save] User ${doc.userId} unsubscribed to topics.`);
       }
     } catch (err) {
       console.error(
-        "[Hook:Assignment:save] Topic subscription failed:",
+        '[Hook:Assignment:save] Topic subscription failed:',
         err.message
       );
     }
   });
 
-  schema.post("findOneAndUpdate", async function (doc) {
+  schema.post('findOneAndUpdate', async function (doc) {
     if (!doc) {
       return;
     }
@@ -65,24 +65,24 @@ function applyAssignmentHooks(schema) {
 
       const churchId = user.church;
       const topics = buildTopicsFromAssignment(doc, churchId);
-      if (doc.status === "approved") {
-        console.log("Subscribing user to topics after assignment update:", topics );
+      if (doc.status === 'approved') {
+        console.log('Subscribing user to topics after assignment update:', topics );
         await TopicManager.subscribeTokenToTopics(user.pushToken, topics);
         console.log(`[Hook:Assignment:update] User  ${updatedDoc.userId} subscribed to topics.`);
       } else {
-        console.log( "Unsubscribing user to topics after assignment update:", topics);
+        console.log( 'Unsubscribing user to topics after assignment update:', topics);
         await TopicManager.unsubscribeTokenFromTopics(user.pushToken, topics);
         console.log(`[Hook:Assignment:update] User  ${updatedDoc.userId} unsubscribed to topics.`);
       }
     } catch (err) {
       console.error(
-        "[Hook:Assignment:update] Topic subscription failed:",
+        '[Hook:Assignment:update] Topic subscription failed:',
         err.message
       );
     }
   });
 
-  schema.post("findOneAndDelete", async function (doc) {
+  schema.post('findOneAndDelete', async function (doc) {
     if (!doc) {
       return;
     }
@@ -101,7 +101,7 @@ function applyAssignmentHooks(schema) {
       );
     } catch (err) {
       console.error(
-        "[Hook:Assignment:delete] Topic unsubscribe failed:",
+        '[Hook:Assignment:delete] Topic unsubscribe failed:',
         err.message
       );
     }
