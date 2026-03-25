@@ -3,44 +3,6 @@ const moment = require('moment-timezone');
 const EventInstance = require('../models/eventinstance');
 const Church = require('../models/church');
 
-async function getActiveEventForUser(user, preferredEventId = null) {
-  const church = await Church.findById(user.church).select('timeZone').lean();
-  const tz = church?.timeZone || 'UTC';
-  const now = moment.tz(tz);
-
-  if (preferredEventId) {
-    const event = await EventInstance.findOne({ _id: preferredEventId, church: user.church }).lean();
-    if (event) return event;
-  }
-
-  // Today in church timezone, as a calendar date string
-  const todayStr = now.format('YYYY-MM-DD');
-
-  // Build UTC range for that calendar date (since date is stored as YYYY-MM-DDT00:00Z)
-  const start = moment.utc(todayStr, 'YYYY-MM-DD').startOf('day').toDate(); // 2026-03-25T00:00Z
-  const end = moment.utc(todayStr, 'YYYY-MM-DD').endOf('day').toDate();     // 2026-03-25T23:59:59Z
-
-  const events = await EventInstance.find({
-    church: user.church,
-    date: { $gte: start, $lte: end }
-  }).lean();
-
-  console.log("Today's events:", events);
-
-  return (
-    events.find(e => {
-      if (e.isCheckinOpen) return true;
-
-      const d = new Date(e.date).toISOString().split('T')[0]; // "2026-03-25"
-      const s = moment.tz(`${d} ${e.startTime}`, 'YYYY-MM-DD HH:mm', tz);
-      const en = moment.tz(`${d} ${e.endTime}`, 'YYYY-MM-DD HH:mm', tz);
-
-      return now.isBetween(s.clone().subtract(2, 'hours'), en);
-    }) || null
-  );
-}
-
-
 async function getChurchActiveEvent(user, preferredEventId = null) {
   const church = await Church.findById(user.church).select('timeZone').lean();
   const churchTimezone = church?.timeZone || 'UTC';
@@ -79,4 +41,50 @@ async function getChurchActiveEvent(user, preferredEventId = null) {
   });
 }
 
-module.exports = { getActiveEventForUser, getChurchActiveEvent };
+async function getChurchUpcomingEvent(user, preferredEventId = null) {
+  const church = await Church.findById(user.church).select('timeZone').lean();
+  const tz = church?.timeZone || 'UTC';
+  const now = moment.tz(tz);
+
+  if (preferredEventId) {
+    const event = await EventInstance.findOne({ _id: preferredEventId, church: user.church }).lean();
+    if (event) return event;
+  }
+
+  // Query by calendar date (correct)
+  const todayStr = now.format('YYYY-MM-DD');
+  const startOfDay = moment.utc(todayStr).startOf('day').toDate();
+  const endOfDay = moment.utc(todayStr).endOf('day').toDate();
+
+  console.log('Looking for upcoming events between:', startOfDay, 'and', endOfDay, 'for church:', user.church);
+  const events = await EventInstance.find({
+    church: user.church,
+    date: { $gte: startOfDay, $lte: endOfDay }
+  }).lean();
+
+  if (!events.length) return null;
+
+  // Filter to events starting within next 2 hours and not ended
+  const upcoming = events
+    .map(e => {
+      const d = moment(e.date).format('YYYY-MM-DD');
+      const start = moment.tz(`${d} ${e.startTime}`, 'YYYY-MM-DD HH:mm', tz);
+      const end = moment.tz(`${d} ${e.endTime}`, 'YYYY-MM-DD HH:mm', tz);
+      return { ...e, start, end };
+    })
+    .filter(e =>
+      now.isBefore(e.end) &&                     // event not ended
+      now.isSameOrAfter(e.start.clone().subtract(2, 'hours')) && // within 2h before start
+      now.isBefore(e.start)                      // hasn't started yet
+    );
+    console.log('Upcoming events within 2 hours:', upcoming);
+  if (!upcoming.length) return null;
+
+  // Pick the earliest starting event
+  upcoming.sort((a, b) => a.start - b.start);
+
+  return upcoming[0];
+}
+
+
+module.exports = { getChurchUpcomingEvent, getChurchActiveEvent };

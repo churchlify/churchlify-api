@@ -2,7 +2,7 @@
 const CheckIn = require('../models/checkin');
 const Kid = require('../models/kid');
 const { getIO } = require('../config/socket');
-const { getChurchActiveEvent } = require('./event.service');
+const { getChurchUpcomingEvent } = require('./event.service');
 
 // ---- helpers ----
 async function generatePickupCode() {
@@ -24,7 +24,7 @@ function filterActiveChildren(children) {
 
 // ---- core ----
 async function getActiveEvent(user) {
-  const event = await getChurchActiveEvent(user);
+  const event = await getChurchUpcomingEvent(user);
   if (!event) {return null;}
 
   return {
@@ -38,7 +38,7 @@ async function getActiveEvent(user) {
 }
 
 async function getActiveCheckIn(user) {
-  const event = await getChurchActiveEvent(user);
+  const event = await getChurchUpcomingEvent(user);
   if (!event) {return { hasActiveCheckIn: false };}
 
   const checkin = await CheckIn.findOne({
@@ -61,7 +61,7 @@ async function searchCheckins(user, query) {
   const { pickupCode, lastName, eventId } = query;
 
   // 1. Get active event (or fallback to provided)
-  const event = await getChurchActiveEvent(user, eventId);
+  const event = await getChurchUpcomingEvent(user, eventId);
   if (!event) {
     throw { status: 400, message: 'No active event' };
   }
@@ -114,7 +114,7 @@ async function searchCheckins(user, query) {
 async function initiateCheckIn(user, body) {
   const { child, eventId } = body;
 
-  const event = await getChurchActiveEvent(user, eventId);
+  const event = await getChurchUpcomingEvent(user, eventId);
   if (!event) {throw { status: 400, message: 'No active event' };}
 
   // atomic protection
