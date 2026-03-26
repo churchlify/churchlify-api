@@ -364,6 +364,8 @@ router.get('/metrics/:churchId', async (req, res) => {
                 totalActiveDevotions: activeDevotionsCount,
                 totalPastDevotions: pastDevotionsCount,
                 totalUsers: usersCount,
+                totalFellowships: fellowshipsCount,
+                totalMinistries: ministriesCount,
                 totalGroups: totalGroups,
                 totalNotificationsSent: notificationsCount,
                 totalDonationsPerCurrency: donationsPerCurrency
