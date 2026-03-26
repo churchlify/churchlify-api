@@ -306,4 +306,74 @@ router.delete('/delete/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+/*
+#swagger.tags = ['Church']
+*/
+router.get('/metrics/:churchId', async (req, res) => {
+    try {
+        const { churchId } = req.params;
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        const EventInstance = require('../models/eventinstance');
+        const Devotion = require('../models/devotion');
+        const User = require('../models/user');
+        const Fellowship = require('../models/fellowship');
+        const Ministry = require('../models/ministry');
+        const Notifications = require('../models/notifications');
+        const Donation = require('../models/donations');
+
+        const churchIdObj = new mongoose.Types.ObjectId(churchId);
+
+        const [
+            activeEventsCount,
+            pastEventsCount,
+            activeDevotionsCount,
+            pastDevotionsCount,
+            usersCount,
+            fellowshipsCount,
+            ministriesCount,
+            notificationsCount,
+            donationsAggregation
+        ] = await Promise.all([
+            EventInstance.countDocuments({ church: churchId, date: { $gte: startOfToday } }),
+            EventInstance.countDocuments({ church: churchId, date: { $lt: startOfToday } }),
+            Devotion.countDocuments({ church: churchId, date: { $gte: startOfToday } }),
+            Devotion.countDocuments({ church: churchId, date: { $lt: startOfToday } }),
+            User.countDocuments({ church: churchId }),
+            Fellowship.countDocuments({ church: churchId }),
+            Ministry.countDocuments({ church: churchId }),
+            Notifications.countDocuments({ church: churchId }),
+            Donation.aggregate([
+                { $match: { churchId: churchIdObj, status: 'succeeded' } },
+                { $group: { _id: "$currency", totalAmount: { $sum: "$amount" } } }
+            ])
+        ]);
+
+        const totalGroups = fellowshipsCount + ministriesCount;
+        
+        const donationsPerCurrency = donationsAggregation.reduce((acc, curr) => {
+            acc[curr._id] = curr.totalAmount;
+            return acc;
+        }, {});
+
+        res.status(200).json({
+            metrics: {
+                totalActiveEvents: activeEventsCount,
+                totalPastEvents: pastEventsCount,
+                totalActiveDevotions: activeDevotionsCount,
+                totalPastDevotions: pastDevotionsCount,
+                totalUsers: usersCount,
+                totalGroups: totalGroups,
+                totalNotificationsSent: notificationsCount,
+                totalDonationsPerCurrency: donationsPerCurrency
+            }
+        });
+
+    } catch (error) {
+        console.error('Error fetching church metrics:', error);
+        res.status(500).json({ error: 'Server error while fetching metrics.' });
+    }
+});
+
 module.exports = router;
