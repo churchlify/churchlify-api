@@ -21,6 +21,25 @@ const normalizeValue = (value) => {
   return value;
 };
 
+const parseYearMonthFromDateInput = (value) => {
+    if (!value) {
+        return null;
+    }
+
+    const match = String(value).trim().match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
+    if (!match) {
+        return null;
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+        return null;
+    }
+
+    return { year, month };
+}
+
 const parseDateTime = async(dateString, timeString) => {
   // Parse date and time in UTC
   const [year, month, day] = dateString.split('-').map(Number);
@@ -150,4 +169,4 @@ const sanitizeString = (name) => {
 };
 
 
-module.exports = {parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, sanitizeString, normalizeValue};
+module.exports = {parseDateTime, getTodaysEvents, convertTime, getFlatennedMonthEvents, sanitizeString, normalizeValue, parseYearMonthFromDateInput};

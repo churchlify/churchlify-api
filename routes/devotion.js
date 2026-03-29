@@ -6,6 +6,7 @@ const express = require('express');
 const Devotion = require('../models/devotion');
 const {validateDevotion} = require('../middlewares/validators');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
+const { parseYearMonthFromDateInput } = require('../common/shared');
 // Unused imports removed
 // moment import removed (unused)
 const attachTimezone = require('../middlewares/attachTimezone');
@@ -86,17 +87,23 @@ router.patch('/update/:id', uploadImage, async(req, res) => {
 router.get('/list', attachTimezone, async(req, res) => {
     try {
         const churchId = req.church?._id;
-        // Use UTC for all date calculations
-        let startDate;
+        let year, month;
         if (req.query.date) {
-            // Parse input date as UTC
-            startDate = new Date(req.query.date);
-        } else {
-            // Use current UTC date
-            const now = new Date();
-            startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            const parsedParts = parseYearMonthFromDateInput(req.query.date);
+            if (parsedParts) {
+                year = parsedParts.year;
+                month = parsedParts.month;
+            }
         }
-        const filter = { date: { $gte: startDate } };
+        const now = new Date();
+        if (!year || !month) {
+            year = now.getUTCFullYear();
+            month = now.getUTCMonth() + 1;
+        }
+        // Month boundaries in UTC
+        const startDate = new Date(Date.UTC(year, month - 1, 1));
+        const endDate = new Date(Date.UTC(year, month, 1));
+        const filter = { date: { $gte: startDate, $lt: endDate } };
         if (churchId) {
             filter.church = churchId;
         }

@@ -10,6 +10,7 @@ const Event = require('../models/event');
 const Venue = require('../models/venue');
 const EventInstance = require('../models/eventinstance');
 const EventService = require('../common/event.service');
+const { parseYearMonthFromDateInput } = require('../common/shared');
 const {uploadImage, deleteFile, uploadToMinio} = require('../common/upload');
 // Unused imports removed
 //const event = require('../models/event');
@@ -17,24 +18,6 @@ const router = express.Router();
 router.use(express.json());
 const attachTimezone = require('../middlewares/attachTimezone');
 
-function parseYearMonthFromDateInput(value) {
-    if (!value) {
-        return null;
-    }
-
-    const match = String(value).trim().match(/^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?/);
-    if (!match) {
-        return null;
-    }
-
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
-        return null;
-    }
-
-    return { year, month };
-}
 /*
 #swagger.tags = ['Events']
 */
