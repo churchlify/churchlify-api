@@ -23,12 +23,14 @@ AssignmentSchema.index({ ministryId: 1, scheduleRoleId: 1, status: 1 });
 
 // Unique compound indexes to prevent duplicate assignments
 // A user can only have one role per ministry
+// A user can only have one role per ministry
 AssignmentSchema.index(
   { userId: 1, ministryId: 1 },
   {
     unique: true,
-    partialFilterExpression: { ministryId: { $exists: true, $ne: null } },
-    name: 'unique_user_ministry'
+    partialFilterExpression: { ministryId: { $gt: null } }, 
+    name: 'unique_user_ministry',
+    background: true
   }
 );
 
@@ -37,8 +39,9 @@ AssignmentSchema.index(
   { userId: 1, fellowshipId: 1 },
   {
     unique: true,
-    partialFilterExpression: { fellowshipId: { $exists: true, $ne: null } },
-    name: 'unique_user_fellowship'
+    partialFilterExpression: { fellowshipId: { $gt: null } },
+    name: 'unique_user_fellowship',
+    background: true
   }
 );
 
