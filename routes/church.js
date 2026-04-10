@@ -221,7 +221,7 @@ router.patch('/update/:churchId', uploadChurchImageStrict, normalizeAddressPaylo
 */
 router.get('/list', async(req, res) => {
     try {
-        const churches = await Church.find({isPublished: true}).select('name shortName emailAddress phoneNumber address timeZone').lean();
+        const churches = await Church.find({}).select('name shortName emailAddress phoneNumber address timeZone').lean();
         res.status(200).json({ churches });
     } catch (error) {
         res.status(500).json({ message: error.message });
